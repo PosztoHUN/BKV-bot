@@ -746,7 +746,8 @@ async def bkvganztoday(ctx, date: str = None):
         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
             for line in f:
                 if line.startswith(day):
-                    ts = line.split(" - ")[0]
+                    ts_str = line.split(" - ")[0]
+                    ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
                     trip_id = line.split("ID ")[1].split(" ")[0]
                     line_no = line.split("Vonal ")[1].split(" ")[0]
                     skodas.setdefault(reg, []).append((ts, line_no, trip_id))
@@ -758,7 +759,9 @@ async def bkvganztoday(ctx, date: str = None):
     for reg in sorted(skodas):
         first = min(skodas[reg], key=lambda x: x[0])
         last = max(skodas[reg], key=lambda x: x[0])
-        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+        out.append(
+            f"{reg} — {first[0].strftime('%H:%M')} → {last[0].strftime('%H:%M')} (vonal {first[1]})"
+        )
 
     msg = "\n".join(out)
     for i in range(0, len(msg), 1900):
@@ -958,6 +961,7 @@ async def on_ready():
     ensure_dirs()        # könyvtárak létrehozása, ha kell
     print(f"Bejelentkezve mint {bot.user}")
     logger_loop.start()   # csak egyszer induljon el
+
 
 
 bot.run(TOKEN)
