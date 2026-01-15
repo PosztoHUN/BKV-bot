@@ -735,40 +735,59 @@ async def jaratinfo(ctx, trip_id: str, date: str = None):
 
 @bot.command()
 async def bkvganztoday(ctx, date: str = None):
-    day = resolve_date(date)
+    day = resolve_date(date)  # pl. "2026-01-15"
     veh_dir = "logs/veh"
-    skodas = {}
+    vehicles = {}
 
     for fname in os.listdir(veh_dir):
         if not fname.endswith(".txt"):
             continue
-        reg = fname.replace(".txt","")
+        reg = fname.replace(".txt", "")
         if not is_ganz(reg):
             continue
 
+        trips = {}
         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
             for line in f:
-                if line.startswith(day):
-                    ts_str = line.split(" - ")[0]
-                    ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
+                # csak az adott nap
+                if not line.startswith(day):
+                    continue
+
+                parts = line.strip().split(" - ")
+                if len(parts) < 2:
+                    continue
+
+                ts_str = parts[0]  # pl. "2026-01-15 08:05:32"
+                ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
+
+                # extract trip ID és vonal
+                try:
                     trip_id = line.split("ID ")[1].split(" ")[0]
                     line_no = line.split("Vonal ")[1].split(" ")[0]
-                    skodas.setdefault(reg, []).append((ts, line_no, trip_id))
+                except IndexError:
+                    continue
 
-    if not skodas:
+                # minden trip_id-hoz tároljuk a sorokat
+                trips.setdefault(trip_id, []).append((ts, line_no))
+
+        # minden járműhöz a legkorábbi és legkésőbbi időpont
+        if trips:
+            first_ts = min(trip[0][0] for trip in trips.values())
+            last_ts = max(trip[-1][0] for trip in trips.values())
+            line_no = next(iter(trips.values()))[0][1]  # első vonalszám
+            vehicles[reg] = (first_ts, last_ts, line_no)
+
+    if not vehicles:
         return await ctx.send(f"🚫 {day} napon nem közlekedett Ganz.")
 
     out = [f"🚊 Ganz – forgalomban ({day})"]
-    for reg in sorted(skodas):
-        first = min(skodas[reg], key=lambda x: x[0])
-        last = max(skodas[reg], key=lambda x: x[0])
-        out.append(
-            f"{reg} — {first[0].strftime('%H:%M')} → {last[0].strftime('%H:%M')} (vonal {first[1]})"
-        )
+    for reg, (start, end, line_no) in sorted(vehicles.items()):
+        out.append(f"{reg} — {start.strftime('%H:%M')} → {end.strftime('%H:%M')} (vonal {line_no})")
 
     msg = "\n".join(out)
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i+1900])
+
 
 @bot.command()
 async def bkvtw6000today(ctx, date: str = None):
@@ -968,4 +987,5 @@ async def on_ready():
 
 
 bot.run(TOKEN)
+
 
