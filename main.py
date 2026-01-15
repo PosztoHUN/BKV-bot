@@ -50,6 +50,9 @@ def in_bbox(lat, lon):
         18.90 <= lon <= 19.30
     )
 
+line = "2026-01-15 08:05:32 - ID 12345 Vonal 1"
+ts_str = line.split(" - ")[0]   # "2026-01-15 08:05:32"
+ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
 
 def ensure_dirs():
     os.makedirs("logs", exist_ok=True)
@@ -965,3 +968,4 @@ async def on_ready():
 
 
 bot.run(TOKEN)
+
