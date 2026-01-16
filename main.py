@@ -1287,17 +1287,60 @@ async def vehicleinfo(ctx, vehicle: str):
     await ctx.send(f"🚊 **{vehicle} utolsó menete**\n```{last}```")
         
 @bot.command()
-async def bkvvillamostoday(ctx):
-    if not active_today_villamos:
-        return await ctx.send("🚫 Nincs aktív villamos ma.")
+async def bkvvillamos(ctx):
+    active = {}
+    async with aiohttp.ClientSession() as session:
+        vehicles = await fetch_json(session, VEHICLES_API)
+        if not isinstance(vehicles, list):
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
 
-    messages = []
-    for reg, info in sorted(active_today_villamos.items()):
-        start = info["first"].strftime("%H:%M") if info["first"] else "–"
-        end = info["last"].strftime("%H:%M") if info["last"] else "–"
-        messages.append(f"{reg}: {start} → {end} (vonal {info['line']})")
+        for v in vehicles:
+            reg = v.get("license_plate")
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
+            dest = v.get("destination", "Ismeretlen")
+            trip_id = str(v.get("vehicle_id"))
+            model = (v.get("vehicle_model") or "").lower()
 
-    await ctx.send("\n".join(messages))
+            if not reg:
+                continue
+
+            # csak villamosok
+            if not (("ganz" in model or is_tw6000(reg) or is_combino(reg) or
+                     is_caf5(reg) or is_caf9(reg) or is_t5c5(reg) or is_oktato(reg))):
+                continue
+
+            # Ganz troli kizárása
+            if is_ganz_troli(reg):
+                continue
+
+            active[reg] = {"line": line_name, "dest": dest, "trip_id": trip_id}
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív villamos.")
+
+    # ===== EMBED DARABOLÁS =====
+    MAX_FIELDS = 20
+    embeds = []
+    embed = discord.Embed(title="🚋 Aktív villamosok", color=0xffff00)
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        forgalmi = menetrendi_forgalmi(i["trip_id"])
+        value = f"Vonal: {i['line']}\nCél: {i['dest']}\nForgalmi szám: {forgalmi}"
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title="🚋 Aktív villamosok (folytatás)", color=0xffff00)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
+
 
 # =======================
 # START
