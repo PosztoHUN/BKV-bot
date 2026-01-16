@@ -72,6 +72,11 @@ if os.path.exists(LOCK_FILE):
     print("A bot már fut, kilépés.")
     sys.exit(0)
 
+active_today_villamos = {}
+active_today_combino = {}
+active_today_caf5 = {}
+active_today_caf9 = {}
+active_today_tatra = {}
 
 # =======================
 # DISCORD INIT
@@ -410,6 +415,67 @@ def resolve_date(date_arg):
 # =======================
 # LOGGER LOOP
 # =======================
+
+@tasks.loop(minutes=3)
+async def update_active_today():
+    async with aiohttp.ClientSession() as session:
+        vehicles = await fetch_json(session, VEHICLES_API)
+        if not isinstance(vehicles, list):
+            return
+
+        # Törlés minden frissítés előtt
+        active_today_villamos.clear()
+        active_today_combino.clear()
+        active_today_caf5.clear()
+        active_today_caf9.clear()
+        active_today_tatra.clear()
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
+            dest = v.get("destination", "Ismeretlen")
+            lat = v.get("latitude")
+            lon = v.get("longitude")
+            trip_id = str(v.get("vehicle_id"))
+            model = (v.get("vehicle_model") or "").lower()
+
+            if not reg or lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # Villamosok
+            if "ganz" in model or is_tw6000(reg) or is_combino(reg) or is_caf5(reg) or is_caf9(reg) or is_t5c5(reg) or is_oktato(reg):
+                if is_ganz_troli(reg):
+                    continue
+                entry = active_today_villamos.setdefault(reg, {"line": line_name, "dest": dest, "first": None, "last": None})
+                now = datetime.utcnow()
+                if not entry["first"]:
+                    entry["first"] = now
+                entry["last"] = now
+
+                # Specifikus típusok
+                if is_combino(reg):
+                    entry_c = active_today_combino.setdefault(reg, {"line": line_name, "dest": dest, "first": None, "last": None})
+                    if not entry_c["first"]:
+                        entry_c["first"] = now
+                    entry_c["last"] = now
+                if is_caf5(reg):
+                    entry_c = active_today_caf5.setdefault(reg, {"line": line_name, "dest": dest, "first": None, "last": None})
+                    if not entry_c["first"]:
+                        entry_c["first"] = now
+                    entry_c["last"] = now
+                if is_caf9(reg):
+                    entry_c = active_today_caf9.setdefault(reg, {"line": line_name, "dest": dest, "first": None, "last": None})
+                    if not entry_c["first"]:
+                        entry_c["first"] = now
+                    entry_c["last"] = now
+                if is_t5c5(reg):
+                    entry_c = active_today_tatra.setdefault(reg, {"line": line_name, "dest": dest, "first": None, "last": None})
+                    if not entry_c["first"]:
+                        entry_c["first"] = now
+                    entry_c["last"] = now
 
 @tasks.loop(seconds=30)
 async def logger_loop():
@@ -1221,49 +1287,17 @@ async def vehicleinfo(ctx, vehicle: str):
     await ctx.send(f"🚊 **{vehicle} utolsó menete**\n```{last}```")
         
 @bot.command()
-async def bkvvillamostoday(ctx, date: str = None):
-    day = resolve_date(date)
-    veh_dir = "logs/veh"
-    active = {}
+async def bkvvillamostoday(ctx):
+    if not active_today_villamos:
+        return await ctx.send("🚫 Nincs aktív villamos ma.")
 
-    for fname in os.listdir(veh_dir):
-        if not fname.endswith(".txt"):
-            continue
-        reg = fname.replace(".txt", "")
+    messages = []
+    for reg, info in sorted(active_today_villamos.items()):
+        start = info["first"].strftime("%H:%M") if info["first"] else "–"
+        end = info["last"].strftime("%H:%M") if info["last"] else "–"
+        messages.append(f"{reg}: {start} → {end} (vonal {info['line']})")
 
-        if is_ganz_troli(reg):
-            continue
-
-        if not (is_ganz(reg) or is_tw6000(reg) or is_combino(reg) or
-                is_caf5(reg) or is_caf9(reg) or is_t5c5(reg) or is_oktato(reg)):
-            continue
-
-        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-            for line in f:
-                if line.startswith(day):
-                    try:
-                        ts_str = line.split(" - ")[0]
-                        ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
-                        trip_id = line.split("ID ")[1].split(" ")[0]
-                        line_no = line.split("Vonal ")[1].split(" ")[0]
-                        # ID → valós vonal
-                        line_name = LINE_MAP.get(line_no, line_no)
-                        active.setdefault(reg, []).append((ts, line_name, trip_id))
-                    except:
-                        continue
-
-    if not active:
-        return await ctx.send(f"🚫 {day} napon nem közlekedett villamos.")
-
-    out = [f"🚋 Villamos – forgalomban ({day})"]
-    for reg in sorted(active):
-        first = min(active[reg], key=lambda x: x[0])
-        last = max(active[reg], key=lambda x: x[0])
-        out.append(f"{reg} — {first[0].strftime('%H:%M')} → {last[0].strftime('%H:%M')} (vonal {first[1]})")
-
-    msg = "\n".join(out)
-    for i in range(0, len(msg), 1900):
-        await ctx.send(msg[i:i+1900])
+    await ctx.send("\n".join(messages))
 
 # =======================
 # START
