@@ -919,9 +919,7 @@ async def bkvtatra(ctx):
 
             if not reg or lat is None or lon is None:
                 continue
-            if not is_t5c5(reg):
-                continue
-            if not is_t5c5k2(reg):
+            if not (is_t5c5(reg) or is_t5c5k2(reg)):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
