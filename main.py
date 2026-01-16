@@ -448,10 +448,12 @@ async def logger_loop():
 # PARANCSOK – MIND
 # =======================
 
+# ────────────────
+# BKV Villamos
+# ────────────────
 @bot.command()
 async def bkvvillamos(ctx):
     active = {}
-
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
         if not isinstance(vehicles, list):
@@ -459,54 +461,38 @@ async def bkvvillamos(ctx):
 
         for v in vehicles:
             reg = v.get("license_plate")
-            line = str(v.get("route_id", "—"))
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
             dest = v.get("destination", "Ismeretlen")
             lat = v.get("latitude")
             lon = v.get("longitude")
-            trip_id = str(v.get("vehicle_id"))  # vagy a megfelelő trip_id, ha van
+            trip_id = str(v.get("vehicle_id"))
             model = (v.get("vehicle_model") or "").lower()
 
             if not reg or lat is None or lon is None:
                 continue
-
-            # Budapest környéke
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
-
-            # csak villamosok
-            if not (
-                "ganz" in model
-                or is_tw6000(reg)
-                or is_combino(reg)
-                or is_caf5(reg)
-                or is_caf9(reg)
-                or is_t5c5(reg)
-                or is_oktato(reg)
-            ):
+            if not ("ganz" in model or is_tw6000(reg) or is_combino(reg) or
+                    is_caf5(reg) or is_caf9(reg) or is_t5c5(reg) or is_oktato(reg)):
                 continue
-
-            # Ganz troli kizárása
             if is_ganz_troli(reg):
                 continue
 
-            active[reg] = {
-                "line": line,
-                "dest": dest,
-                "trip_id": trip_id  # ide mentjük a trip_id-t
-            }
+            active[reg] = {"line": line_name, "dest": dest, "trip_id": trip_id, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív villamos.")
 
-    # ===== EMBED DARABOLÁS =====
+    # EMBED DARABOLÁS
     MAX_FIELDS = 20
     embeds = []
     embed = discord.Embed(title="🚋 Aktív villamosok", color=0xffff00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
-        forgalmi = menetrendi_forgalmi(i["trip_id"])  # kiszámoljuk a forgalmi számot
-        value = f"Vonal (ID): {i['line']}\nCél: {i['dest']}\nForgalmi szám: {forgalmi}"
+        forgalmi = menetrendi_forgalmi(i["trip_id"])
+        value = f"Vonal: {i['line']}\nCél: {i['dest']}\nForgalmi szám: {forgalmi}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}"
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
@@ -517,14 +503,16 @@ async def bkvvillamos(ctx):
         field_count += 1
 
     embeds.append(embed)
-
     for e in embeds:
         await ctx.send(embed=e)
 
+
+# ────────────────
+# Ganz
+# ────────────────
 @bot.command()
 async def bkvganz(ctx):
     active = {}
-
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
         if not isinstance(vehicles, list):
@@ -536,139 +524,109 @@ async def bkvganz(ctx):
             lat = v.get("latitude")
             lon = v.get("longitude")
             dest = v.get("destination", "Ismeretlen")
-            line = str(v.get("route_id", "—"))
-            
-            # Ganz troli kizárása (T601–T626)
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
+
             if is_ganz_troli(reg):
                 continue
-
-
             if not reg or lat is None or lon is None:
                 continue
-
-            # csak Ganz
             if "ganz" not in model:
                 continue
-
-            # Budapest
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {
-                "line": line,
-                "dest": dest,
-                "lat": lat,
-                "lon": lon
-            }
+            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Ganz villamos.")
 
-    # ===== EMBED DARABOLÁS =====
-
+    # EMBED DARABOLÁS
     MAX_FIELDS = 20
     embeds = []
-
-    embed = discord.Embed(
-        title="🚋 Aktív Ganz villamosok",
-        color=0xffff00
-    )
+    embed = discord.Embed(title="🚋 Aktív Ganz villamosok", color=0xffff00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(
-                title="🚋 Aktív Ganz villamosok (folytatás)",
-                color=0xffff00
-            )
+            embed = discord.Embed(title="🚋 Aktív Ganz villamosok (folytatás)", color=0xffff00)
             field_count = 0
 
         embed.add_field(
             name=reg,
-            value=(
-                f"Vonal (ID): {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"Vonal: {i['line']}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
 
     embeds.append(embed)
-
     for e in embeds:
         await ctx.send(embed=e)
-    
+
+
+# ────────────────
+# TW6000
+# ────────────────
+
+# Példa TW6000
 @bot.command()
 async def bkvtw6000(ctx):
+    active = {}
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
         if not isinstance(vehicles, list):
             return await ctx.send("❌ Nem érkezett adat az API-ból.")
-
-        embed = discord.Embed(
-            title="🚋 Aktív TW6000-es villamosok",
-            color=0xffff00
-        )
-
-        current_len = 0
-        sent_any = False
 
         for v in vehicles:
             reg = v.get("license_plate")
             lat = v.get("latitude")
             lon = v.get("longitude")
             dest = v.get("destination", "Ismeretlen")
-            line = str(v.get("route_id", "—"))
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
 
             if not reg or lat is None or lon is None:
                 continue
-
             if not is_tw6000(reg):
                 continue
-
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            value = (
-                f"Vonal (ID): {line}\n"
-                f"Cél: {dest}\n"
-                f"Pozíció: {lat:.5f}, {lon:.5f}"
-            )
+            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
-            field_len = len(reg) + len(value)
+    if not active:
+        return await ctx.send("🚫 Nincs aktív TW6000-es villamos.")
 
-            # ha nem fér bele → küldés + új embed
-            if current_len + field_len > 1800 or len(embed.fields) >= 20:
-                await ctx.send(embed=embed)
-                sent_any = True
-                embed = discord.Embed(
-                    title="🚋 Aktív TW6000-es villamosok (folytatás)",
-                    color=0xffff00
-                )
-                current_len = 0
+    MAX_FIELDS = 20
+    embeds = []
+    embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok", color=0xffff00)
+    field_count = 0
 
-            embed.add_field(
-                name=reg,
-                value=value,
-                inline=False
-            )
-            current_len += field_len
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok (folytatás)", color=0xffff00)
+            field_count = 0
 
-        if embed.fields:
-            await ctx.send(embed=embed)
-            sent_any = True
+        embed.add_field(
+            name=reg,
+            value=f"Vonal: {i['line']}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            inline=False
+        )
+        field_count += 1
 
-        if not sent_any:
-            await ctx.send("🚫 Nincs aktív TW6000-es villamos.")
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
+        
 
-
-    
+# ────────────────
+# Combino
+# ────────────────
 @bot.command()
 async def bkvcombino(ctx):
     active = {}
-
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
         if not isinstance(vehicles, list):
@@ -679,67 +637,50 @@ async def bkvcombino(ctx):
             lat = v.get("latitude")
             lon = v.get("longitude")
             dest = v.get("destination", "Ismeretlen")
-            line = str(v.get("route_id", "—"))
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
 
             if not reg or lat is None or lon is None:
                 continue
-
             if not is_combino(reg):
                 continue
-
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {
-                "line": line,
-                "dest": dest,
-                "lat": lat,
-                "lon": lon
-            }
+            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Combino villamos.")
 
-    # ===== EMBED DARABOLÁS (GYORS + LIMITBIZTOS) =====
-
     MAX_FIELDS = 20
     embeds = []
-
-    embed = discord.Embed(
-        title="🚋 Aktív Combino villamosok",
-        color=0xffff00
-    )
+    embed = discord.Embed(title="🚋 Aktív Combino villamosok", color=0xffff00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(
-                title="🚋 Aktív Combino villamosok (folytatás)",
-                color=0xffff00
-            )
+            embed = discord.Embed(title="🚋 Aktív Combino villamosok (folytatás)", color=0xffff00)
             field_count = 0
 
         embed.add_field(
             name=reg,
-            value=(
-                f"Vonal (ID): {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"Vonal: {i['line']}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
 
     embeds.append(embed)
-
     for e in embeds:
         await ctx.send(embed=e)
 
+
+# ────────────────
+# CAF5
+# ────────────────
 @bot.command()
 async def bkvcaf5(ctx):
     active = {}
-
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
         if not isinstance(vehicles, list):
@@ -750,67 +691,50 @@ async def bkvcaf5(ctx):
             lat = v.get("latitude")
             lon = v.get("longitude")
             dest = v.get("destination", "Ismeretlen")
-            line = str(v.get("route_id", "—"))
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
 
             if not reg or lat is None or lon is None:
                 continue
-
             if not is_caf5(reg):
                 continue
-
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {
-                "line": line,
-                "dest": dest,
-                "lat": lat,
-                "lon": lon
-            }
+            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF5 villamos.")
 
-    # ===== EMBED DARABOLÁS =====
-
     MAX_FIELDS = 20
     embeds = []
-
-    embed = discord.Embed(
-        title="🚋 Aktív CAF5 villamosok",
-        color=0xffff00
-    )
+    embed = discord.Embed(title="🚋 Aktív CAF5 villamosok", color=0xffff00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(
-                title="🚋 Aktív CAF5 villamosok (folytatás)",
-                color=0xffff00
-            )
+            embed = discord.Embed(title="🚋 Aktív CAF5 villamosok (folytatás)", color=0xffff00)
             field_count = 0
 
         embed.add_field(
             name=reg,
-            value=(
-                f"Vonal (ID): {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"Vonal: {i['line']}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
 
     embeds.append(embed)
-
     for e in embeds:
         await ctx.send(embed=e)
 
+
+# ────────────────
+# CAF9
+# ────────────────
 @bot.command()
 async def bkvcaf9(ctx):
     active = {}
-
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
         if not isinstance(vehicles, list):
@@ -821,67 +745,50 @@ async def bkvcaf9(ctx):
             lat = v.get("latitude")
             lon = v.get("longitude")
             dest = v.get("destination", "Ismeretlen")
-            line = str(v.get("route_id", "—"))
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
 
             if not reg or lat is None or lon is None:
                 continue
-
             if not is_caf9(reg):
                 continue
-
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {
-                "line": line,
-                "dest": dest,
-                "lat": lat,
-                "lon": lon
-            }
+            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF9 villamos.")
 
-    # ===== EMBED DARABOLÁS =====
-
     MAX_FIELDS = 20
     embeds = []
-
-    embed = discord.Embed(
-        title="🚋 Aktív CAF9 villamosok",
-        color=0xffff00
-    )
+    embed = discord.Embed(title="🚋 Aktív CAF9 villamosok", color=0xffff00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(
-                title="🚋 Aktív CAF9 villamosok (folytatás)",
-                color=0xffff00
-            )
+            embed = discord.Embed(title="🚋 Aktív CAF9 villamosok (folytatás)", color=0xffff00)
             field_count = 0
 
         embed.add_field(
             name=reg,
-            value=(
-                f"Vonal (ID): {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"Vonal: {i['line']}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
 
     embeds.append(embed)
-
     for e in embeds:
         await ctx.send(embed=e)
 
+
+# ────────────────
+# Tatra (T5C5)
+# ────────────────
 @bot.command()
 async def bkvtatra(ctx):
     active = {}
-
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
         if not isinstance(vehicles, list):
@@ -892,64 +799,43 @@ async def bkvtatra(ctx):
             lat = v.get("latitude")
             lon = v.get("longitude")
             dest = v.get("destination", "Ismeretlen")
-            line = str(v.get("route_id", "—"))
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
 
             if not reg or lat is None or lon is None:
                 continue
-
-            # Tatra (T5C5)
             if not is_t5c5(reg):
                 continue
-
-            # Budapest tartomány
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {
-                "line": line,
-                "dest": dest,
-                "lat": lat,
-                "lon": lon
-            }
+            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Tatra villamos.")
 
-    # ===== EMBED DARABOLÁS =====
-
     MAX_FIELDS = 20
     embeds = []
-
-    embed = discord.Embed(
-        title="🚋 Aktív Tatra villamosok",
-        color=0xffff00
-    )
+    embed = discord.Embed(title="🚋 Aktív Tatra villamosok", color=0xffff00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(
-                title="🚋 Aktív Tatra villamosok (folytatás)",
-                color=0xffff00
-            )
+            embed = discord.Embed(title="🚋 Aktív Tatra villamosok (folytatás)", color=0xffff00)
             field_count = 0
 
         embed.add_field(
             name=reg,
-            value=(
-                f"Vonal (ID): {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"Vonal: {i['line']}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
 
     embeds.append(embed)
-
     for e in embeds:
         await ctx.send(embed=e)
+
 
 # @bot.command()
 # async def allnosztalgia(ctx):
@@ -1333,40 +1219,6 @@ async def vehicleinfo(ctx, vehicle: str):
 
     last = lines[-1]
     await ctx.send(f"🚊 **{vehicle} utolsó menete**\n```{last}```")
-    
-@bot.command()
-async def bkvtanulotoday(ctx, date: str = None):
-    day = resolve_date(date)
-    veh_dir = "logs/veh"
-    skodas = {}
-
-    for fname in os.listdir(veh_dir):
-        if not fname.endswith(".txt"):
-            continue
-        reg = fname.replace(".txt","")
-        if not is_oktato(reg):
-            continue
-
-        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-            for line in f:
-                if line.startswith(day):
-                    ts = line.split(" - ")[0]
-                    trip_id = line.split("ID ")[1].split(" ")[0]
-                    line_no = line.split("Vonal ")[1].split(" ")[0]
-                    skodas.setdefault(reg, []).append((ts, line_no, trip_id))
-
-    if not skodas:
-        return await ctx.send(f"🚫 {day} ma nem közlekedett oktató villamos.")
-
-    out = [f"🚊 oktató – szabadon ({day})"]
-    for reg in sorted(skodas):
-        first = min(skodas[reg], key=lambda x: x[0])
-        last = max(skodas[reg], key=lambda x: x[0])
-        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
-
-    msg = "\n".join(out)
-    for i in range(0, len(msg), 1900):
-        await ctx.send(msg[i:i+1900])  
         
 @bot.command()
 async def bkvvillamostoday(ctx, date: str = None):
