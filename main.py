@@ -686,7 +686,7 @@ async def vehhist(ctx, vehicle: str, date: str = None):
         runs.append(current)
 
     # --- KIÍRÁS (FÉLKÖVÉR!) ---
-    lines = [f"🚎 {vehicle} – vehhist ({day})"]
+    lines = [f"🚋 {vehicle} – vehhist ({day})"]
 
     for r in runs:
         lines.append(
@@ -987,5 +987,6 @@ async def on_ready():
 
 
 bot.run(TOKEN)
+
 
 
