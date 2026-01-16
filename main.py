@@ -318,15 +318,33 @@ def is_ganz_troli(reg):
     n = int(reg[1:])
     return 601 <= n <= 626
 
+KCSV_NUMBERS = {
+    "V1321", "V1325", "V1326", "V1327", "V1328", "V1329", "V1330", "V1331",
+    "V1332", "V1335", "V1336", "V1337", "V1339", "V1340", "V1343", "V1344",
+    "V1345", "V1346", "V1347", "V1348", "V1350", "V1351", "V1352", "V1353",
+    "V1354", "V1355", "V1356", "V1359", "V1362", "V1370"
+}
+
 def is_ganz(reg):
+    """Visszaadja True-t, ha a regisztráció egy Ganz villamos (ICS vagy KCSV7)"""
     if not isinstance(reg, str):
         return False
     if not reg.startswith("V"):
         return False
-    if reg[1:].isdigit():
-        n = int(reg[1:])
-        if 1301 <= n <= 1499:
-            return True
+    if not reg[1:].isdigit():
+        return False
+    n = int(reg[1:])
+    return 1301 <= n <= 1499
+
+def is_kcsv7(reg):
+    """Visszaadja True-t, ha a regisztráció egy KCSV7 villamos"""
+    return reg in KCSV_NUMBERS
+
+def is_ics(reg):
+    """Visszaadja True-t, ha a regisztráció egy ICS villamos"""
+    if not is_ganz(reg):
+        return False
+    return reg not in KCSV_NUMBERS
 
 def is_caf5(reg):
     if not isinstance(reg, str):
@@ -626,7 +644,7 @@ async def bkvvillamos(ctx):
 # Ganz
 # ────────────────
 @bot.command()
-async def bkvganz(ctx):
+async def bkvkcsv7(ctx):
     active = {}
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
@@ -642,7 +660,7 @@ async def bkvganz(ctx):
             line_id = str(v.get("route_id", "—"))
             line_name = LINE_MAP.get(line_id, line_id)
 
-            if is_ganz_troli(reg):
+            if is_ganz_troli(reg) or is_kcsv7(reg):
                 continue
             if not reg or lat is None or lon is None:
                 continue
@@ -654,18 +672,72 @@ async def bkvganz(ctx):
             active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
-        return await ctx.send("🚫 Nincs aktív Ganz villamos.")
+        return await ctx.send("🚫 Nincs aktív Ganz KCSV7 villamos.")
 
     # EMBED DARABOLÁS
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív Ganz villamosok", color=0xffff00)
+    embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok", color=0xffff00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív Ganz villamosok (folytatás)", color=0xffff00)
+            embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok (folytatás)", color=0xffff00)
+            field_count = 0
+
+        embed.add_field(
+            name=reg,
+            value=f"Vonal: {i['line']}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            inline=False
+        )
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
+
+@bot.command()
+async def bkvics(ctx):
+    active = {}
+    async with aiohttp.ClientSession() as session:
+        vehicles = await fetch_json(session, VEHICLES_API)
+        if not isinstance(vehicles, list):
+            return await ctx.send("❌ Nem érkezett adat az API-ból.")
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            model = (v.get("vehicle_model") or "").lower()
+            lat = v.get("latitude")
+            lon = v.get("longitude")
+            dest = v.get("destination", "Ismeretlen")
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
+
+            if is_ganz_troli(reg) or is_kcsv7(reg):
+                continue
+            if not reg or lat is None or lon is None:
+                continue
+            if "ganz" not in model:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Ganz ICS villamos.")
+
+    # EMBED DARABOLÁS
+    MAX_FIELDS = 20
+    embeds = []
+    embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok", color=0xffff00)
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok (folytatás)", color=0xffff00)
             field_count = 0
 
         embed.add_field(
