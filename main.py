@@ -1287,7 +1287,7 @@ async def vehicleinfo(ctx, vehicle: str):
     await ctx.send(f"🚊 **{vehicle} utolsó menete**\n```{last}```")
         
 @bot.command()
-async def bkvvillamos(ctx):
+async def bkvvillamostoday(ctx):
     active = {}
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
