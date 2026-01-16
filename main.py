@@ -419,38 +419,38 @@ def resolve_date(date_arg):
 # LOGGER LOOP
 # =======================
 
-class MyBot(commands.Bot):
-    async def setup_hook(self):
-        # Háttérfeladat indítása itt
-        self.loop.create_task(self.refresh_today_data())
+async def refresh_today_data(self):
+    await self.wait_until_ready()
+    while not self.is_closed():
+        veh_dir = "logs/veh"
+        today = datetime.now().date()  # csak a dátum
+        data = {}
 
-    async def refresh_today_data(self):
-        await self.wait_until_ready()
-        while not self.is_closed():
-            veh_dir = "logs/veh"
-            day = datetime.now().strftime("%Y-%m-%d")
-            data = {}
+        for fname in os.listdir(veh_dir):
+            if not fname.endswith(".txt"):
+                continue
+            reg = fname.replace(".txt", "")
+            if not is_combino(reg):
+                continue
 
-            for fname in os.listdir(veh_dir):
-                if not fname.endswith(".txt"):
-                    continue
-                reg = fname.replace(".txt", "")
-                if not is_combino(reg):
-                    continue
-                with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-                    for line in f:
-                        if line.startswith(day):
-                            try:
-                                ts = line.split(" - ")[0]
-                                trip_id = line.split("ID ")[1].split(" ")[0]
-                                line_no = line.split("Vonal ")[1].split(" ")[0]
-                                line_name = LINE_MAP.get(line_no, line_no)
-                                data.setdefault(reg, []).append((ts, line_name, trip_id))
-                            except:
-                                continue
+            with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+                for line in f:
+                    try:
+                        ts_full = line.split(" - ")[0]  # pl. "2026-01-16 06:15:00"
+                        ts_date = datetime.strptime(ts_full, "%Y-%m-%d %H:%M:%S").date()
+                        if ts_date != today:
+                            continue
 
-            today_data[day] = data
-            await asyncio.sleep(180)  # 3 percenként frissít
+                        trip_id = line.split("ID ")[1].split(" ")[0]
+                        line_no = line.split("Vonal ")[1].split(" ")[0]
+                        line_name = LINE_MAP.get(line_no, line_no)
+                        data.setdefault(reg, []).append((ts_full, line_name, trip_id))
+                    except Exception as e:
+                        continue
+
+        today_data[today.strftime("%Y-%m-%d")] = data
+        await asyncio.sleep(180)
+
         
 
 @tasks.loop(minutes=3)
