@@ -409,6 +409,7 @@ async def logger_loop():
 # =======================
 
 @bot.command()
+@bot.command()
 async def bkvvillamos(ctx):
     active = {}
 
@@ -423,6 +424,7 @@ async def bkvvillamos(ctx):
             dest = v.get("destination", "Ismeretlen")
             lat = v.get("latitude")
             lon = v.get("longitude")
+            trip_id = str(v.get("vehicle_id"))  # vagy a megfelelő trip_id, ha van
             model = (v.get("vehicle_model") or "").lower()
 
             if not reg or lat is None or lon is None:
@@ -451,8 +453,7 @@ async def bkvvillamos(ctx):
             active[reg] = {
                 "line": line,
                 "dest": dest,
-                "lat": lat,
-                "lon": lon
+                "trip_id": trip_id  # ide mentjük a trip_id-t
             }
 
     if not active:
@@ -461,25 +462,19 @@ async def bkvvillamos(ctx):
     # ===== EMBED DARABOLÁS =====
     MAX_FIELDS = 20
     embeds = []
-
     embed = discord.Embed(title="🚋 Aktív villamosok", color=0xffff00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
+        forgalmi = menetrendi_forgalmi(i["trip_id"])  # kiszámoljuk a forgalmi számot
+        value = f"Vonal (ID): {i['line']}\nCél: {i['dest']}\nForgalmi szám: {forgalmi}"
+
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title="🚋 Aktív villamosok (folytatás)", color=0xffff00)
             field_count = 0
 
-        embed.add_field(
-            name=reg,
-            value=(
-                f"Vonal (ID): {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
-            inline=False
-        )
+        embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
     embeds.append(embed)
@@ -487,8 +482,6 @@ async def bkvvillamos(ctx):
     for e in embeds:
         await ctx.send(embed=e)
 
-
-    
 @bot.command()
 async def bkvganz(ctx):
     active = {}
