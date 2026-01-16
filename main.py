@@ -660,7 +660,7 @@ async def bkvkcsv7(ctx):
             line_id = str(v.get("route_id", "—"))
             line_name = LINE_MAP.get(line_id, line_id)
 
-            if is_ganz_troli(reg) or is_kcsv7(reg):
+            if is_ganz_troli(reg) or is_ics(reg):
                 continue
             if not reg or lat is None or lon is None:
                 continue
