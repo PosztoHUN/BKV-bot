@@ -86,6 +86,16 @@ def is_t5c5(reg):
         return False
     return 4000 <= int(reg[1:]) <= 4349 
 
+def is_ganz_troli(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("T"):
+        return False
+    if not reg[1:].isdigit():
+        return False
+    n = int(reg[1:])
+    return 601 <= n <= 626
+
 def is_ganz(reg):
     if not isinstance(reg, str):
         return False
@@ -296,6 +306,11 @@ async def bkvganz(ctx):
             lon = v.get("longitude")
             dest = v.get("destination", "Ismeretlen")
             line = str(v.get("route_id", "—"))
+            
+            # Ganz troli kizárása (T601–T626)
+            if is_ganz_troli(reg):
+                continue
+
 
             if not reg or lat is None or lon is None:
                 continue
