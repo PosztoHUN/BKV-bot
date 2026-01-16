@@ -50,9 +50,6 @@ def in_bbox(lat, lon):
         18.90 <= lon <= 19.30
     )
 
-line = "2026-01-15 08:05:32 - ID 12345 Vonal 1"
-ts_str = line.split(" - ")[0]   # "2026-01-15 08:05:32"
-ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
 
 def ensure_dirs():
     os.makedirs("logs", exist_ok=True)
@@ -307,7 +304,7 @@ async def bkvganz(ctx):
             if "ganz" not in model:
                 continue
 
-            # Budapest (biztos tartomány)
+            # Budapest
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
@@ -321,8 +318,26 @@ async def bkvganz(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív Ganz villamos.")
 
-    embed = discord.Embed(title="🚋 Aktív Ganz villamosok", color=0xffff00)
-    for reg, i in active.items():
+    # ===== EMBED DARABOLÁS =====
+
+    MAX_FIELDS = 20
+    embeds = []
+
+    embed = discord.Embed(
+        title="🚋 Aktív Ganz villamosok",
+        color=0xffff00
+    )
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(
+                title="🚋 Aktív Ganz villamosok (folytatás)",
+                color=0xffff00
+            )
+            field_count = 0
+
         embed.add_field(
             name=reg,
             value=(
@@ -332,9 +347,12 @@ async def bkvganz(ctx):
             ),
             inline=False
         )
+        field_count += 1
 
-    await ctx.send(embed=embed)
+    embeds.append(embed)
 
+    for e in embeds:
+        await ctx.send(embed=e)
     
 @bot.command()
 async def bkvtw6000(ctx):
@@ -686,7 +704,7 @@ async def vehhist(ctx, vehicle: str, date: str = None):
         runs.append(current)
 
     # --- KIÍRÁS (FÉLKÖVÉR!) ---
-    lines = [f"🚋 {vehicle} – vehhist ({day})"]
+    lines = [f"🚎 {vehicle} – vehhist ({day})"]
 
     for r in runs:
         lines.append(
@@ -735,59 +753,40 @@ async def jaratinfo(ctx, trip_id: str, date: str = None):
 
 @bot.command()
 async def bkvganztoday(ctx, date: str = None):
-    day = resolve_date(date)  # pl. "2026-01-15"
+    day = resolve_date(date)
     veh_dir = "logs/veh"
-    vehicles = {}
+    skodas = {}
 
     for fname in os.listdir(veh_dir):
         if not fname.endswith(".txt"):
             continue
-        reg = fname.replace(".txt", "")
+        reg = fname.replace(".txt","")
         if not is_ganz(reg):
             continue
 
-        trips = {}
         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
             for line in f:
-                # csak az adott nap
-                if not line.startswith(day):
-                    continue
-
-                parts = line.strip().split(" - ")
-                if len(parts) < 2:
-                    continue
-
-                ts_str = parts[0]  # pl. "2026-01-15 08:05:32"
-                ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
-
-                # extract trip ID és vonal
-                try:
+                if line.startswith(day):
+                    ts_str = line.split(" - ")[0]
+                    ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
                     trip_id = line.split("ID ")[1].split(" ")[0]
                     line_no = line.split("Vonal ")[1].split(" ")[0]
-                except IndexError:
-                    continue
+                    skodas.setdefault(reg, []).append((ts, line_no, trip_id))
 
-                # minden trip_id-hoz tároljuk a sorokat
-                trips.setdefault(trip_id, []).append((ts, line_no))
-
-        # minden járműhöz a legkorábbi és legkésőbbi időpont
-        if trips:
-            first_ts = min(trip[0][0] for trip in trips.values())
-            last_ts = max(trip[-1][0] for trip in trips.values())
-            line_no = next(iter(trips.values()))[0][1]  # első vonalszám
-            vehicles[reg] = (first_ts, last_ts, line_no)
-
-    if not vehicles:
+    if not skodas:
         return await ctx.send(f"🚫 {day} napon nem közlekedett Ganz.")
 
     out = [f"🚊 Ganz – forgalomban ({day})"]
-    for reg, (start, end, line_no) in sorted(vehicles.items()):
-        out.append(f"{reg} — {start.strftime('%H:%M')} → {end.strftime('%H:%M')} (vonal {line_no})")
+    for reg in sorted(skodas):
+        first = min(skodas[reg], key=lambda x: x[0])
+        last = max(skodas[reg], key=lambda x: x[0])
+        out.append(
+            f"{reg} — {first[0].strftime('%H:%M')} → {last[0].strftime('%H:%M')} (vonal {first[1]})"
+        )
 
     msg = "\n".join(out)
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i+1900])
-
 
 @bot.command()
 async def bkvtw6000today(ctx, date: str = None):
@@ -958,9 +957,9 @@ async def bkvtanulotoday(ctx, date: str = None):
                     skodas.setdefault(reg, []).append((ts, line_no, trip_id))
 
     if not skodas:
-        return await ctx.send(f"🚫 {day} napon nem közlekedett CAF.")
+        return await ctx.send(f"🚫 {day} ma nem közlekedett oktató villamos.")
 
-    out = [f"🚊 CAF – forgalomban ({day})"]
+    out = [f"🚊 oktató – szabadon ({day})"]
     for reg in sorted(skodas):
         first = min(skodas[reg], key=lambda x: x[0])
         last = max(skodas[reg], key=lambda x: x[0])
@@ -985,8 +984,4 @@ async def on_ready():
     logger_loop.start()   # csak egyszer induljon el
 
 
-
 bot.run(TOKEN)
-
-
-
