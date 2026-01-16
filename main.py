@@ -294,12 +294,12 @@ T5C5_NUMBERS = {
     "V4288", "V4320", "V4322", "V4335", "V4336", "V4349"
 }
 
-def is_t5c5k2(reg):
-    if not is_t5c5(reg):
-        return False
-    return reg not in T5C5_NUMBERS
-
 def is_t5c5(reg):
+    if not is_t5c5k2(reg):
+        return False
+    return reg in T5C5_NUMBERS
+
+def is_t5c5k2(reg):
     if not isinstance(reg, str):
         return False
     if not reg.startswith("V"):
