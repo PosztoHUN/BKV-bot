@@ -24,7 +24,47 @@ VEHICLES_API = f"{API_BASE}/vehicles"
 #     "2902","1989"
 # }
 
-TRAM_LINES = {"3010", "3011", "3020", "3022", "3030", "3040", "3060", "3120", "3140", "3170", "3190", "3230", "3240", "3280", "3281", "3370", "3371", "3420", "3500", "3510", "3511", "3520", "3560", "3561", "3590", "3591", "3592", "3600", "3610", "3620", "3621", "3690", " ", "-", "9999"}
+TRAM_LINES = {"3010", "3011", "3020", "3022", "3030", "3040", "3060", "3120", "3140", "3170", "3190", "3230", "3240", "3280", "3281", "3370", "3371", "3410", "3420", "3470", "3480", "3490", "3500", "3510", "3511", "3520", "3560", "3561", "3590", "3591", "3592", "3600", "3610", "3620", "3621", "3690", " ", "-", "9999"}
+
+# VONAL MAPPING
+LINE_MAP = {
+    "3010": "1",
+    "3011": "1A",
+    "3020": "2",
+    "3022": "2B",
+    "3030": "3",
+    "3040": "4",
+    "3060": "6",
+    "3120": "12",
+    "3140": "14",
+    "3170": "17",
+    "3190": "19",
+    "3230": "23",
+    "3240": "24",
+    "3280": "28",
+    "3281": "28A",
+    "3370": "37",
+    "3371": "37A",
+    "3410": "41",
+    "3420": "42",
+    "3470": "47",
+    "3480": "48",
+    "3490": "49",
+    "3500": "50",
+    "3510": "51",
+    "3511": "51A",
+    "3520": "52",
+    "3560": "56",
+    "3561": "56A",
+    "3590": "59",
+    "3591": "59A",
+    "3592": "59B",
+    "3600": "60 *Fogaskerekű*",
+    "3610": "61",
+    "3620": "62",
+    "3621": "62A",
+    "3690": "69"
+}
 
 LOCK_FILE = "/tmp/discord_bot.lock"
 
@@ -1275,14 +1315,12 @@ async def bkvvillamostoday(ctx, date: str = None):
     for fname in os.listdir(veh_dir):
         if not fname.endswith(".txt"):
             continue
-        reg = fname.replace(".txt","")
+        reg = fname.replace(".txt", "")
 
-        # Ganz troli kizárása
         if is_ganz_troli(reg):
             continue
 
-        # csak villamosok
-        if not (is_ganz(reg) or is_tw6000(reg) or is_combino(reg) or 
+        if not (is_ganz(reg) or is_tw6000(reg) or is_combino(reg) or
                 is_caf5(reg) or is_caf9(reg) or is_t5c5(reg) or is_oktato(reg)):
             continue
 
@@ -1294,37 +1332,24 @@ async def bkvvillamostoday(ctx, date: str = None):
                         ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
                         trip_id = line.split("ID ")[1].split(" ")[0]
                         line_no = line.split("Vonal ")[1].split(" ")[0]
-                        active.setdefault(reg, []).append((ts, line_no, trip_id))
+                        # ID → valós vonal
+                        line_name = LINE_MAP.get(line_no, line_no)
+                        active.setdefault(reg, []).append((ts, line_name, trip_id))
                     except:
                         continue
 
     if not active:
         return await ctx.send(f"🚫 {day} napon nem közlekedett villamos.")
 
-    # ===== KIÍRÁS EMBEDEKKEL =====
-    MAX_FIELDS = 20
-    embeds = []
-    embed = discord.Embed(title=f"🚋 Villamos – forgalomban ({day})", color=0xffff00)
-    field_count = 0
-
+    out = [f"🚋 Villamos – forgalomban ({day})"]
     for reg in sorted(active):
         first = min(active[reg], key=lambda x: x[0])
         last = max(active[reg], key=lambda x: x[0])
-        field_value = f"{first[0].strftime('%H:%M')} → {last[0].strftime('%H:%M')} (vonal {first[1]})"
+        out.append(f"{reg} — {first[0].strftime('%H:%M')} → {last[0].strftime('%H:%M')} (vonal {first[1]})")
 
-        if field_count >= MAX_FIELDS:
-            embeds.append(embed)
-            embed = discord.Embed(title=f"🚋 Villamos – forgalomban ({day}) (folyt.)", color=0xffff00)
-            field_count = 0
-
-        embed.add_field(name=reg, value=field_value, inline=False)
-        field_count += 1
-
-    embeds.append(embed)
-
-    for e in embeds:
-        await ctx.send(embed=e)
-
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
 
 # =======================
 # START
