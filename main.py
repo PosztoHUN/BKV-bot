@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 import aiohttp
 import os
 import sys
+import io, csv, zipfile
 from datetime import datetime, timedelta 
 
 # =======================
@@ -39,6 +40,167 @@ if os.path.exists(LOCK_FILE):
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix=".", intents=intents)
+
+# ─────────────────────────────────────────────
+# GTFS SEGÉD
+# ─────────────────────────────────────────────
+
+def open_gtfs(name):
+    z = zipfile.ZipFile(GTFS_PATH)
+    return io.TextIOWrapper(z.open(name), encoding="utf-8-sig")
+
+def tsec(t):
+    try:
+        h, m, s = map(int, t.split(":"))
+        return h*3600 + m*60 + s
+    except:
+        return 10**9
+
+def daily_forda_id(block_id):
+    # csak ha van block_id!
+    p = block_id.split("_")
+    return f"{p[-3]}_{p[-2]}"
+
+def forgalmi_from_dfid(dfid):
+    try:
+        return int(dfid.split("_")[-1])
+    except:
+        return None
+
+def service_active(service_id, date):
+    return SERVICE_DATES.get(service_id, {}).get(date, False)
+
+def load_gtfs():
+    # trips.txt
+    with open_gtfs("trips.txt") as f:
+        for r in csv.DictReader(f):
+            TRIPS_META[r["trip_id"]] = r
+
+    # stops.txt
+    with open_gtfs("stops.txt") as f:
+        for r in csv.DictReader(f):
+            STOPS[r["stop_id"]] = r["stop_name"]
+
+    # stop_times.txt (első indulás és teljes stop lista)
+    first = {}
+    with open_gtfs("stop_times.txt") as f:
+        for r in csv.DictReader(f):
+            tid = r["trip_id"]
+            seq = int(r["stop_sequence"])
+            if tid not in first or seq < first[tid]:
+                first[tid] = seq
+                TRIP_START[tid] = r["departure_time"]
+
+            TRIP_STOPS[tid].append({
+                "seq": seq,
+                "stop_id": r["stop_id"],
+                "arrival": r["arrival_time"],
+                "departure": r["departure_time"]
+            })
+
+    # calendar_dates.txt
+    with open_gtfs("calendar_dates.txt") as f:
+        for r in csv.DictReader(f):
+            date = datetime.strptime(r["date"], "%Y%m%d").date()
+            if r["exception_type"] == "1":
+                SERVICE_DATES[r["service_id"]][date] = True
+            elif r["exception_type"] == "2":
+                SERVICE_DATES[r["service_id"]][date] = False
+
+    # fordák
+    count_total = 0
+    count_with_bid = 0
+    for tid, t in TRIPS_META.items():
+        count_total += 1
+        bid = t.get("block_id")
+        if not bid:
+            continue
+        count_with_bid += 1
+        rid = t["route_id"]
+        dfid = daily_forda_id(bid)
+
+        # Stop adatok
+        stops = sorted(TRIP_STOPS[tid], key=lambda x: x["seq"])
+        if stops:
+            first_stop = stops[0]
+            last_stop = stops[-1]
+            first_stop_name = STOPS.get(first_stop["stop_id"], "Ismeretlen")
+            last_stop_name = STOPS.get(last_stop["stop_id"], "Ismeretlen")
+            first_time = first_stop["departure"]
+            last_time = last_stop["arrival"]
+        else:
+            first_stop_name = last_stop_name = first_time = last_time = ""
+
+        ROUTES[rid][dfid].append({
+            "trip_id": tid,
+            "start_time": TRIP_START.get(tid, ""),
+            "headsign": t["trip_headsign"],
+            "service_id": t["service_id"],
+            "orig_block_id": bid,
+            "first_stop": first_stop_name,
+            "last_stop": last_stop_name,
+            "first_time": first_time,
+            "last_time": last_time
+        })
+
+    print(f"Total trips: {count_total}, with block_id: {count_with_bid}")
+    print(f"ROUTES keys: {list(ROUTES.keys())[:10]}")  # Első 10
+
+    for rid in ROUTES:
+        for dfid in ROUTES[rid]:
+            ROUTES[rid][dfid].sort(key=lambda x: tsec(x["start_time"]))
+
+def parse_txt_feed():
+    try:
+        text = requests.get(TXT_URL, timeout=10).text
+    except:
+        return {}
+
+    mapping = {}
+    cur = {"id": None, "license_plate": None, "vehicle_model": None}
+
+    def commit():
+        if cur["id"]:
+            mapping[cur["id"]] = {
+                "license_plate": cur["license_plate"] or "N/A",
+                "vehicle_model": cur["vehicle_model"] or "N/A",
+            }
+
+    for l in text.splitlines():
+        l = l.strip()
+        if l.startswith('id: "'):
+            commit()
+            cur = {"id": l.split('"')[1], "license_plate": None, "vehicle_model": None}
+        elif l.startswith('license_plate: "'):
+            cur["license_plate"] = l.split('"')[1]
+        elif 'vehicle_model:' in l:
+            p = l.split('"')
+            if len(p) >= 2:
+                cur["vehicle_model"] = p[1]
+
+    commit()
+    return mapping
+
+def menetrendi_forgalmi(block_id):
+    if not block_id:
+        return "?"
+    p = block_id.split("_")
+    return p[2] if len(p) >= 4 and p[2].isdigit() else "?"
+
+def is_low_floor(trip_id):
+    t = TRIPS_META.get(trip_id)
+    return t and t.get("wheelchair_accessible") == "1"
+
+def chunk_messages(header, lines):
+    msg = header + "\n\n"
+    for l in lines:
+        if len(msg) + len(l) > DISCORD_LIMIT:
+            yield msg.rstrip()
+            msg = l + "\n\n"  # Folytatás header nélkül
+        else:
+            msg += l + "\n\n"
+    if msg.strip():
+        yield msg.rstrip()
 
 # =======================
 # SEGÉDFÜGGVÉNYEK
@@ -246,48 +408,85 @@ async def logger_loop():
 # PARANCSOK – MIND
 # =======================
 
-# @bot.command()
-# async def bkvvillamos(ctx):
-#     active = {}  # <-- IDE KELL IDEGENÍTENI
+@bot.command()
+async def bkvvillamos(ctx):
+    active = {}
 
-#     # például: lekérdezés az API-ból
-#     async with aiohttp.ClientSession() as session:
-#         vehicles = await fetch_json(session, VEHICLES_API)
-#         if not isinstance(vehicles, list):
-#             return await ctx.send("❌ Nincs elérhető adat.")
+    async with aiohttp.ClientSession() as session:
+        vehicles = await fetch_json(session, VEHICLES_API)
+        if not isinstance(vehicles, list):
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
 
-#         for v in vehicles:
-#             reg = v.get("license_plate")
-#             line = v.get("route_id", "—")
-#             dest = v.get("destination", "Ismeretlen")
+        for v in vehicles:
+            reg = v.get("license_plate")
+            line = str(v.get("route_id", "—"))
+            dest = v.get("destination", "Ismeretlen")
+            lat = v.get("latitude")
+            lon = v.get("longitude")
+            model = (v.get("vehicle_model") or "").lower()
 
-#             if not reg:
-#                 continue
+            if not reg or lat is None or lon is None:
+                continue
 
-#             active[reg] = {"line": line, "dest": dest}
+            # Budapest környéke
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
 
-#     # embed küldés
-#     MAX_FIELDS = 20
-#     embeds = []
-#     embed = discord.Embed(title="🚋 Aktív villamosok", color=0xffff00)
-#     field_count = 0
+            # csak villamosok
+            if not (
+                "ganz" in model
+                or is_tw6000(reg)
+                or is_combino(reg)
+                or is_caf5(reg)
+                or is_caf9(reg)
+                or is_t5c5(reg)
+                or is_oktato(reg)
+            ):
+                continue
 
-#     for reg, i in active.items():
-#         if field_count >= MAX_FIELDS:
-#             embeds.append(embed)
-#             embed = discord.Embed(title="🚋 Aktív villamosok (folyt.)", color=0xffff00)
-#             field_count = 0
+            # Ganz troli kizárása
+            if is_ganz_troli(reg):
+                continue
 
-#         embed.add_field(
-#             name=reg,
-#             value=f"Vonal: {i['line']}\nCél: {i['dest']}",
-#             inline=False
-#         )
-#         field_count += 1
+            active[reg] = {
+                "line": line,
+                "dest": dest,
+                "lat": lat,
+                "lon": lon
+            }
 
-#     embeds.append(embed)
-#     for e in embeds:
-#         await ctx.send(embed=e)
+    if not active:
+        return await ctx.send("🚫 Nincs aktív villamos.")
+
+    # ===== EMBED DARABOLÁS =====
+    MAX_FIELDS = 20
+    embeds = []
+
+    embed = discord.Embed(title="🚋 Aktív villamosok", color=0xffff00)
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title="🚋 Aktív villamosok (folytatás)", color=0xffff00)
+            field_count = 0
+
+        embed.add_field(
+            name=reg,
+            value=(
+                f"Vonal (ID): {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            ),
+            inline=False
+        )
+        field_count += 1
+
+    embeds.append(embed)
+
+    for e in embeds:
+        await ctx.send(embed=e)
+
 
     
 @bot.command()
@@ -453,11 +652,9 @@ async def bkvcombino(ctx):
             if not reg or lat is None or lon is None:
                 continue
 
-            # Combino felismerés rendszám alapján
             if not is_combino(reg):
                 continue
 
-            # Budapest környéke
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
@@ -471,8 +668,26 @@ async def bkvcombino(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív Combino villamos.")
 
-    embed = discord.Embed(title="🚋 Aktív Combino villamosok", color=0xffff00)
-    for reg, i in active.items():
+    # ===== EMBED DARABOLÁS (GYORS + LIMITBIZTOS) =====
+
+    MAX_FIELDS = 20
+    embeds = []
+
+    embed = discord.Embed(
+        title="🚋 Aktív Combino villamosok",
+        color=0xffff00
+    )
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(
+                title="🚋 Aktív Combino villamosok (folytatás)",
+                color=0xffff00
+            )
+            field_count = 0
+
         embed.add_field(
             name=reg,
             value=(
@@ -482,10 +697,13 @@ async def bkvcombino(ctx):
             ),
             inline=False
         )
+        field_count += 1
 
-    await ctx.send(embed=embed)
+    embeds.append(embed)
 
-    
+    for e in embeds:
+        await ctx.send(embed=e)
+
 @bot.command()
 async def bkvcaf5(ctx):
     active = {}
@@ -505,11 +723,9 @@ async def bkvcaf5(ctx):
             if not reg or lat is None or lon is None:
                 continue
 
-            # CAF5 felismerés rendszám alapján
             if not is_caf5(reg):
                 continue
 
-            # Budapest környéke
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
@@ -523,8 +739,26 @@ async def bkvcaf5(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF5 villamos.")
 
-    embed = discord.Embed(title="🚋 Aktív CAF5 villamosok", color=0xffff00)
-    for reg, i in active.items():
+    # ===== EMBED DARABOLÁS =====
+
+    MAX_FIELDS = 20
+    embeds = []
+
+    embed = discord.Embed(
+        title="🚋 Aktív CAF5 villamosok",
+        color=0xffff00
+    )
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(
+                title="🚋 Aktív CAF5 villamosok (folytatás)",
+                color=0xffff00
+            )
+            field_count = 0
+
         embed.add_field(
             name=reg,
             value=(
@@ -534,10 +768,13 @@ async def bkvcaf5(ctx):
             ),
             inline=False
         )
+        field_count += 1
 
-    await ctx.send(embed=embed)
+    embeds.append(embed)
 
-    
+    for e in embeds:
+        await ctx.send(embed=e)
+
 @bot.command()
 async def bkvcaf9(ctx):
     active = {}
@@ -557,11 +794,9 @@ async def bkvcaf9(ctx):
             if not reg or lat is None or lon is None:
                 continue
 
-            # CAF9 felismerés
             if not is_caf9(reg):
                 continue
 
-            # Budapest környéke
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
@@ -575,8 +810,26 @@ async def bkvcaf9(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF9 villamos.")
 
-    embed = discord.Embed(title="🚋 Aktív CAF9 villamosok", color=0xffff00)
-    for reg, i in active.items():
+    # ===== EMBED DARABOLÁS =====
+
+    MAX_FIELDS = 20
+    embeds = []
+
+    embed = discord.Embed(
+        title="🚋 Aktív CAF9 villamosok",
+        color=0xffff00
+    )
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(
+                title="🚋 Aktív CAF9 villamosok (folytatás)",
+                color=0xffff00
+            )
+            field_count = 0
+
         embed.add_field(
             name=reg,
             value=(
@@ -586,8 +839,12 @@ async def bkvcaf9(ctx):
             ),
             inline=False
         )
+        field_count += 1
 
-    await ctx.send(embed=embed)
+    embeds.append(embed)
+
+    for e in embeds:
+        await ctx.send(embed=e)
 
 @bot.command()
 async def bkvtatra(ctx):
@@ -612,7 +869,7 @@ async def bkvtatra(ctx):
             if not is_t5c5(reg):
                 continue
 
-            # Budapest környéke
+            # Budapest tartomány
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
@@ -626,8 +883,26 @@ async def bkvtatra(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív Tatra villamos.")
 
-    embed = discord.Embed(title="🚋 Aktív Tatra villamosok", color=0xffff00)
-    for reg, i in active.items():
+    # ===== EMBED DARABOLÁS =====
+
+    MAX_FIELDS = 20
+    embeds = []
+
+    embed = discord.Embed(
+        title="🚋 Aktív Tatra villamosok",
+        color=0xffff00
+    )
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(
+                title="🚋 Aktív Tatra villamosok (folytatás)",
+                color=0xffff00
+            )
+            field_count = 0
+
         embed.add_field(
             name=reg,
             value=(
@@ -637,10 +912,12 @@ async def bkvtatra(ctx):
             ),
             inline=False
         )
+        field_count += 1
 
-    await ctx.send(embed=embed)
+    embeds.append(embed)
 
-
+    for e in embeds:
+        await ctx.send(embed=e)
 
 # @bot.command()
 # async def allnosztalgia(ctx):
@@ -996,6 +1273,66 @@ async def bkvtanulotoday(ctx, date: str = None):
     msg = "\n".join(out)
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i+1900])  
+        
+@bot.command()
+async def bkvvillamostoday(ctx, date: str = None):
+    day = resolve_date(date)
+    veh_dir = "logs/veh"
+    active = {}
+
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt","")
+
+        # Ganz troli kizárása
+        if is_ganz_troli(reg):
+            continue
+
+        # csak villamosok
+        if not (is_ganz(reg) or is_tw6000(reg) or is_combino(reg) or 
+                is_caf5(reg) or is_caf9(reg) or is_t5c5(reg) or is_oktato(reg)):
+            continue
+
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    try:
+                        ts_str = line.split(" - ")[0]
+                        ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
+                        trip_id = line.split("ID ")[1].split(" ")[0]
+                        line_no = line.split("Vonal ")[1].split(" ")[0]
+                        active.setdefault(reg, []).append((ts, line_no, trip_id))
+                    except:
+                        continue
+
+    if not active:
+        return await ctx.send(f"🚫 {day} napon nem közlekedett villamos.")
+
+    # ===== KIÍRÁS EMBEDEKKEL =====
+    MAX_FIELDS = 20
+    embeds = []
+    embed = discord.Embed(title=f"🚋 Villamos – forgalomban ({day})", color=0xffff00)
+    field_count = 0
+
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        field_value = f"{first[0].strftime('%H:%M')} → {last[0].strftime('%H:%M')} (vonal {first[1]})"
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"🚋 Villamos – forgalomban ({day}) (folyt.)", color=0xffff00)
+            field_count = 0
+
+        embed.add_field(name=reg, value=field_value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+
+    for e in embeds:
+        await ctx.send(embed=e)
+
 
 # =======================
 # START
