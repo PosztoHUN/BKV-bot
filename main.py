@@ -287,6 +287,18 @@ def is_tw6000(reg):
         return False
     return 1500 <= int(reg[1:]) <= 1624 
 
+# T5C5 konkrét pályaszámok
+T5C5_NUMBERS = {
+    "V4000", "V4014", "V4015", "V4048", "V4054", "V4055",
+    "V4154", "V4155", "V4166", "V4171", "V4200", "V4272",
+    "V4288", "V4320", "V4322", "V4335", "V4336", "V4349"
+}
+
+def is_t5c5k2(reg):
+    if not is_t5c5(reg):
+        return False
+    return reg not in T5C5_NUMBERS
+
 def is_t5c5(reg):
     if not isinstance(reg, str):
         return False
@@ -909,6 +921,8 @@ async def bkvtatra(ctx):
                 continue
             if not is_t5c5(reg):
                 continue
+            if not is_t5c5k2(reg):
+                continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
@@ -1269,7 +1283,7 @@ async def bkvtatratoday(ctx, date: str = None):
             continue
         reg = fname.replace(".txt", "")
 
-        if not is_t5c5(reg):
+        if not (is_t5c5(reg) or is_t5c5k2(reg)):
             continue
 
         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
@@ -1285,6 +1299,42 @@ async def bkvtatratoday(ctx, date: str = None):
         return await ctx.send(f"🚫 {day} napon nem közlekedett Tatra.")
 
     out = [f"🚊 Tatra – forgalomban ({day})"]
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
+        
+@bot.command()
+async def bkvclassictoday(ctx, date: str = None):
+    day = resolve_date(date)
+    veh_dir = "logs/veh"
+    active = {}
+
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt", "")
+
+        if not is_t5c5(reg):
+            continue
+
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    ts = line.split(" - ")[0]
+                    trip_id = line.split("ID ")[1].split(" ")[0]
+                    line_no = line.split("Vonal ")[1].split(" ")[0]
+                    line_name = LINE_MAP.get(line_no, line_no)
+                    active.setdefault(reg, []).append((ts, line_name, trip_id))
+
+    if not active:
+        return await ctx.send(f"🚫 {day} napon nem közlekedett Classic Tatra.")
+
+    out = [f"🚊 Classic Tatra – forgalomban ({day})"]
     for reg in sorted(active):
         first = min(active[reg], key=lambda x: x[0])
         last = max(active[reg], key=lambda x: x[0])
