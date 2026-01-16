@@ -1158,13 +1158,29 @@ async def bkvtw6000today(ctx, date: str = None):
 # ───────────────────────────────
 # Combino
 # ───────────────────────────────
+
 @bot.command()
 async def bkvcombinotoday(ctx, date: str = None):
     day = resolve_date(date)
-    data = today_data.get(day, {})
+    veh_dir = "logs/veh"
+    active = {}
 
-    # csak combino járművek
-    active = {reg: trips for reg, trips in data.items() if is_combino(reg)}
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt", "")
+
+        if not is_combino(reg):
+            continue
+
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    ts = line.split(" - ")[0]
+                    trip_id = line.split("ID ")[1].split(" ")[0]
+                    line_no = line.split("Vonal ")[1].split(" ")[0]
+                    line_name = LINE_MAP.get(line_no, line_no)
+                    active.setdefault(reg, []).append((ts, line_name, trip_id))
 
     if not active:
         return await ctx.send(f"🚫 {day} napon nem közlekedett Combino.")
@@ -1178,6 +1194,27 @@ async def bkvcombinotoday(ctx, date: str = None):
     msg = "\n".join(out)
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i+1900])
+
+# @bot.command()
+# async def bkvcombinotoday(ctx, date: str = None):
+#     day = resolve_date(date)
+#     data = today_data.get(day, {})
+
+#     # csak combino járművek
+#     active = {reg: trips for reg, trips in data.items() if is_combino(reg)}
+
+#     if not active:
+#         return await ctx.send(f"🚫 {day} napon nem közlekedett Combino.")
+
+#     out = [f"🚊 Combino – forgalomban ({day})"]
+#     for reg in sorted(active):
+#         first = min(active[reg], key=lambda x: x[0])
+#         last = max(active[reg], key=lambda x: x[0])
+#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+
+#     msg = "\n".join(out)
+#     for i in range(0, len(msg), 1900):
+#         await ctx.send(msg[i:i+1900])
 
 # ───────────────────────────────
 # CAF (CAF5 + CAF9)
