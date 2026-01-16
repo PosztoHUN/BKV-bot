@@ -409,7 +409,6 @@ async def logger_loop():
 # =======================
 
 @bot.command()
-@bot.command()
 async def bkvvillamos(ctx):
     active = {}
 
@@ -1343,3 +1342,4 @@ async def on_ready():
 
 
 bot.run(TOKEN)
+
