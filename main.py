@@ -371,12 +371,18 @@ async def bkvganz(ctx):
     
 @bot.command()
 async def bkvtw6000(ctx):
-    active = {}
-
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
         if not isinstance(vehicles, list):
             return await ctx.send("❌ Nem érkezett adat az API-ból.")
+
+        embed = discord.Embed(
+            title="🚋 Aktív TW6000-es villamosok",
+            color=0xffff00
+        )
+
+        current_len = 0
+        sent_any = False
 
         for v in vehicles:
             reg = v.get("license_plate")
@@ -388,37 +394,44 @@ async def bkvtw6000(ctx):
             if not reg or lat is None or lon is None:
                 continue
 
-            # TW6000 azonosítás rendszám alapján
             if not is_tw6000(reg):
                 continue
 
-            # Budapest környéke (biztos tartomány)
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {
-                "line": line,
-                "dest": dest,
-                "lat": lat,
-                "lon": lon
-            }
+            value = (
+                f"Vonal (ID): {line}\n"
+                f"Cél: {dest}\n"
+                f"Pozíció: {lat:.5f}, {lon:.5f}"
+            )
 
-    if not active:
-        return await ctx.send("🚫 Nincs aktív TW6000-es villamos.")
+            field_len = len(reg) + len(value)
 
-    embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok", color=0xffff00)
-    for reg, i in active.items():
-        embed.add_field(
-            name=reg,
-            value=(
-                f"Vonal (ID): {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
-            inline=False
-        )
+            # ha nem fér bele → küldés + új embed
+            if current_len + field_len > 1800 or len(embed.fields) >= 20:
+                await ctx.send(embed=embed)
+                sent_any = True
+                embed = discord.Embed(
+                    title="🚋 Aktív TW6000-es villamosok (folytatás)",
+                    color=0xffff00
+                )
+                current_len = 0
 
-    await ctx.send(embed=embed)
+            embed.add_field(
+                name=reg,
+                value=value,
+                inline=False
+            )
+            current_len += field_len
+
+        if embed.fields:
+            await ctx.send(embed=embed)
+            sent_any = True
+
+        if not sent_any:
+            await ctx.send("🚫 Nincs aktív TW6000-es villamos.")
+
 
     
 @bot.command()
