@@ -1306,26 +1306,26 @@ async def bkvcombinotoday(ctx, date: str = None):
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i+1900])
 
-@bot.command()
-async def bkvcombinotoday(ctx, date: str = None):
-    day = resolve_date(date)
-    data = today_data.get(day, {})
+# @bot.command()
+# async def bkvcombinotoday(ctx, date: str = None):
+#     day = resolve_date(date)
+#     data = today_data.get(day, {})
 
-    # csak combino járművek
-    active = {reg: trips for reg, trips in data.items() if is_combino(reg)}
+#     # csak combino járművek
+#     active = {reg: trips for reg, trips in data.items() if is_combino(reg)}
 
-    if not active:
-        return await ctx.send(f"🚫 {day} napon nem közlekedett Combino.")
+#     if not active:
+#         return await ctx.send(f"🚫 {day} napon nem közlekedett Combino.")
 
-    out = [f"🚊 Combino – forgalomban ({day})"]
-    for reg in sorted(active):
-        first = min(active[reg], key=lambda x: x[0])
-        last = max(active[reg], key=lambda x: x[0])
-        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+#     out = [f"🚊 Combino – forgalomban ({day})"]
+#     for reg in sorted(active):
+#         first = min(active[reg], key=lambda x: x[0])
+#         last = max(active[reg], key=lambda x: x[0])
+#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
 
-    msg = "\n".join(out)
-    for i in range(0, len(msg), 1900):
-        await ctx.send(msg[i:i+1900])
+#     msg = "\n".join(out)
+#     for i in range(0, len(msg), 1900):
+#         await ctx.send(msg[i:i+1900])
 
 # ───────────────────────────────
 # CAF (CAF5 + CAF9)
@@ -1594,4 +1594,5 @@ async def on_ready():
 
 
 bot.run(TOKEN)
+
 
