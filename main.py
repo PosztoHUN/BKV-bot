@@ -772,6 +772,27 @@ def is_fixlepcsos(reg):
     return szam in FIXLEPCSOS
 
 
+FIXLEPCSOS = {
+    "1506", "1510", "1532", "1542", "1551", "1552", "1570", "1573",
+    "1583", "1589", "1600", "1601", "1602", "1604", "1605", "1606",
+    "1607", "1613", "1614", "1615", "1619", "1624"
+}
+
+KIEMELT_VONALAK = {
+    "24", "28", "28A", "37", "37A",
+    "51", "51A", "52", "62", "62A"
+}
+
+def normalize_reg(reg):
+    if not reg:
+        return None
+    return "".join(c for c in str(reg) if c.isdigit())
+
+def is_fixlepcsos(reg):
+    szam = normalize_reg(reg)
+    return szam in FIXLEPCSOS
+
+
 @bot.command()
 async def bkvtw6000(ctx):
     active = {}
@@ -827,10 +848,16 @@ async def bkvtw6000(ctx):
             )
             field_count = 0
 
+        line = i["line"]
+        if line not in KIEMELT_VONALAK:
+            line_text = f"🔴 **Vonal: {line}**"
+        else:
+            line_text = f"Vonal: {line}"
+
         embed.add_field(
-            name=reg,  # ⬅️ CSAK A PÁLYASZÁM
+            name=reg,
             value=(
-                f"Vonal: {i['line']}\n"
+                f"{line_text}\n"
                 f"Cél: {i['dest']}\n"
                 f"Fixlépcsős: {'Igen' if is_fixlepcsos(reg) else 'Nem'}\n"
                 f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
@@ -842,8 +869,7 @@ async def bkvtw6000(ctx):
     embeds.append(embed)
 
     for e in embeds:
-        await ctx.send(embed=e)
- 
+        await ctx.send(embed=e) 
 
 # ────────────────
 # Combino
