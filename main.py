@@ -835,7 +835,7 @@ async def bkvtw6000(ctx):
     embeds = []
     embed = discord.Embed(
         title="🚋 Aktív TW6000-es villamosok",
-        color=0xffff00
+        color=0xffe600
     )
     field_count = 0
 
