@@ -762,8 +762,14 @@ FIXLEPCSOS = {
     "1607", "1613", "1614", "1615", "1619", "1624"
 }
 
+def normalize_reg(reg):
+    if not reg:
+        return None
+    return "".join(c for c in str(reg) if c.isdigit())
+
 def is_fixlepcsos(reg):
-    return reg in FIXLEPCSOS
+    szam = normalize_reg(reg)
+    return szam in FIXLEPCSOS
 
 
 @bot.command()
@@ -776,18 +782,22 @@ async def bkvtw6000(ctx):
             return await ctx.send("❌ Nem érkezett adat az API-ból.")
 
         for v in vehicles:
-            reg = v.get("license_plate")
+            reg_raw = v.get("license_plate")
             lat = v.get("latitude")
             lon = v.get("longitude")
             dest = v.get("destination", "Ismeretlen")
             line_id = str(v.get("route_id", "—"))
             line_name = LINE_MAP.get(line_id, line_id)
 
-            if not reg or lat is None or lon is None:
+            if not reg_raw or lat is None or lon is None:
                 continue
-            if not is_tw6000(reg):
+            if not is_tw6000(reg_raw):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            reg = normalize_reg(reg_raw)
+            if not reg:
                 continue
 
             active[reg] = {
@@ -818,7 +828,7 @@ async def bkvtw6000(ctx):
             field_count = 0
 
         embed.add_field(
-            name=reg,
+            name=f"TW6000-{reg}",
             value=(
                 f"Vonal: {i['line']}\n"
                 f"Cél: {i['dest']}\n"
@@ -832,8 +842,7 @@ async def bkvtw6000(ctx):
     embeds.append(embed)
 
     for e in embeds:
-        await ctx.send(embed=e)
-      
+        await ctx.send(embed=e)      
 
 # ────────────────
 # Combino
@@ -1594,5 +1603,4 @@ async def on_ready():
 
 
 bot.run(TOKEN)
-
 
