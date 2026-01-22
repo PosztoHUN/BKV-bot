@@ -828,7 +828,7 @@ async def bkvtw6000(ctx):
             field_count = 0
 
         embed.add_field(
-            name=f"TW6000-{reg}",
+            name=reg,  # ⬅️ CSAK A PÁLYASZÁM
             value=(
                 f"Vonal: {i['line']}\n"
                 f"Cél: {i['dest']}\n"
@@ -842,7 +842,8 @@ async def bkvtw6000(ctx):
     embeds.append(embed)
 
     for e in embeds:
-        await ctx.send(embed=e)      
+        await ctx.send(embed=e)
+ 
 
 # ────────────────
 # Combino
