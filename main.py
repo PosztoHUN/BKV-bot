@@ -778,9 +778,9 @@ FIXLEPCSOS = {
     "1607", "1613", "1614", "1615", "1619", "1624"
 }
 
-KIEMELT_VONALAK = {
+KIEMELT_VONALAK_TW = {
     "24", "28", "28A", "37", "37A",
-    "51", "51A", "52", "62", "62A"
+    "51", "51A", "52", "62", "62A", "69", "9999", " ", "", "-"
 }
 
 def normalize_reg(reg):
@@ -835,7 +835,7 @@ async def bkvtw6000(ctx):
     embeds = []
     embed = discord.Embed(
         title="🚋 Aktív TW6000-es villamosok",
-        color=0xffe600
+        color=0xffff00
     )
     field_count = 0
 
@@ -844,12 +844,12 @@ async def bkvtw6000(ctx):
             embeds.append(embed)
             embed = discord.Embed(
                 title="🚋 Aktív TW6000-es villamosok (folytatás)",
-                color=0xffff00
+                color=0xffe600
             )
             field_count = 0
 
         line = i["line"]
-        if line not in KIEMELT_VONALAK:
+        if line not in KIEMELT_VONALAK_TW:
             line_text = f"🔴 **Vonal: {line}**"
         else:
             line_text = f"Vonal: {line}"
@@ -1630,5 +1630,4 @@ async def on_ready():
 
 
 bot.run(TOKEN)
-
 
