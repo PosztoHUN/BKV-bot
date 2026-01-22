@@ -756,10 +756,20 @@ async def bkvics(ctx):
 # TW6000
 # ────────────────
 
-# Példa TW6000
+FIXLEPCSOS = {
+    "1506", "1510", "1532", "1542", "1551", "1552", "1570", "1573",
+    "1583", "1589", "1600", "1601", "1602", "1604", "1605", "1606",
+    "1607", "1613", "1614", "1615", "1619", "1624"
+}
+
+def is_fixlepcsos(reg):
+    return reg in FIXLEPCSOS
+
+
 @bot.command()
 async def bkvtw6000(ctx):
     active = {}
+
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_json(session, VEHICLES_API)
         if not isinstance(vehicles, list):
@@ -780,33 +790,50 @@ async def bkvtw6000(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            active[reg] = {
+                "line": line_name,
+                "dest": dest,
+                "lat": lat,
+                "lon": lon
+            }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív TW6000-es villamos.")
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok", color=0xffff00)
+    embed = discord.Embed(
+        title="🚋 Aktív TW6000-es villamosok",
+        color=0xffff00
+    )
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok (folytatás)", color=0xffff00)
+            embed = discord.Embed(
+                title="🚋 Aktív TW6000-es villamosok (folytatás)",
+                color=0xffff00
+            )
             field_count = 0
 
         embed.add_field(
             name=reg,
-            value=f"Vonal: {i['line']}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            value=(
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Fixlépcsős: {'Igen' if is_fixlepcsos(reg) else 'Nem'}\n"
+                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            ),
             inline=False
         )
         field_count += 1
 
     embeds.append(embed)
+
     for e in embeds:
         await ctx.send(embed=e)
-        
+      
 
 # ────────────────
 # Combino
@@ -1279,26 +1306,26 @@ async def bkvcombinotoday(ctx, date: str = None):
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i+1900])
 
-# @bot.command()
-# async def bkvcombinotoday(ctx, date: str = None):
-#     day = resolve_date(date)
-#     data = today_data.get(day, {})
+@bot.command()
+async def bkvcombinotoday(ctx, date: str = None):
+    day = resolve_date(date)
+    data = today_data.get(day, {})
 
-#     # csak combino járművek
-#     active = {reg: trips for reg, trips in data.items() if is_combino(reg)}
+    # csak combino járművek
+    active = {reg: trips for reg, trips in data.items() if is_combino(reg)}
 
-#     if not active:
-#         return await ctx.send(f"🚫 {day} napon nem közlekedett Combino.")
+    if not active:
+        return await ctx.send(f"🚫 {day} napon nem közlekedett Combino.")
 
-#     out = [f"🚊 Combino – forgalomban ({day})"]
-#     for reg in sorted(active):
-#         first = min(active[reg], key=lambda x: x[0])
-#         last = max(active[reg], key=lambda x: x[0])
-#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+    out = [f"🚊 Combino – forgalomban ({day})"]
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
 
-#     msg = "\n".join(out)
-#     for i in range(0, len(msg), 1900):
-#         await ctx.send(msg[i:i+1900])
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
 
 # ───────────────────────────────
 # CAF (CAF5 + CAF9)
@@ -1567,3 +1594,4 @@ async def on_ready():
 
 
 bot.run(TOKEN)
+
