@@ -1861,77 +1861,77 @@ async def david(ctx, date: str = None):
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i+1900])
 
-@bot.command()
-async def bkvpotlas(ctx):
-    active = {}
+# @bot.command()
+# async def bkvpotlas(ctx):
+#     active = {}
 
-    async with aiohttp.ClientSession() as session:
-        vehicles = await fetch_json(session, VEHICLES_API)
-        if not isinstance(vehicles, list):
-            return await ctx.send("❌ Nem érkezett adat az API-ból.")
+#     async with aiohttp.ClientSession() as session:
+#         vehicles = await fetch_json(session, VEHICLES_API)
+#         if not isinstance(vehicles, list):
+#             return await ctx.send("❌ Nem érkezett adat az API-ból.")
 
-        for v in vehicles:
-            reg = v.get("license_plate")
-            model = (v.get("vehicle_model") or "").lower()
-            lat = v.get("latitude")
-            lon = v.get("longitude")
-            dest = v.get("destination", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
-            line_name = LINE_MAP.get(line_id, line_id)
+#         for v in vehicles:
+#             reg = v.get("license_plate")
+#             model = (v.get("vehicle_model") or "").lower()
+#             lat = v.get("latitude")
+#             lon = v.get("longitude")
+#             dest = v.get("destination", "Ismeretlen")
+#             line_id = str(v.get("route_id", "—"))
+#             line_name = LINE_MAP.get(line_id, line_id)
 
-            if not reg or lat is None or lon is None:
-                continue
+#             if not reg or lat is None or lon is None:
+#                 continue
 
-            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
-                continue
+#             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+#                 continue
 
-            # ─── pótlás típus ellenőrzés ───
-            if not any(t in model for t in POTLAS_TIPUSOK):
-                continue
+#             # ─── pótlás típus ellenőrzés ───
+#             if not any(t in model for t in POTLAS_TIPUSOK):
+#                 continue
 
-            active[reg] = {
-                "line": line_name,
-                "dest": dest,
-                "lat": lat,
-                "lon": lon,
-                "model": model
-            }
+#             active[reg] = {
+#                 "line": line_name,
+#                 "dest": dest,
+#                 "lat": lat,
+#                 "lon": lon,
+#                 "model": model
+#             }
 
-    if not active:
-        return await ctx.send("🚫 Nincs aktív pótlásnak számító villamos.")
+#     if not active:
+#         return await ctx.send("🚫 Nincs aktív pótlásnak számító villamos.")
 
-    MAX_FIELDS = 20
-    embeds = []
-    embed = discord.Embed(
-        title="🚧 Aktív pótlásnak számító villamosok",
-        color=0xff0000
-    )
-    field_count = 0
+#     MAX_FIELDS = 20
+#     embeds = []
+#     embed = discord.Embed(
+#         title="🚧 Aktív pótlásnak számító villamosok",
+#         color=0xff0000
+#     )
+#     field_count = 0
 
-    for reg, i in sorted(active.items()):
-        if field_count >= MAX_FIELDS:
-            embeds.append(embed)
-            embed = discord.Embed(
-                title="🚧 Aktív pótlásnak számító villamosok (folytatás)",
-                color=0xff0000
-            )
-            field_count = 0
+#     for reg, i in sorted(active.items()):
+#         if field_count >= MAX_FIELDS:
+#             embeds.append(embed)
+#             embed = discord.Embed(
+#                 title="🚧 Aktív pótlásnak számító villamosok (folytatás)",
+#                 color=0xff0000
+#             )
+#             field_count = 0
 
-        embed.add_field(
-            name=reg,
-            value=(
-                f"🚋 **Típus:** {i['model']}\n"
-                f"Vonal: {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
-            inline=False
-        )
-        field_count += 1
+#         embed.add_field(
+#             name=reg,
+#             value=(
+#                 f"🚋 **Típus:** {i['model']}\n"
+#                 f"Vonal: {i['line']}\n"
+#                 f"Cél: {i['dest']}\n"
+#                 f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+#             ),
+#             inline=False
+#         )
+#         field_count += 1
 
-    embeds.append(embed)
-    for e in embeds:
-        await ctx.send(embed=e)
+#     embeds.append(embed)
+#     for e in embeds:
+#         await ctx.send(embed=e)
 
 
 # =======================
@@ -1950,3 +1950,4 @@ async def on_ready():
 
 
 bot.run(TOKEN)
+
