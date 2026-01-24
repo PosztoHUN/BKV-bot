@@ -259,7 +259,9 @@ def in_bbox(lat, lon):
         18.90 <= lon <= 19.30
     )
 
-
+# jármű+forgalmi → utolsó log idő
+last_seen = {}
+LOG_INTERVAL = 300  # másodperc (5 perc)
 
 def ensure_dirs():
     os.makedirs("logs", exist_ok=True)
@@ -403,47 +405,65 @@ def get_last_vehicle_reg(veh):
         return None
     return last.get("VehicleRegistrationNumber")
 
-def save_trip(dep_id, line, vehicle, dest):
+def save_trip(trip_id, line, vehicle, dest):
     ensure_dirs()
-    today = datetime.now().strftime("%Y-%m-%d")
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    now = datetime.now()
+    today = now.strftime("%Y-%m-%d")
+    ts = now.strftime("%Y-%m-%d %H:%M:%S")
 
     trip_dir = f"logs/{today}"
     os.makedirs(trip_dir, exist_ok=True)
 
-    trip_file = f"{trip_dir}/{dep_id}.txt"
+    # =========================
+    # JÁRAT NAPLÓ (ELSŐ ÉSZLELÉS)
+    # =========================
+    trip_file = f"{trip_dir}/{trip_id}.txt"
     if not os.path.exists(trip_file):
         with open(trip_file, "w", encoding="utf-8") as f:
             f.write(
                 f"Dátum: {today}\n"
-                f"ID: {dep_id}\n"
+                f"ID: {trip_id}\n"
                 f"Vonal: {line}\n"
                 f"Cél: {dest}\n"
                 f"Jármű: {vehicle}\n"
                 f"Első észlelés: {ts}\n"
             )
 
+    # =========================
+    # JÁRMŰ NAPLÓ (FRISSÍTÉS)
+    # =========================
     veh_file = f"logs/veh/{vehicle}.txt"
-    last_id = None
+    os.makedirs("logs/veh", exist_ok=True)
 
+    key = f"{vehicle}_{trip_id}"
+
+    write_log = False
+
+    # ha még sosem láttuk → írunk
+    if key not in last_seen:
+        write_log = True
+
+    # ha már láttuk, de eltelt 5 perc → írunk
+    else:
+        delta = (now - last_seen[key]).total_seconds()
+        if delta >= LOG_INTERVAL:
+            write_log = True
+
+    # ha forgalmi váltás volt → azonnal írunk
     if os.path.exists(veh_file):
         with open(veh_file, "r", encoding="utf-8") as f:
             lines = f.read().splitlines()
             if lines and "ID " in lines[-1]:
-                last_id = lines[-1].split("ID ")[1].split(" ")[0]
+                last_trip = lines[-1].split("ID ")[1].split(" ")[0]
+                if last_trip != trip_id:
+                    write_log = True
 
-    if last_id != dep_id:
+    if write_log:
         with open(veh_file, "a", encoding="utf-8") as f:
-            f.write(f"{ts} - ID {dep_id} - Vonal {line} - {dest}\n")
+            f.write(f"{ts} - ID {trip_id} - Vonal {line} - {dest}\n")
+        last_seen[key] = now
 
-def resolve_date(date_arg):
-    today = datetime.now().date()
-    if date_arg is None:
-        return today.strftime("%Y-%m-%d")
-    if date_arg.endswith("d"):
-        d = int(date_arg[:-1])
-        return (today - timedelta(days=d)).strftime("%Y-%m-%d")
-    return date_arg
 
 # =======================
 # LOGGER LOOP
@@ -1420,110 +1440,131 @@ async def jaratinfo(ctx, trip_id: str, date: str = None):
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i+1900])
 
-# # ───────────────────────────────
-# # Ganz villamos
-# # ───────────────────────────────
-# @bot.command()
-# async def bkvganztoday(ctx, date: str = None):
-#     day = resolve_date(date)
-#     veh_dir = "logs/veh"
-#     active = {}
+# ───────────────────────────────
+# Ganz villamos
+# ───────────────────────────────
+@bot.command()
+async def bkvganztoday(ctx, date: str = None):
+    day = resolve_date(date)
+    veh_dir = "logs/veh"
+    active = {}
 
-#     for fname in os.listdir(veh_dir):
-#         if not fname.endswith(".txt"):
-#             continue
-#         reg = fname.replace(".txt", "")
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt", "")
 
-#         if not is_ganz(reg) or is_ganz_troli(reg):
-#             continue
+        if not is_ganz(reg) or is_ganz_troli(reg):
+            continue
 
-#         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-#             for line in f:
-#                 if line.startswith(day):
-#                     ts = line.split(" - ")[0]
-#                     trip_id = line.split("ID ")[1].split(" ")[0]
-#                     line_no = line.split("Vonal ")[1].split(" ")[0]
-#                     line_name = LINE_MAP.get(line_no, line_no)
-#                     active.setdefault(reg, []).append((ts, line_name, trip_id))
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    ts = line.split(" - ")[0]
+                    trip_id = line.split("ID ")[1].split(" ")[0]
+                    line_no = line.split("Vonal ")[1].split(" ")[0]
+                    line_name = LINE_MAP.get(line_no, line_no)
+                    active.setdefault(reg, []).append((ts, line_name, trip_id))
 
-#     if not active:
-#         return await ctx.send(f"🚫 {day} napon nem közlekedett Ganz.")
+    if not active:
+        return await ctx.send(f"🚫 {day} napon nem közlekedett Ganz.")
 
-#     out = [f"🚊 Ganz – forgalomban ({day})"]
-#     for reg in sorted(active):
-#         first = min(active[reg], key=lambda x: x[0])
-#         last = max(active[reg], key=lambda x: x[0])
-#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+    out = [f"🚊 Ganz – forgalomban ({day})"]
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
 
-#     msg = "\n".join(out)
-#     for i in range(0, len(msg), 1900):
-#         await ctx.send(msg[i:i+1900])
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
 
-# # ───────────────────────────────
-# # TW6000
-# # ───────────────────────────────
-# @bot.command()
-# async def bkvtw6000today(ctx, date: str = None):
-#     day = resolve_date(date)
-#     veh_dir = "logs/veh"
-#     active = {}
+# ───────────────────────────────
+# TW6000
+# ───────────────────────────────
+@bot.command()
+async def bkvtw6000today(ctx, date: str = None):
+    day = resolve_date(date)
+    veh_dir = "logs/veh"
+    active = {}
 
-#     for fname in os.listdir(veh_dir):
-#         if not fname.endswith(".txt"):
-#             continue
-#         reg = fname.replace(".txt", "")
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt", "")
 
-#         if not is_tw6000(reg):
-#             continue
+        if not is_tw6000(reg):
+            continue
 
-#         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-#             for line in f:
-#                 if line.startswith(day):
-#                     ts = line.split(" - ")[0]
-#                     trip_id = line.split("ID ")[1].split(" ")[0]
-#                     line_no = line.split("Vonal ")[1].split(" ")[0]
-#                     line_name = LINE_MAP.get(line_no, line_no)
-#                     active.setdefault(reg, []).append((ts, line_name, trip_id))
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    ts = line.split(" - ")[0]
+                    trip_id = line.split("ID ")[1].split(" ")[0]
+                    line_no = line.split("Vonal ")[1].split(" ")[0]
+                    line_name = LINE_MAP.get(line_no, line_no)
+                    active.setdefault(reg, []).append((ts, line_name, trip_id))
 
-#     if not active:
-#         return await ctx.send(f"🚫 {day} napon nem közlekedett TW6000.")
+    if not active:
+        return await ctx.send(f"🚫 {day} napon nem közlekedett TW6000.")
 
-#     out = [f"🚊 TW6000 – forgalomban ({day})"]
-#     for reg in sorted(active):
-#         first = min(active[reg], key=lambda x: x[0])
-#         last = max(active[reg], key=lambda x: x[0])
-#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+    out = [f"🚊 TW6000 – forgalomban ({day})"]
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
 
-#     msg = "\n".join(out)
-#     for i in range(0, len(msg), 1900):
-#         await ctx.send(msg[i:i+1900])
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
 
-# # ───────────────────────────────
-# # Combino
-# # ───────────────────────────────
+# ───────────────────────────────
+# Combino
+# ───────────────────────────────
+
+@bot.command()
+async def bkvcombinotoday(ctx, date: str = None):
+    day = resolve_date(date)
+    veh_dir = "logs/veh"
+    active = {}
+
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt", "")
+
+        if not is_combino(reg):
+            continue
+
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    ts = line.split(" - ")[0]
+                    trip_id = line.split("ID ")[1].split(" ")[0]
+                    line_no = line.split("Vonal ")[1].split(" ")[0]
+                    line_name = LINE_MAP.get(line_no, line_no)
+                    active.setdefault(reg, []).append((ts, line_name, trip_id))
+
+    if not active:
+        return await ctx.send(f"🚫 {day} napon nem közlekedett Combino.")
+
+    out = [f"🚊 Combino – forgalomban ({day})"]
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
 
 # @bot.command()
 # async def bkvcombinotoday(ctx, date: str = None):
 #     day = resolve_date(date)
-#     veh_dir = "logs/veh"
-#     active = {}
+#     data = today_data.get(day, {})
 
-#     for fname in os.listdir(veh_dir):
-#         if not fname.endswith(".txt"):
-#             continue
-#         reg = fname.replace(".txt", "")
-
-#         if not is_combino(reg):
-#             continue
-
-#         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-#             for line in f:
-#                 if line.startswith(day):
-#                     ts = line.split(" - ")[0]
-#                     trip_id = line.split("ID ")[1].split(" ")[0]
-#                     line_no = line.split("Vonal ")[1].split(" ")[0]
-#                     line_name = LINE_MAP.get(line_no, line_no)
-#                     active.setdefault(reg, []).append((ts, line_name, trip_id))
+#     # csak combino járművek
+#     active = {reg: trips for reg, trips in data.items() if is_combino(reg)}
 
 #     if not active:
 #         return await ctx.send(f"🚫 {day} napon nem közlekedett Combino.")
@@ -1538,179 +1579,158 @@ async def jaratinfo(ctx, trip_id: str, date: str = None):
 #     for i in range(0, len(msg), 1900):
 #         await ctx.send(msg[i:i+1900])
 
-# # @bot.command()
-# # async def bkvcombinotoday(ctx, date: str = None):
-# #     day = resolve_date(date)
-# #     data = today_data.get(day, {})
+# ───────────────────────────────
+# CAF (CAF5 + CAF9)
+# ───────────────────────────────
+@bot.command()
+async def bkvcaftoday(ctx, date: str = None):
+    day = resolve_date(date)
+    veh_dir = "logs/veh"
+    active = {}
 
-# #     # csak combino járművek
-# #     active = {reg: trips for reg, trips in data.items() if is_combino(reg)}
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt", "")
 
-# #     if not active:
-# #         return await ctx.send(f"🚫 {day} napon nem közlekedett Combino.")
+        if not (is_caf5(reg) or is_caf9(reg)):
+            continue
 
-# #     out = [f"🚊 Combino – forgalomban ({day})"]
-# #     for reg in sorted(active):
-# #         first = min(active[reg], key=lambda x: x[0])
-# #         last = max(active[reg], key=lambda x: x[0])
-# #         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    ts = line.split(" - ")[0]
+                    trip_id = line.split("ID ")[1].split(" ")[0]
+                    line_no = line.split("Vonal ")[1].split(" ")[0]
+                    line_name = LINE_MAP.get(line_no, line_no)
+                    active.setdefault(reg, []).append((ts, line_name, trip_id))
 
-# #     msg = "\n".join(out)
-# #     for i in range(0, len(msg), 1900):
-# #         await ctx.send(msg[i:i+1900])
+    if not active:
+        return await ctx.send(f"🚫 {day} napon nem közlekedett CAF.")
 
-# # ───────────────────────────────
-# # CAF (CAF5 + CAF9)
-# # ───────────────────────────────
-# @bot.command()
-# async def bkvcaftoday(ctx, date: str = None):
-#     day = resolve_date(date)
-#     veh_dir = "logs/veh"
-#     active = {}
+    out = [f"🚊 CAF – forgalomban ({day})"]
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
 
-#     for fname in os.listdir(veh_dir):
-#         if not fname.endswith(".txt"):
-#             continue
-#         reg = fname.replace(".txt", "")
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
 
-#         if not (is_caf5(reg) or is_caf9(reg)):
-#             continue
+# ───────────────────────────────
+# Tatra
+# ───────────────────────────────
+@bot.command()
+async def bkvtatratoday(ctx, date: str = None):
+    day = resolve_date(date)
+    veh_dir = "logs/veh"
+    active = {}
 
-#         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-#             for line in f:
-#                 if line.startswith(day):
-#                     ts = line.split(" - ")[0]
-#                     trip_id = line.split("ID ")[1].split(" ")[0]
-#                     line_no = line.split("Vonal ")[1].split(" ")[0]
-#                     line_name = LINE_MAP.get(line_no, line_no)
-#                     active.setdefault(reg, []).append((ts, line_name, trip_id))
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt", "")
 
-#     if not active:
-#         return await ctx.send(f"🚫 {day} napon nem közlekedett CAF.")
+        if not (is_t5c5(reg) or is_t5c5k2(reg)):
+            continue
 
-#     out = [f"🚊 CAF – forgalomban ({day})"]
-#     for reg in sorted(active):
-#         first = min(active[reg], key=lambda x: x[0])
-#         last = max(active[reg], key=lambda x: x[0])
-#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    ts = line.split(" - ")[0]
+                    trip_id = line.split("ID ")[1].split(" ")[0]
+                    line_no = line.split("Vonal ")[1].split(" ")[0]
+                    line_name = LINE_MAP.get(line_no, line_no)
+                    active.setdefault(reg, []).append((ts, line_name, trip_id))
 
-#     msg = "\n".join(out)
-#     for i in range(0, len(msg), 1900):
-#         await ctx.send(msg[i:i+1900])
+    if not active:
+        return await ctx.send(f"🚫 {day} napon nem közlekedett Tatra.")
 
-# # ───────────────────────────────
-# # Tatra
-# # ───────────────────────────────
-# @bot.command()
-# async def bkvtatratoday(ctx, date: str = None):
-#     day = resolve_date(date)
-#     veh_dir = "logs/veh"
-#     active = {}
+    out = [f"🚊 Tatra – forgalomban ({day})"]
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
 
-#     for fname in os.listdir(veh_dir):
-#         if not fname.endswith(".txt"):
-#             continue
-#         reg = fname.replace(".txt", "")
-
-#         if not (is_t5c5(reg) or is_t5c5k2(reg)):
-#             continue
-
-#         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-#             for line in f:
-#                 if line.startswith(day):
-#                     ts = line.split(" - ")[0]
-#                     trip_id = line.split("ID ")[1].split(" ")[0]
-#                     line_no = line.split("Vonal ")[1].split(" ")[0]
-#                     line_name = LINE_MAP.get(line_no, line_no)
-#                     active.setdefault(reg, []).append((ts, line_name, trip_id))
-
-#     if not active:
-#         return await ctx.send(f"🚫 {day} napon nem közlekedett Tatra.")
-
-#     out = [f"🚊 Tatra – forgalomban ({day})"]
-#     for reg in sorted(active):
-#         first = min(active[reg], key=lambda x: x[0])
-#         last = max(active[reg], key=lambda x: x[0])
-#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
-
-#     msg = "\n".join(out)
-#     for i in range(0, len(msg), 1900):
-#         await ctx.send(msg[i:i+1900])
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
         
-# @bot.command()
-# async def bkvclassictoday(ctx, date: str = None):
-#     day = resolve_date(date)
-#     veh_dir = "logs/veh"
-#     active = {}
+@bot.command()
+async def bkvclassictoday(ctx, date: str = None):
+    day = resolve_date(date)
+    veh_dir = "logs/veh"
+    active = {}
 
-#     for fname in os.listdir(veh_dir):
-#         if not fname.endswith(".txt"):
-#             continue
-#         reg = fname.replace(".txt", "")
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt", "")
 
-#         if not is_t5c5(reg):
-#             continue
+        if not is_t5c5(reg):
+            continue
 
-#         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-#             for line in f:
-#                 if line.startswith(day):
-#                     ts = line.split(" - ")[0]
-#                     trip_id = line.split("ID ")[1].split(" ")[0]
-#                     line_no = line.split("Vonal ")[1].split(" ")[0]
-#                     line_name = LINE_MAP.get(line_no, line_no)
-#                     active.setdefault(reg, []).append((ts, line_name, trip_id))
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    ts = line.split(" - ")[0]
+                    trip_id = line.split("ID ")[1].split(" ")[0]
+                    line_no = line.split("Vonal ")[1].split(" ")[0]
+                    line_name = LINE_MAP.get(line_no, line_no)
+                    active.setdefault(reg, []).append((ts, line_name, trip_id))
 
-#     if not active:
-#         return await ctx.send(f"🚫 {day} napon nem közlekedett Classic Tatra.")
+    if not active:
+        return await ctx.send(f"🚫 {day} napon nem közlekedett Classic Tatra.")
 
-#     out = [f"🚊 Classic Tatra – forgalomban ({day})"]
-#     for reg in sorted(active):
-#         first = min(active[reg], key=lambda x: x[0])
-#         last = max(active[reg], key=lambda x: x[0])
-#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+    out = [f"🚊 Classic Tatra – forgalomban ({day})"]
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
 
-#     msg = "\n".join(out)
-#     for i in range(0, len(msg), 1900):
-#         await ctx.send(msg[i:i+1900])
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
 
-# # ───────────────────────────────
-# # Oktató villamos
-# # ───────────────────────────────
-# @bot.command()
-# async def bkvtanulotoday(ctx, date: str = None):
-#     day = resolve_date(date)
-#     veh_dir = "logs/veh"
-#     active = {}
+# ───────────────────────────────
+# Oktató villamos
+# ───────────────────────────────
+@bot.command()
+async def bkvtanulotoday(ctx, date: str = None):
+    day = resolve_date(date)
+    veh_dir = "logs/veh"
+    active = {}
 
-#     for fname in os.listdir(veh_dir):
-#         if not fname.endswith(".txt"):
-#             continue
-#         reg = fname.replace(".txt", "")
+    for fname in os.listdir(veh_dir):
+        if not fname.endswith(".txt"):
+            continue
+        reg = fname.replace(".txt", "")
 
-#         if not is_oktato(reg):
-#             continue
+        if not is_oktato(reg):
+            continue
 
-#         with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-#             for line in f:
-#                 if line.startswith(day):
-#                     ts = line.split(" - ")[0]
-#                     trip_id = line.split("ID ")[1].split(" ")[0]
-#                     line_no = line.split("Vonal ")[1].split(" ")[0]
-#                     line_name = LINE_MAP.get(line_no, line_no)
-#                     active.setdefault(reg, []).append((ts, line_name, trip_id))
+        with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(day):
+                    ts = line.split(" - ")[0]
+                    trip_id = line.split("ID ")[1].split(" ")[0]
+                    line_no = line.split("Vonal ")[1].split(" ")[0]
+                    line_name = LINE_MAP.get(line_no, line_no)
+                    active.setdefault(reg, []).append((ts, line_name, trip_id))
 
-#     if not active:
-#         return await ctx.send(f"🚫 {day} ma nem közlekedett oktató villamos.")
+    if not active:
+        return await ctx.send(f"🚫 {day} ma nem közlekedett oktató villamos.")
 
-#     out = [f"🚊 Oktató – szabadon ({day})"]
-#     for reg in sorted(active):
-#         first = min(active[reg], key=lambda x: x[0])
-#         last = max(active[reg], key=lambda x: x[0])
-#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+    out = [f"🚊 Oktató – szabadon ({day})"]
+    for reg in sorted(active):
+        first = min(active[reg], key=lambda x: x[0])
+        last = max(active[reg], key=lambda x: x[0])
+        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
 
-#     msg = "\n".join(out)
-#     for i in range(0, len(msg), 1900):
-#         await ctx.send(msg[i:i+1900])
+    msg = "\n".join(out)
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
         
 @bot.command()
 async def vehicleinfo(ctx, vehicle: str):
