@@ -1028,7 +1028,71 @@ async def bkvcombino(ctx):
     for e in embeds:
         await ctx.send(embed=e)
 
+@bot.command()
+async def bkvoktato(ctx):
+    active = {}
 
+    async with aiohttp.ClientSession() as session:
+        vehicles = await fetch_json(session, VEHICLES_API)
+        if not isinstance(vehicles, list):
+            return await ctx.send("❌ Nem érkezett adat az API-ból.")
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            lat = v.get("latitude")
+            lon = v.get("longitude")
+            dest = v.get("destination", "Ismeretlen")
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
+
+            if not reg or lat is None or lon is None:
+                continue
+            if not is_oktato(reg):
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            active[reg] = {
+                "line": line_name,
+                "dest": dest,
+                "lat": lat,
+                "lon": lon
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Oktató villamos.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed = discord.Embed(
+        title="🚋 Aktív Oktató villamosok",
+        color=0xffff00
+    )
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(
+                title="🚋 Aktív Oktató villamosok (folytatás)",
+                color=0xff0000
+            )
+            field_count = 0
+
+        embed.add_field(
+            name=reg,
+            value=(
+                f"{line_text}\n"
+                f"Cél: {i['dest']}\n"
+                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            ),
+            inline=False
+        )
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
 
 # ────────────────
 # CAF5
@@ -1950,4 +2014,5 @@ async def on_ready():
 
 
 bot.run(TOKEN)
+
 
