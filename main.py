@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 TOKEN = os.getenv("TOKEN")
 
-API_BASE = "https://bkv-realtime-map.onrender.com"
+API_BASE = "https://bkv-realtime-map.hu/vehicles"
 
 STOP_API = f"{API_BASE}/stop?stopId={{stop_id}}"
 VEHICLES_API = f"{API_BASE}/vehicles"
@@ -2014,5 +2014,6 @@ async def on_ready():
 
 
 bot.run(TOKEN)
+
 
 
