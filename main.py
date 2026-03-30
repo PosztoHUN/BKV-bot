@@ -25,7 +25,7 @@ VEHICLES_API = f"{API_BASE}/vehicles"
 #     "2902","1989"
 # }
 
-TRAM_LINES = {"3010", "3011", "3020", "3022", "3030", "3040", "3060", "3120", "3140", "3170", "3190", "3230", "3240", "3280", "3281", "3370", "3371", "3410", "3420", "3470", "3480", "3490", "3500", "3510", "3511", "3520", "3560", "3561", "3590", "3591", "3592", "3600", "3610", "3620", "3621", "3690", " ", "-", "9999", "9997"}
+TRAM_LINES = {"3010", "3011", "3020", "3022", "3030", "3040", "3060", "3120", "3140", "3170", "3190", "3230", "3240", "3280", "3281", "3370", "3371", "3410", "3420", "3470", "3480", "3490", "3500", "3510", "3511", "3520", "3560", "3561", "3590", "3591", "3592", "3600", "3610", "3620", "3621", "3690", " ", "-", "9999", "9997", "R3180", "R3230", "R3360", "R3800", "R3118", "N3560", "N3020", "N3180", "N3190", "N3600"}
 
 # VONAL MAPPING
 LINE_MAP = {
@@ -64,7 +64,16 @@ LINE_MAP = {
     "3610": "61",
     "3620": "62",
     "3621": "62A",
-    "3690": "69"
+    "3690": "69",
+    "R3180": "R18",
+    "R3230": "R23",
+    "R3360": "R36",
+    "R3800": "R80",
+    "R3118": "R118",
+    "N3560": "N56",
+    "N3020": "N2",
+    "N3180": "N18",
+    "N3190": "N19"
 }
 
 POTLAS_TIPUSOK = {
@@ -299,18 +308,12 @@ def ensure_dirs():
     os.makedirs("logs", exist_ok=True)
     os.makedirs("logs/veh", exist_ok=True)
     
-NOSZTALGIA = {"V313", "V314", "V313-V314", "V813"}
+NOSZTALGIA = {"4000", "4171", "4200", "4349", "JARMU1", "JARMU2", "JARMU3"}
 
-def is_nos(reg):
-    if not isinstance(reg, str):
+def is_nosztalgia(reg):
+    if not is_t5c5k2(reg):
         return False
-    if reg.startswith("V") and reg[1:].isdigit():
-        n = int(reg[1:])
-        if 12 <= n <= 12:
-            return True
-    return reg in NOSZTALGIA
-    
-
+    return reg in NOSZTALGIA  
 
 def is_tw6000(reg):
     if not isinstance(reg, str):
@@ -320,6 +323,15 @@ def is_tw6000(reg):
     if not reg[1:].isdigit():
         return False
     return 1500 <= int(reg[1:]) <= 1624 
+
+def is_fogas(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("F00"):
+        return False
+    if not reg[1:].isdigit():
+        return False
+    return 50 <= int(reg[1:]) <= 70 
 
 # T5C5 konkrét pályaszámok
 T5C5_NUMBERS = {
@@ -659,7 +671,7 @@ async def bkvvillamos(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
             if not ("ganz" in model or is_tw6000(reg) or is_combino(reg) or
-                    is_caf5(reg) or is_caf9(reg) or is_t5c5(reg) or is_oktato(reg)):
+                    is_caf5(reg) or is_caf9(reg) or is_t5c5(reg) or is_oktato(reg)) or is_fogas(reg):
                 continue
             if is_ganz_troli(reg):
                 continue
@@ -849,7 +861,7 @@ async def bkvics(ctx):
 # ────────────────
 
 FIXLEPCSOS = {
-    "1506", "1510", "1532", "1542", "1551", "1552", "1570", "1573",
+    "1500", "1506", "1510", "1532", "1542", "1551", "1552", "1569", "1570", "1573",
     "1583", "1589", "1600", "1601", "1602", "1604", "1605", "1606",
     "1607", "1613", "1614", "1615", "1619", "1624"
 }
@@ -1397,7 +1409,77 @@ async def bkvt5c5k2(ctx):
     embeds.append(embed)
     for e in embeds:
         await ctx.send(embed=e)
+# ────────────────
+# Fogaskerekű
+# ────────────────
+@bot.command()
+async def bkvfogas(ctx):
+    active = {}
 
+    async with aiohttp.ClientSession() as session:
+        vehicles = await fetch_json(session, VEHICLES_API)
+        if not isinstance(vehicles, list):
+            return await ctx.send("❌ Nem érkezett adat az API-ból.")
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            lat = v.get("latitude")
+            lon = v.get("longitude")
+            dest = v.get("destination", "Ismeretlen")
+            line_id = str(v.get("route_id", "—"))
+            line_name = LINE_MAP.get(line_id, line_id)
+
+            if not reg or lat is None or lon is None:
+                continue
+            if not is_fogas(reg):
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            active[reg] = {
+                "line": line_name,
+                "dest": dest,
+                "lat": lat,
+                "lon": lon
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Fogaskerekű.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed = discord.Embed(
+        title="🚋 Aktív Fogaskerekűek",
+        color=0xffff00
+    )
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(
+                title="🚋 Aktív Fogaskerekűek (folytatás)",
+                color=0xffff00
+            )
+            field_count = 0
+
+        line = i["line"]
+        line_text = f"Vonal: {line}"
+
+        embed.add_field(
+            name=reg,
+            value=(
+                f"{line_text}\n"
+                f"Cél: {i['dest']}\n"
+                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            ),
+            inline=False
+        )
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
 
 # @bot.command()
 # async def allnosztalgia(ctx):
