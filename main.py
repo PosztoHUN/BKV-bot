@@ -939,13 +939,13 @@ async def bkvkcsv7(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok", color=0xffff00)
+    embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok", color=0xffaa00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok (folytatás)", color=0xffff00)
+            embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok (folytatás)", color=0xffaa00)
             field_count = 0
 
         line = i["line"]
@@ -996,13 +996,13 @@ async def bkvics(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok", color=0xffff00)
+    embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok", color=0xffaa00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok (folytatás)", color=0xffff00)
+            embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok (folytatás)", color=0xffaa00)
             field_count = 0
 
         line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_ICS else f"Vonal: {i['line']}"
@@ -1064,7 +1064,7 @@ async def bkvtw6000(ctx):
                 "dest": dest,
                 "lat": lat,
                 "lon": lon,
-                "fixlepcsos": is_fixlepcsos(reg_num)  # Új mező
+                "fixlepcsos": is_fixlepcsos(reg_num)  # True/False
             }
     
     if not active:
@@ -1072,24 +1072,26 @@ async def bkvtw6000(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok", color=0xffe600)
+    embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok", color=0xffaa00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok (folytatás)", color=0xffe600)
+            embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok (folytatás)", color=0xffaa00)
             field_count = 0
 
         line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_TW else f"Vonal: {i['line']}"
-        fix_text = "⚠️ Fixlépcsős" if i["fixlepcsos"] else "🟢 Alacsonypadlós"
+        
+        # Csak akkor írja ki, ha fixlépcsős
+        fix_text = "⚠️ Fixlépcsős" if i["fixlepcsos"] else ""
 
         embed.add_field(
             name=reg,
             value=(
                 f"{line_text}\n"
                 f"Cél: {i['dest']}\n"
-                f"{fix_text}\n"
+                f"{fix_text}" + ("" if not fix_text else "\n") +
                 f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
             ),
             inline=False
@@ -1186,13 +1188,13 @@ async def bkvoktato(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚋 Aktív Oktató villamosok"
-    embed = discord.Embed(title=embed_title_base, color=0xffff00)
+    embed = discord.Embed(title=embed_title_base, color=0xffaa00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xff0000)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffaa00)
             field_count = 0
 
         line_text = f"Vonal: {i['line']}"
@@ -1351,13 +1353,13 @@ async def bkvt5c5(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚋 Aktív T5C5 villamosok"
-    embed = discord.Embed(title=embed_title_base, color=0xffff00)
+    embed = discord.Embed(title=embed_title_base, color=0xffaa00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffff00)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffaa00)
             field_count = 0
 
         line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_T5C5 else f"Vonal: {i['line']}"
