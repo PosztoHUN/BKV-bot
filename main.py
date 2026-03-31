@@ -344,7 +344,7 @@ def ensure_dirs():
     os.makedirs("logs", exist_ok=True)
     os.makedirs("logs/veh", exist_ok=True)
 
-NOSZTALGIA = {"4000", "4171", "4200", "4349", "JARMU1", "JARMU2", "JARMU3"}
+NOSZTALGIA = {"V4000", "V4171", "V4200", "V4349", "JARMU1", "JARMU2", "JARMU3", "T0309", "T0359"}
 
 def is_nosztalgia(reg):
     if not is_t5c5k2(reg):
@@ -464,6 +464,86 @@ def is_oktato(reg):
         return False
     n = int(reg[1:])
     return 7600 <= n <= 7699
+
+def is_ik280t(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("T0"):
+        return False
+    if not reg[2:].isdigit():
+        return False
+    n = int(reg[2:5])
+    return 200 <= n <= 299
+
+def is_ik412t(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("T0"):
+        return False
+    if not reg[2:].isdigit():
+        return False
+    n = int(reg[2:])
+    return 700 <= n <= 721
+
+def is_ik411t(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("T0"):
+        return False
+    if not reg[2:].isdigit():
+        return False
+    n = int(reg[2:])
+    return 400 <= n <= 401
+
+def is_gst(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("T0"):
+        return False
+    if not reg[2:].isdigit():
+        return False
+    n = int(reg[2:])
+    return 601 <= n <= 626
+
+def is_sst12iii(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("T"):
+        return False
+    if not reg[1:].isdigit():
+        return False
+    n = int(reg[1:])
+    return 8000 <= n <= 8019
+
+def is_sst18iii(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("T"):
+        return False
+    if not reg[1:].isdigit():
+        return False
+    n = int(reg[1:])
+    return 9000 <= n <= 9015
+
+def is_sst12iv(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("T"):
+        return False
+    if not reg[1:].isdigit():
+        return False
+    n = int(reg[1:])
+    return 8100 <= n <= 8121
+
+def is_sst18iv(reg):
+    if not isinstance(reg, str):
+        return False
+    if not reg.startswith("T"):
+        return False
+    if not reg[1:].isdigit():
+        return False
+    n = int(reg[1:])
+    return 9100 <= n <= 9149
 
 async def fetch_json(session, url):
     try:
@@ -897,7 +977,7 @@ async def bkvics(ctx):
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
             line_id = str(v.get("route_id", "—"))
-            line_name = decode_line(line_id)  # új rendszerhez igazítva
+            line_name = decode_line(line_id)
 
             if is_ganz_troli(reg) or is_kcsv7(reg):
                 continue
@@ -908,29 +988,24 @@ async def bkvics(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Ganz ICS villamos.")
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = "🚋 Aktív Ganz ICS villamosok"
-    embed = discord.Embed(title=embed_title_base, color=0xffff00)
+    embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok", color=0xffff00)
     field_count = 0
 
-    for idx, (reg, i) in enumerate(sorted(active.items()), start=1):
-        # Ha elértük a max mezők számát, új embed
+    for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(
-                title=f"{embed_title_base} (folytatás)",
-                color=0xffff00
-            )
+            embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok (folytatás)", color=0xffff00)
             field_count = 0
 
-        line = i["line"]
-        line_text = f"🔴 *Vonal: {line}*" if line not in KIEMELT_VONALAK_ICS else f"Vonal: {line}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_ICS else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
@@ -961,7 +1036,6 @@ def is_fixlepcsos(reg):
 @bot.command()
 async def bkvtw6000(ctx):
     active = {}
-
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_vehicles(session)
         if not isinstance(vehicles, list):
@@ -973,7 +1047,7 @@ async def bkvtw6000(ctx):
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
             line_id = str(v.get("route_id", "—"))
-            line_name = decode_line(line_id)  # új rendszerhez igazítva
+            line_name = decode_line(line_id)
 
             if not reg_raw or lat is None or lon is None:
                 continue
@@ -982,37 +1056,29 @@ async def bkvtw6000(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            reg = normalize_reg(reg_raw)
-            if not reg:
-                continue
-
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
-
+            reg_num = reg_raw[1:] if reg_raw.startswith("V") and len(reg_raw) == 5 else reg_raw
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+    
     if not active:
         return await ctx.send("🚫 Nincs aktív TW6000-es villamos.")
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = "🚋 Aktív TW6000-es villamosok"
-    embed = discord.Embed(title=embed_title_base, color=0xffe600)
+    embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok", color=0xffe600)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffe600)
+            embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok (folytatás)", color=0xffe600)
             field_count = 0
 
-        line = i["line"]
-        line_text = f"🔴 Vonal: *{line}*" if line not in KIEMELT_VONALAK_TW else f"Vonal: {line}"
+        line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_TW else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
             value=(
-                f"{line_text}\n"
-                f"Cél: {i['dest']}\n"
-                f"Fixlépcsős: {'Igen' if is_fixlepcsos(reg) else 'Nem'}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+                f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}"
             ),
             inline=False
         )
@@ -1025,7 +1091,6 @@ async def bkvtw6000(ctx):
 @bot.command()
 async def bkvcombino(ctx):
     active = {}
-
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_vehicles(session)
         if not isinstance(vehicles, list):
@@ -1037,7 +1102,7 @@ async def bkvcombino(ctx):
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
             line_id = str(v.get("route_id", "—"))
-            line_name = decode_line(line_id)  # új rendszerhez igazítva
+            line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
                 continue
@@ -1046,33 +1111,28 @@ async def bkvcombino(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Combino villamos.")
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = "🚋 Aktív Combino villamosok"
-    embed = discord.Embed(title=embed_title_base, color=0xffff00)
+    embed = discord.Embed(title="🚋 Aktív Combino villamosok", color=0xffff00)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffff00)
+            embed = discord.Embed(title="🚋 Aktív Combino villamosok (folytatás)", color=0xffff00)
             field_count = 0
 
-        line = i["line"]
-        line_text = f"🔴 Vonal: *{line}*" if line not in KIEMELT_VONALAK_COMBINO else f"Vonal: {line}"
+        line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_COMBINO else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
-            value=(
-                f"{line_text}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
@@ -1096,7 +1156,7 @@ async def bkvoktato(ctx):
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
             line_id = str(v.get("route_id", "—"))
-            line_name = decode_line(line_id)  # új rendszerhez igazítva
+            line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
                 continue
@@ -1105,7 +1165,8 @@ async def bkvoktato(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Oktató villamos.")
@@ -1126,11 +1187,7 @@ async def bkvoktato(ctx):
 
         embed.add_field(
             name=reg,
-            value=(
-                f"{line_text}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
@@ -1154,7 +1211,7 @@ async def bkvcaf5(ctx):
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
             line_id = str(v.get("route_id", "—"))
-            line_name = decode_line(line_id)  # új rendszerhez igazítva
+            line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
                 continue
@@ -1163,7 +1220,8 @@ async def bkvcaf5(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF5 villamos.")
@@ -1180,16 +1238,11 @@ async def bkvcaf5(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffff00)
             field_count = 0
 
-        line = i["line"]
-        line_text = f"🔴 *Vonal: {line}*" if line not in KIEMELT_VONALAK_CAF5 else f"Vonal: {line}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_CAF5 else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
-            value=(
-                f"{line_text}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
@@ -1213,7 +1266,7 @@ async def bkvcaf9(ctx):
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
             line_id = str(v.get("route_id", "—"))
-            line_name = decode_line(line_id)  # új rendszerhez igazítva
+            line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
                 continue
@@ -1222,7 +1275,8 @@ async def bkvcaf9(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF9 villamos.")
@@ -1239,16 +1293,11 @@ async def bkvcaf9(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffff00)
             field_count = 0
 
-        line = i["line"]
-        line_text = f"🔴 *Vonal: {line}*" if line not in KIEMELT_VONALAK_CAF9 else f"Vonal: {line}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_CAF9 else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
-            value=(
-                f"{line_text}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
@@ -1272,7 +1321,7 @@ async def bkvt5c5(ctx):
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
             line_id = str(v.get("route_id", "—"))
-            line_name = decode_line(line_id)  # új rendszerhez igazítva
+            line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
                 continue
@@ -1281,7 +1330,8 @@ async def bkvt5c5(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív T5C5 villamos.")
@@ -1298,16 +1348,11 @@ async def bkvt5c5(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffff00)
             field_count = 0
 
-        line = i["line"]
-        line_text = f"🔴 *Vonal: {line}*" if line not in KIEMELT_VONALAK_T5C5 else f"Vonal: {line}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_T5C5 else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
-            value=(
-                f"{line_text}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
@@ -1331,7 +1376,7 @@ async def bkvt5c5k2(ctx):
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
             line_id = str(v.get("route_id", "—"))
-            line_name = decode_line(line_id)  # új rendszerhez igazítva
+            line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
                 continue
@@ -1340,7 +1385,8 @@ async def bkvt5c5k2(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív T5C5K2 villamos.")
@@ -1357,16 +1403,11 @@ async def bkvt5c5k2(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffaa00)
             field_count = 0
 
-        line = i["line"]
-        line_text = f"🔴 *Vonal: {line}*" if line not in KIEMELT_VONALAK_T5C5K2 else f"Vonal: {line}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_T5C5K2 else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
-            value=(
-                f"{line_text}\n"
-                f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-            ),
+            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
         field_count += 1
@@ -1399,7 +1440,10 @@ async def bkvfogas(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            # F fogaskerekű azonosító rövidítése: F0051 -> 51
+            reg_num = reg[-2:] if reg.startswith("F") and len(reg) == 5 else reg
+
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Fogaskerekű.")
