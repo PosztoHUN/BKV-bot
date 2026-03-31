@@ -2872,6 +2872,123 @@ async def bkvvolvo(ctx):
     for e in embeds:
         await ctx.send(embed=e)
         
+@bot.command()
+async def bkvmercedes(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_mbc2(reg)
+                or is_mbc2g(reg)
+                or is_mbc2k(reg)
+                or is_mbconii(reg)
+                or is_mbconiig(reg)
+                or is_mbconiii(reg)
+                or is_mbconiiig(reg)
+                or is_mbO530(reg)
+                or is_mbO530G(reg)
+                or is_mbO530f(reg)
+                or is_mbO530fG(reg)
+                or is_mbO530K(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_mbc2g(reg):
+                vtype = "Mercedes-Benz Citaro C2 G"
+            elif is_mbc2k(reg):
+                vtype = "Mercedes-Benz Citaro C2 K"
+            elif is_mbconii(reg):
+                vtype = "Mercedes-Benz Citaro C2 G"
+            elif is_mbconiig(reg):
+                vtype = "Mercedes-Benz Citaro C2 G"
+            elif is_mbconiii(reg):
+                vtype = "Mercedes-Benz Citaro C2 G"
+            elif is_mbconiiig(reg):
+                vtype = "Mercedes-Benz Citaro C2 G"
+            elif is_mbO530(reg):
+                vtype = "Mercedes-Benz O530"
+            elif is_mbO530G(reg):
+                vtype = "Mercedes-Benz O530G"
+            elif is_mbO530f(reg):
+                vtype = "Mercedes-Benz O530 facelift"
+            elif is_mbO530fG(reg):
+                vtype = "Mercedes-Benz O530 felfacelift G"
+            elif is_mbO530K(reg):
+                vtype = "Mercedes-Benz O530K"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Volvo busz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív Volvo buszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
+        
 # =======================
 # PARANCSOK - Egyébbek
 # =======================
