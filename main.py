@@ -1056,8 +1056,16 @@ async def bkvtw6000(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            # Rövidített reg szám: V1301 -> 1301
             reg_num = reg_raw[1:] if reg_raw.startswith("V") and len(reg_raw) == 5 else reg_raw
-            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "lat": lat,
+                "lon": lon,
+                "fixlepcsos": is_fixlepcsos(reg_num)  # Új mező
+            }
     
     if not active:
         return await ctx.send("🚫 Nincs aktív TW6000-es villamos.")
@@ -1074,11 +1082,15 @@ async def bkvtw6000(ctx):
             field_count = 0
 
         line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_TW else f"Vonal: {i['line']}"
+        fix_text = "⚠️ Fixlépcsős" if i["fixlepcsos"] else "🟢 Alacsonypadlós"
 
         embed.add_field(
             name=reg,
             value=(
-                f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+                f"{line_text}\n"
+                f"Cél: {i['dest']}\n"
+                f"{fix_text}\n"
+                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
             ),
             inline=False
         )
