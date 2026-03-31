@@ -1547,12 +1547,11 @@ async def bkvtroli(ctx):
 
             # 🔥 trolibusz szűrés
             if not (
-                "ganz" in model
+                is_gst(reg)           # Ganz trolik T0601-T0626
                 or is_ik280t(reg)
                 or is_ik411t(reg)
                 or is_ik412t(reg)
                 or is_ik412gt(reg)
-                or is_gst(reg)
                 or is_sst12iii(reg)
                 or is_sst12iv(reg)
                 or is_sst18iii(reg)
@@ -1564,7 +1563,7 @@ async def bkvtroli(ctx):
                 continue
 
             # 🔥 típus meghatározása
-            if "ganz" in model and is_gst(reg):
+            if is_gst(reg):
                 vtype = "Ganz-Solaris Trolino 12B"
             elif is_ik411t(reg):
                 vtype = "Ikarus-Obus-Kiepe 411T"
@@ -1585,7 +1584,6 @@ async def bkvtroli(ctx):
             else:
                 vtype = "Ismeretlen"
 
-            # 🔥 normalizált regisztráció számra
             digits = "".join(c for c in reg if c.isdigit())
             reg_num = str(int(digits)) if digits else reg
 
