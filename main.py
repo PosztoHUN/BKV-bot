@@ -545,6 +545,729 @@ def is_sst18iv(reg):
     n = int(reg[1:])
     return 9100 <= n <= 9149
 
+def is_mbconiii(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - RVY601-620
+    - RWA600
+    - SKR801-832
+    - AADI561-610
+    - AADR701-722
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # RVY601-620
+    if reg.startswith("RVY"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 601 <= int(digits) <= 620:
+            return True
+
+    # RWA600 (konkrét)
+    if reg == "RWA600":
+        return True
+
+    # SKR801-832
+    if reg.startswith("SKR"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 801 <= int(digits) <= 832:
+            return True
+
+    # AADI561-610
+    if reg.startswith("AADI"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 561 <= int(digits) <= 610:
+            return True
+
+    # AADR701-722
+    if reg.startswith("AADR"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 701 <= int(digits) <= 722:
+            return True
+
+    return False
+
+def is_mbconiiig(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - RVY701-720
+    - SKR721-737
+    - AADI611-660
+    - AADR751-763
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # RVY701-720
+    if reg.startswith("RVY"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 701 <= int(digits) <= 720:
+            return True
+
+    # SKR721-737
+    if reg.startswith("SKR"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 721 <= int(digits) <= 737:
+            return True
+
+    # AADI611-660
+    if reg.startswith("AADI"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 611 <= int(digits) <= 660:
+            return True
+
+    # AADR751-763
+    if reg.startswith("AADR"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 751 <= int(digits) <= 763:
+            return True
+
+    return False
+
+def is_volvo7700a(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - FJX187-235
+    - FKU901-950
+    - FLR700-749
+    - PON993
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # FJX187-235
+    if reg.startswith("FJX"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 187 <= int(digits) <= 235:
+            return True
+
+    # FKU901-950
+    if reg.startswith("FKU"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 901 <= int(digits) <= 950:
+            return True
+
+    # FLR700-749
+    if reg.startswith("FLR"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 700 <= int(digits) <= 749:
+            return True
+
+    # PON993 (konkrét)
+    if reg == "PON993":
+        return True
+
+    return False
+
+def is_mbconii(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - NBW001-015
+    - NWB351-365
+    - PDB376-390
+    - PKN601-631
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # NBW001-015
+    if reg.startswith("NBW"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 1 <= int(digits) <= 15:
+            return True
+
+    # NWB351-365
+    if reg.startswith("NWB"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 351 <= int(digits) <= 365:
+            return True
+
+    # PDB376-390
+    if reg.startswith("PDB"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 376 <= int(digits) <= 390:
+            return True
+
+    # PKN601-631
+    if reg.startswith("PKN"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 601 <= int(digits) <= 631:
+            return True
+
+    return False
+
+def is_mbc2k(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - AOFL191-255
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # AOFL191-255
+    if reg.startswith("AOFL"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 191 <= int(digits) <= 255:
+            return True
+
+    return False
+
+def is_mbconiig(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    Tartományok:
+    - NNE051-073
+    - PDB701-731
+    - SWF651-652
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # NNE051-073
+    if reg.startswith("NNE"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 51 <= int(digits) <= 73:
+            return True
+
+    # PDB701-731
+    if reg.startswith("PDB"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 701 <= int(digits) <= 731:
+            return True
+
+    # SWF651-652
+    if reg.startswith("SWF"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 651 <= int(digits) <= 652:
+            return True
+
+    return False
+
+def is_modulo108D(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    Tartományok:
+    - NGC019-033
+    - NHB034-036
+    - NTM420-441
+    - NTP537-546
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # NGC019-033
+    if reg.startswith("NGC"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 19 <= int(digits) <= 33:
+            return True
+
+    # NHB034-036
+    if reg.startswith("NHB"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 34 <= int(digits) <= 36:
+            return True
+
+    # NTM420-441
+    if reg.startswith("NTM"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 420 <= int(digits) <= 441:
+            return True
+
+    # NTP537-546
+    if reg.startswith("NTP"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 537 <= int(digits) <= 546:
+            return True
+
+    return False
+
+def is_vhnew330cng(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    Tartományok / konkrét:
+    - DPI206
+    - MPW601-637
+    - MUM638-647
+    - SCD590-596
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # DPI206 (konkrét)
+    if reg == "DPI206":
+        return True
+
+    # MPW601-637
+    if reg.startswith("MPW"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 601 <= int(digits) <= 637:
+            return True
+
+    # MUM638-647
+    if reg.startswith("MUM"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 638 <= int(digits) <= 647:
+            return True
+
+    # SCD590-596
+    if reg.startswith("SCD"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 590 <= int(digits) <= 596:
+            return True
+
+    return False
+
+def is_vhnewag300(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    Tartományok / konkrét:
+    - MUT883-900
+    - MUU901-907
+    - RCT308-320
+    - SIF014-015
+    - SXE201-204
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # MUT883-900
+    if reg.startswith("MUT"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 883 <= int(digits) <= 900:
+            return True
+
+    # MUU901-907
+    if reg.startswith("MUU"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 901 <= int(digits) <= 907:
+            return True
+
+    # RCT308-320
+    if reg.startswith("RCT"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 308 <= int(digits) <= 320:
+            return True
+
+    # SIF014-015
+    if reg.startswith("SIF"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 14 <= int(digits) <= 15:
+            return True
+
+    # SXE201-204
+    if reg.startswith("SXE"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 201 <= int(digits) <= 204:
+            return True
+
+    return False
+
+def is_mbO530(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    Tartományok / konkrét:
+    - LYH106-129
+    - MMM133-136
+    - NGC142-165
+    - RTA297
+    - AELH152
+    - AOHZ844
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # LYH106-129
+    if reg.startswith("LYH"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 106 <= int(digits) <= 129:
+            return True
+
+    # MMM133-136
+    if reg.startswith("MMM"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 133 <= int(digits) <= 136:
+            return True
+
+    # NGC142-165
+    if reg.startswith("NGC"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 142 <= int(digits) <= 165:
+            return True
+
+    # RTA297 (konkrét)
+    if reg == "RTA297":
+        return True
+
+    # AELH152 (konkrét)
+    if reg == "AELH152":
+        return True
+
+    # AOHZ844 (konkrét)
+    if reg == "AOHZ844":
+        return True
+
+    return False
+
+def is_volvo7700H(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - PHG621-648
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # PHG621-648
+    if reg.startswith("PHG"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 621 <= int(digits) <= 648:
+            return True
+
+    return False
+
+def is_volvo7700(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - MFW501-537
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # MFW501-537
+    if reg.startswith("MFW"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 501 <= int(digits) <= 537:
+            return True
+
+    return False
+
+def is_modulo168D(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - PMP911-921
+    - SGY980-989
+    - SVA736
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # PMP911-921
+    if reg.startswith("PMP"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 911 <= int(digits) <= 921:
+            return True
+
+    # SGY980-989
+    if reg.startswith("SGY"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 980 <= int(digits) <= 989:
+            return True
+
+    # SVA736 (konkrét)
+    if reg == "SVA736":
+        return True
+
+    return False
+
+def is_mbO530fG(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - PDZ830-837
+    - SIF013
+    - SKN824-826, 828-832
+    - AILJ862-863
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # PDZ830-837
+    if reg.startswith("PDZ"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 830 <= int(digits) <= 837:
+            return True
+
+    # SIF013 (konkrét)
+    if reg == "SIF013":
+        return True
+
+    # SKN824-826 és 828-832 (827 kimarad)
+    if reg.startswith("SKN"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (824 <= n <= 826) or (828 <= n <= 832):
+                return True
+
+    # AILJ862-863
+    if reg.startswith("AILJ"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 862 <= int(digits) <= 863:
+            return True
+
+    return False
+
+def is_ik127(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - PKD001-003
+    - MXJ004-018
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # PKD001-003
+    if reg.startswith("PKD"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 1 <= int(digits) <= 3:
+            return True
+
+    # MXJ004-018
+    if reg.startswith("MXJ"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 4 <= int(digits) <= 18:
+            return True
+
+    return False
+
+def is_karsan(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - NCV285-300
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # NCV285-300
+    if reg.startswith("NCV"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 285 <= int(digits) <= 300:
+            return True
+
+    return False
+
+def is_mbc2(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - AEHE426-427
+    - AELD552-559
+    - AILJ859-860
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # AEHE426-427
+    if reg.startswith("AEHE"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 426 <= int(digits) <= 427:
+            return True
+
+    # AELD552-559
+    if reg.startswith("AELD"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 552 <= int(digits) <= 559:
+            return True
+
+    # AILJ859-860
+    if reg.startswith("AILJ"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 859 <= int(digits) <= 860:
+            return True
+
+    return False
+
+def is_volvo7000(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - NCZ539-576
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # NCZ539-576
+    if reg.startswith("NCZ"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 539 <= int(digits) <= 576:
+            return True
+
+    return False
+
+def is_mbc2g(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - AELD560-569
+    - AILJ864
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # AELD560-569
+    if reg.startswith("AELD"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 560 <= int(digits) <= 569:
+            return True
+
+    # AILJ864 (konkrét)
+    if reg == "AILJ864":
+        return True
+
+    return False
+
+def is_vhag318(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - LOV853-881
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # LOV853-881
+    if reg.startswith("LOV"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 853 <= int(digits) <= 881:
+            return True
+
+    return False
+
+def is_volvo7900H(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - PHG651-658
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # PHG651-658
+    if reg.startswith("PHG"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 651 <= int(digits) <= 658:
+            return True
+
+    return False
+
+def is_mbO530f(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - SKN817-819, 821
+    - AEGB791-792
+    - AILJ861
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # SKN817-819, 821
+    if reg.startswith("SKN"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (817 <= n <= 819) or (n == 821):
+                return True
+
+    # AEGB791-792
+    if reg.startswith("AEGB"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 791 <= int(digits) <= 792:
+            return True
+
+    # AILJ861
+    if reg == "AILJ861":
+        return True
+
+    return False
+
+def is_moduloC68E(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - NLE848-860
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # NLE848-860
+    if reg.startswith("NLE"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 848 <= int(digits) <= 860:
+            return True
+
+    return False
+
+def is_urbIII10(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - MPV998-999
+    - NAE996
+    - SRN169-170
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # MPV998-999
+    if reg.startswith("MPV"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 998 <= int(digits) <= 999:
+            return True
+
+    # NAE996 (konkrét)
+    if reg == "NAE996":
+        return True
+
+    # SRN169-170
+    if reg.startswith("SRN"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 169 <= int(digits) <= 170:
+            return True
+
+    return False
+
+def is_vehixel(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - MXJ001-003
+    - RCT269
+    - RRH130
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # MXJ001-003
+    if reg.startswith("MXJ"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 1 <= int(digits) <= 3:
+            return True
+
+    # RCT269 (konkrét)
+    if reg == "RCT269":
+        return True
+
+    # RRH130 (konkrét)
+    if reg == "RRH130":
+        return True
+
+    return False
+
 async def fetch_json(session, url):
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as r:
@@ -1896,6 +2619,107 @@ async def bkvsst(ctx):
     for e in embeds:
         await ctx.send(embed=e)
 
+# =======================
+# PARANCSOK - Buszok
+# =======================
+
+@bot.command()
+async def bkvvolvo(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg or not reg.startswith("T"):
+                continue  # csak T-vel kezdődő trolik
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 trolibusz szűrés
+            if not (
+                is_volvo7000(reg)
+                or is_volvo7700(reg)
+                or is_volvo7700a(reg)
+                or is_volvo7700H(reg)
+                or is_volvo7900H(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_volvo7000(reg):
+                vtype = "Volvo 7000"
+            elif is_volvo7700(reg):
+                vtype = "Volvo 7700"
+            elif is_volvo7700a(reg):
+                vtype = "Volvo 7700A"
+            elif is_volvo7700H(reg):
+                vtype = "Volvo 7700 Hybrid"
+            elif is_volvo7900H(reg):
+                vtype = "Volvo 7900 Hybrid"
+            else:
+                vtype = "Ismeretlen"
+
+            digits = "".join(c for c in reg if c.isdigit())
+            reg_num = str(int(digits)) if digits else reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Volvo busz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív Volvo buszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
+        
 # =======================
 # PARANCSOK - Egyébbek
 # =======================
