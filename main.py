@@ -1339,7 +1339,7 @@ def is_urbIII8(reg):
 
     return False
 
-def is_target_vehicle(reg):
+def is_vhnewa330(reg):
     """
     Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
     - MKL981
@@ -1355,6 +1355,21 @@ def is_target_vehicle(reg):
 
     # PDN684 (konkrét)
     if reg == "PDN684":
+        return True
+
+    return False
+
+def is_ik187(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - MDD721
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # MDD721 (konkrét)
+    if reg == "MDD721":
         return True
 
     return False
@@ -2771,8 +2786,8 @@ async def bkvvolvo(ctx):
                 vtype = "Ismeretlen"
 
             digits = "".join(c for c in reg if c.isdigit())
-            reg_num = str(int(digits)) if digits else reg
-
+            reg_num = reg  # megtartja az eredeti rendszámot, betűkkel együtt
+            
             active[reg_num] = {
                 "line": line_name,
                 "dest": dest,
