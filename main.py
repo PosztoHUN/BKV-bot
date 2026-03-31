@@ -1374,6 +1374,51 @@ def is_ik187(reg):
 
     return False
 
+def is_itkreform(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - CITY001
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # CITY001 (konkrét)
+    if reg == "CITY001":
+        return True
+
+    return False
+
+def is_sprinter65(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - PJZ072
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # PJZ072 (konkrét)
+    if reg == "PJZ072":
+        return True
+
+    return False
+
+def is_citymax(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - RCT219
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # RCT219 (konkrét)
+    if reg == "RCT219":
+        return True
+
+    return False
+
 async def fetch_json(session, url):
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as r:
