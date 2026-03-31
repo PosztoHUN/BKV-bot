@@ -1549,7 +1549,7 @@ async def bkvtroli(ctx):
             ):
                 continue
 
-            if is_fogas(reg) or is_ganz_troli(reg) or is_ics(reg):
+            if is_fogas(reg) or is_ics(reg):
                 continue
 
             # 🔥 típus meghatározása
