@@ -45,6 +45,9 @@ LINE_EXCEPTIONS = {
     "N4700": "N70",
     "N4740": "N74",
     "N4767": "N76-79",
+    
+    "9999": "9999",
+    "9997": "9997"
 }
 
 SUFFIX_MAP = {
@@ -761,8 +764,10 @@ async def bkvvillamos(ctx):
                 vtype = "Oktató"
             else:
                 vtype = "Ismeretlen"
+                
+            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
 
-            active[reg] = {
+            active[reg_num] = {
                 "line": line_name,
                 "dest": dest,
                 "trip_id": trip_id,
@@ -838,7 +843,15 @@ async def bkvkcsv7(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            active[reg] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            # 🔹 rövidített azonosító
+            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "lat": lat,
+                "lon": lon
+            }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Ganz KCSV7 villamos.")
@@ -858,7 +871,7 @@ async def bkvkcsv7(ctx):
         line_text = f"🔴 *Vonal: {line}*" if line not in KIEMELT_VONALAK_KCSV7 else f"Vonal: {line}"
 
         embed.add_field(
-            name=reg,
+            name=reg,  # már a rövidített azonosító
             value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
             inline=False
         )
