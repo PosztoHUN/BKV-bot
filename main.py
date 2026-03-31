@@ -1595,7 +1595,284 @@ async def bkvtroli(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = "🚋 Aktív trolibuszok"
+    embed_title_base = "🚎 Aktív trolibuszok"
+    embed = discord.Embed(title=embed_title_base, color=0xff0000)
+    field_count = 0
+
+    for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xff0000)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
+
+@bot.command()
+async def bkviktroli(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg or not reg.startswith("T"):
+                continue  # csak T-vel kezdődő trolik
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 trolibusz szűrés
+            if not (
+                is_ik280t(reg)
+                or is_ik411t(reg)
+                or is_ik412t(reg)
+                or is_ik412gt(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_ik411t(reg):
+                vtype = "Ikarus-Obus-Kiepe 411T"
+            elif is_ik412t(reg):
+                vtype = "Ikarus-Kiepe 412.81"
+            elif is_ik412gt(reg):
+                vtype = "Ikarus-BKV (GVM) 412.81GT"
+            elif is_ik280t(reg):
+                vtype = "Ikarus-GVM 280.94"
+            else:
+                vtype = "Ismeretlen"
+
+            digits = "".join(c for c in reg if c.isdigit())
+            reg_num = str(int(digits)) if digits else reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Ikarus trolibusz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚎 Aktív Ikarus trolibuszok"
+    embed = discord.Embed(title=embed_title_base, color=0xff0000)
+    field_count = 0
+
+    for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xff0000)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
+        
+@bot.command()
+async def bkvtroli(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg or not reg.startswith("T"):
+                continue  # csak T-vel kezdődő trolik
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 trolibusz szűrés
+            if not (
+                is_ganz_troli(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_ganz_troli(reg):
+                vtype = "Ganz-Solaris Trolino 12B"
+                if reg in {"T0607", "T0608", "T0609", "T0610", "T0611", "T0612", "T0613", "T0614", "T0615", "T0616"}:
+                    vtype = "Ganz-Škoda-Solaris Trolino 12B"
+                elif reg in {"T0620", "T0621", "T0622", "T0623", "T0624", "T0625", "T0626"}:
+                    vtype = "Ganz-Škoda-Solaris Trolino 12D"
+            else:
+                vtype = "Ismeretlen"
+
+            digits = "".join(c for c in reg if c.isdigit())
+            reg_num = str(int(digits)) if digits else reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív GST trolibusz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚎 Aktív GST trolibuszok"
+    embed = discord.Embed(title=embed_title_base, color=0xff0000)
+    field_count = 0
+
+    for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xff0000)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e) 
+        
+@bot.command()
+async def bkvsst(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg or not reg.startswith("T"):
+                continue  # csak T-vel kezdődő trolik
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 trolibusz szűrés
+            if not (
+                is_sst12iii(reg)
+                or is_sst12iv(reg)
+                or is_sst18iii(reg)
+                or is_sst18iv(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_sst12iii(reg):
+                vtype = "Solaris-Škoda Trollino 12 gen. III"
+            elif is_sst12iv(reg):
+                vtype = "Solaris-Škoda Trollino 12 gen. IV"
+            elif is_sst18iii(reg):
+                vtype = "Solaris-Škoda Trollino 18 gen. III"
+            elif is_sst18iv(reg):
+                vtype = "Solaris-Škoda Trollino 18 gen. IV"
+            else:
+                vtype = "Ismeretlen"
+
+            digits = "".join(c for c in reg if c.isdigit())
+            reg_num = str(int(digits)) if digits else reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Solaris trolibusz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚎 Aktív Solaris trolibuszok"
     embed = discord.Embed(title=embed_title_base, color=0xff0000)
     field_count = 0
 
