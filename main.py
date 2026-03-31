@@ -1533,10 +1533,9 @@ async def bkvtroli(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            # 🔥 villamos szűrés
+            # Trolibusz szűrés: ICS-ek kizárva
             if not (
-                "ganz" in model
-                or is_ik280t(reg)
+                is_ik280t(reg)
                 or is_ik411t(reg)
                 or is_ik412t(reg)
                 or is_ik412gt(reg)
@@ -1552,7 +1551,7 @@ async def bkvtroli(ctx):
                 continue
 
             # 🔥 típus meghatározása
-            if "ganz" in model and not is_gst(reg):
+            if is_gst(reg):
                 vtype = "Ganz-Solaris Trolino 12B"
             elif is_ik411t(reg):
                 vtype = "Ikarus-Obus-Kiepe 411T"
@@ -1572,8 +1571,14 @@ async def bkvtroli(ctx):
                 vtype = "Solaris-Škoda Trollino 18 gen. IV"
             else:
                 vtype = "Ismeretlen"
-                
-            reg_num = reg[1:] if reg.startswith("T") and len(reg) == 5 else reg
+
+            # 🔥 Azonosító rövidítés
+            if reg.startswith("T") and len(reg) == 5:
+                reg_num = reg[1:]  # pl. T0266 -> 266
+            elif reg.startswith("T") and len(reg) == 4:  # pl. T722 -> 722
+                reg_num = reg[1:]
+            else:
+                reg_num = reg
 
             active[reg_num] = {
                 "line": line_name,
@@ -1593,12 +1598,9 @@ async def bkvtroli(ctx):
     field_count = 0
 
     for reg, i in sorted(active.items()):
-        forgalmi = menetrendi_forgalmi(i["trip_id"])
-
         value = (
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
-            # f"Forgalmi szám: {forgalmi}\n"
             f"Típus: {i['type']}\n"
             f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
         )
@@ -1612,7 +1614,6 @@ async def bkvtroli(ctx):
         field_count += 1
 
     embeds.append(embed)
-
     for e in embeds:
         await ctx.send(embed=e)
 
