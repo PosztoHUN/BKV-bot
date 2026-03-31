@@ -1529,6 +1529,9 @@ async def bkvtroli(ctx):
 
         for v in vehicles:
             reg = v.get("license_plate")
+            if not reg or not reg.startswith("T"):
+                continue  # csak T-vel kezdődő trolik
+
             line_id = str(v.get("route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
@@ -1537,7 +1540,7 @@ async def bkvtroli(ctx):
             trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
             model = (v.get("vehicle_model") or "").lower()
 
-            if not reg or lat is None or lon is None:
+            if lat is None or lon is None:
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
@@ -1582,7 +1585,10 @@ async def bkvtroli(ctx):
             else:
                 vtype = "Ismeretlen"
 
-            reg_num = normalize_troli_reg(reg)
+            # 🔥 normalizált regisztráció számra
+            digits = "".join(c for c in reg if c.isdigit())
+            reg_num = str(int(digits)) if digits else reg
+
             active[reg_num] = {
                 "line": line_name,
                 "dest": dest,
