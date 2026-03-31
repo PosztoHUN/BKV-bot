@@ -1552,16 +1552,16 @@ async def bkvtroli(ctx):
                 continue
 
             # 🔥 típus meghatározása
-            if "ganz" in model and not is_ik280t(reg):
-                vtype = "Ikarus-GVM 280.94"
+            if "ganz" in model and not is_gst(reg):
+                vtype = "Ganz-Solaris Trolino 12B"
             elif is_ik411t(reg):
                 vtype = "Ikarus-Obus-Kiepe 411T"
             elif is_ik412t(reg):
                 vtype = "Ikarus-Kiepe 412.81"
             elif is_ik412gt(reg):
                 vtype = "Ikarus-BKV (GVM) 412.81GT"
-            elif is_gst(reg):
-                vtype = "Ganz-Solaris Trolino 12B"
+            elif is_ik280t(reg):
+                vtype = "Ikarus-GVM 280.94"
             elif is_sst12iii(reg):
                 vtype = "Solaris-Škoda Trollino 12 gen. III"
             elif is_sst12iv(reg):
