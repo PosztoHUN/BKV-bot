@@ -19,14 +19,14 @@ TOKEN = os.getenv("TOKEN")
 
 VEHICLES_API = "https://holajarmu.hu/budapest/api/vehicles?city=budapest"
 
-TRAM_LINES = {
-    "3010", "3011", "3020", "3022", "3030", "3040", "3060", "3120", "3140",
-    "3170", "3190", "3230", "3240", "3280", "3281", "3370", "3371", "3410",
-    "3420", "3470", "3480", "3490", "3500", "3510", "3511", "3520", "3560",
-    "3561", "3590", "3591", "3592", "3600", "3610", "3620", "3621", "3690",
-    " ", "-", "9999", "9997", "R3180", "R3230", "R3360", "R3800", "R3118",
-    "N3560", "N3020", "N3180", "N3190", "N3600"
-}
+# TRAM_LINES = {
+#     "3010", "3011", "3020", "3022", "3030", "3040", "3060", "3120", "3140",
+#     "3170", "3190", "3230", "3240", "3280", "3281", "3370", "3371", "3410",
+#     "3420", "3470", "3480", "3490", "3500", "3510", "3511", "3520", "3560",
+#     "3561", "3590", "3591", "3592", "3600", "3610", "3620", "3621", "3690",
+#     " ", "-", "9999", "9997", "R3180", "R3230", "R3360", "R3800", "R3118",
+#     "N3560", "N3020", "N3180", "N3190", "N3600"
+# }
 
 LINE_MAP = {
     "3010": "1",
@@ -605,28 +605,34 @@ async def update_active_today():
 @tasks.loop(seconds=30)
 async def logger_loop():
     async with aiohttp.ClientSession() as session:
-        vehicles = await fetch_vehicles(session)
-        if not isinstance(vehicles, list):
+        data = await fetch_json(session, VEHICLES_API)
+
+        if not data:
             return
+
+        vehicles = data.get("vehicles", [])
 
         for v in vehicles:
             try:
-                line = str(v.get("route_id"))
                 reg = v.get("license_plate")
                 lat = v.get("lat")
                 lon = v.get("lon")
+                line = str(v.get("route_id", "—"))
                 dest = v.get("label", "Ismeretlen")
+
+                # új API
                 trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
 
                 if not reg or lat is None or lon is None:
                     continue
-                if line not in TRAM_LINES:
-                    continue
+
                 if not in_bbox(lat, lon):
                     continue
-                if not trip_id:
-                    trip_id = str(v.get("vehicle_id", ""))
 
+                if not trip_id:
+                    continue
+
+                # 🔥 NINCS SEMMI SZŰRÉS
                 save_trip(trip_id, line, reg, dest)
 
             except Exception:
