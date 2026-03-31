@@ -636,7 +636,7 @@ def is_volvo7700a(reg):
     """
     if not isinstance(reg, str):
         return False
-    reg = reg.upper().replace(" ", "").replace("-", "")
+    reg = reg.upper().replace("", "").replace("", "")
 
     # FJX187-235
     if reg.startswith("FJX"):
@@ -925,7 +925,7 @@ def is_volvo7700H(reg):
     """
     if not isinstance(reg, str):
         return False
-    reg = reg.upper().replace(" ", "").replace("-", "")
+    reg = reg.upper().replace("", "").replace("", "")
 
     # PHG621-648
     if reg.startswith("PHG"):
@@ -942,7 +942,7 @@ def is_volvo7700(reg):
     """
     if not isinstance(reg, str):
         return False
-    reg = reg.upper().replace(" ", "").replace("-", "")
+    reg = reg.upper().replace("", "").replace("", "")
 
     # MFW501-537
     if reg.startswith("MFW"):
@@ -1098,7 +1098,7 @@ def is_volvo7000(reg):
     """
     if not isinstance(reg, str):
         return False
-    reg = reg.upper().replace(" ", "").replace("-", "")
+    reg = reg.upper().replace("", "").replace("", "")
 
     # NCZ539-576
     if reg.startswith("NCZ"):
@@ -1116,7 +1116,7 @@ def is_mbc2g(reg):
     """
     if not isinstance(reg, str):
         return False
-    reg = reg.upper().replace(" ", "").replace("-", "")
+    reg = reg.upper().replace("", "").replace("", "")
 
     # AELD560-569
     if reg.startswith("AELD"):
@@ -1154,7 +1154,7 @@ def is_volvo7900H(reg):
     """
     if not isinstance(reg, str):
         return False
-    reg = reg.upper().replace(" ", "").replace("-", "")
+    reg = reg.upper().replace("", "").replace("", "")
 
     # PHG651-658
     if reg.startswith("PHG"):
@@ -1173,7 +1173,7 @@ def is_mbO530f(reg):
     """
     if not isinstance(reg, str):
         return False
-    reg = reg.upper().replace(" ", "").replace("-", "")
+    reg = reg.upper().replace("", "").replace("", "")
 
     # SKN817-819, 821
     if reg.startswith("SKN"):
@@ -1264,6 +1264,43 @@ def is_vehixel(reg):
 
     # RRH130 (konkrét)
     if reg == "RRH130":
+        return True
+
+    return False
+
+def is_mbO530K(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - AILJ856-858
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # AILJ856-858
+    if reg.startswith("AILJ"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 856 <= int(digits) <= 858:
+            return True
+
+    return False
+
+def is_eurosprinter(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - REM813
+    - SKN814
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # REM813 (konkrét)
+    if reg == "REM813":
+        return True
+
+    # SKN814 (konkrét)
+    if reg == "SKN814":
         return True
 
     return False
