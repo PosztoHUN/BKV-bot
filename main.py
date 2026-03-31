@@ -736,6 +736,7 @@ async def bkvvillamos(ctx):
                 or is_caf5(reg)
                 or is_caf9(reg)
                 or is_t5c5(reg)
+                or is_t5c5k2(reg)
                 or is_oktato(reg)
             ):
                 continue
