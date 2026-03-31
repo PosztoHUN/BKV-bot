@@ -1624,6 +1624,66 @@ async def bkvtroli(ctx):
 # =======================
 
 @bot.command()
+async def bkvkt(ctx):
+    vehicles_list = []
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+        for v in vehicles:
+            dest = v.get("label")
+            if dest != "Központi tartalék":
+                continue  # csak a Központi tartalék célállomás
+            reg = v.get("license_plate") or "Ismeretlen"
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            lat = v.get("lat")
+            lon = v.get("lon")
+            model = (v.get("vehicle_model") or "Ismeretlen").lower()
+
+            vehicles_list.append({
+                "reg": reg,
+                "line": line_name,
+                "dest": dest,
+                "lat": lat,
+                "lon": lon,
+                "type": model
+            })
+
+    if not vehicles_list:
+        return await ctx.send("🚫 Nincs aktívan várakozó Központi Tartalék.")
+
+    # Embed létrehozása
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚍 Járművek - Központi tartalék"
+    embed = discord.Embed(title=embed_title_base, color=0x00ff00)
+    field_count = 0
+
+    for v in vehicles_list:
+        value = (
+            f"Vonal: {v['line']}\n"
+            f"Cél: {v['dest']}\n"
+            f"Típus: {v['type']}\n"
+            f"Pozíció: {v['lat']}, {v['lon']}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
+            field_count = 0
+
+        embed.add_field(name=v["reg"], value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)
+
+@bot.command()
 async def vehhist(ctx, vehicle: str, date: str = None):
     day = resolve_date(date)
     if day is None:
