@@ -1555,6 +1555,10 @@ async def bkvtroli(ctx):
             # 🔥 típus meghatározása
             if is_ganz_troli(reg):
                 vtype = "Ganz-Solaris Trolino 12B"
+                if reg in {"T0607", "T0608", "T0609", "T0610", "T0611", "T0612", "T0613", "T0614", "T0615", "T0616"}:
+                    vtype = "Ganz-Škoda-Solaris Trolino 12B"
+                elif reg in {"T0620", "T0621", "T0622", "T0623", "T0624", "T0625", "T0626"}:
+                    vtype = "Ganz-Škoda-Solaris Trolino 12D"
             elif is_ik411t(reg):
                 vtype = "Ikarus-Obus-Kiepe 411T"
             elif is_ik412t(reg):
