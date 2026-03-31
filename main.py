@@ -1305,6 +1305,60 @@ def is_eurosprinter(reg):
 
     return False
 
+def is_mbO530G(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - PCC933-934
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # PCC933-934
+    if reg.startswith("PCC"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits and 933 <= int(digits) <= 934:
+            return True
+
+    return False
+
+def is_urbIII8(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - AAMD172-173
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # AAMD172-173
+    if reg.startswith("AAMD"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 172 <= int(digits) <= 173:
+            return True
+
+    return False
+
+def is_target_vehicle(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - MKL981
+    - PDN684
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # MKL981 (konkrét)
+    if reg == "MKL981":
+        return True
+
+    # PDN684 (konkrét)
+    if reg == "PDN684":
+        return True
+
+    return False
+
 async def fetch_json(session, url):
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as r:
@@ -2673,8 +2727,8 @@ async def bkvvolvo(ctx):
 
         for v in vehicles:
             reg = v.get("license_plate")
-            if not reg or not reg.startswith("T"):
-                continue  # csak T-vel kezdődő trolik
+            # if not reg or not reg.startswith("T"):
+            #     continue  # csak T-vel kezdődő trolik
 
             line_id = str(v.get("route_id", "—"))
             line_name = decode_line(line_id)
