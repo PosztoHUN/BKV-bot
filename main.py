@@ -505,16 +505,6 @@ def is_ik411t(reg):
     n = int(reg[2:])
     return 400 <= n <= 401
 
-def is_gst(reg):
-    if not isinstance(reg, str):
-        return False
-    if not reg.startswith("T0"):
-        return False
-    if not reg[2:].isdigit():
-        return False
-    n = int(reg[2:])
-    return 601 <= n <= 626
-
 def is_sst12iii(reg):
     if not isinstance(reg, str):
         return False
@@ -1547,7 +1537,7 @@ async def bkvtroli(ctx):
 
             # 🔥 trolibusz szűrés
             if not (
-                is_gst(reg)           # Ganz trolik T0601-T0626
+                is_ganz_troli(reg)           # Ganz trolik T0601-T0626
                 or is_ik280t(reg)
                 or is_ik411t(reg)
                 or is_ik412t(reg)
@@ -1563,7 +1553,7 @@ async def bkvtroli(ctx):
                 continue
 
             # 🔥 típus meghatározása
-            if is_gst(reg):
+            if is_ganz_troli(reg):
                 vtype = "Ganz-Solaris Trolino 12B"
             elif is_ik411t(reg):
                 vtype = "Ikarus-Obus-Kiepe 411T"
