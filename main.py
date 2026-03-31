@@ -1714,7 +1714,7 @@ async def bkviktroli(ctx):
         await ctx.send(embed=e)
         
 @bot.command()
-async def bkvtroli(ctx):
+async def bkvgst(ctx):
     active = {}
 
     async with aiohttp.ClientSession() as session:
