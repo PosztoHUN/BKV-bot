@@ -2787,8 +2787,8 @@ async def bkvvolvo(ctx):
 
         for v in vehicles:
             reg = v.get("license_plate")
-            # if not reg or not reg.startswith("T"):
-            #     continue  # csak T-vel kezdődő trolik
+            if not reg:
+                continue  # nincs rendszám
 
             line_id = str(v.get("route_id", "—"))
             line_name = decode_line(line_id)
@@ -2803,7 +2803,7 @@ async def bkvvolvo(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            # 🔥 trolibusz szűrés
+            # 🔥 Volvo busz szűrés
             if not (
                 is_volvo7000(reg)
                 or is_volvo7700(reg)
@@ -2830,9 +2830,9 @@ async def bkvvolvo(ctx):
             else:
                 vtype = "Ismeretlen"
 
-            digits = "".join(c for c in reg if c.isdigit())
-            reg_num = reg  # megtartja az eredeti rendszámot, betűkkel együtt
-            
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
             active[reg_num] = {
                 "line": line_name,
                 "dest": dest,
@@ -2851,7 +2851,8 @@ async def bkvvolvo(ctx):
     embed = discord.Embed(title=embed_title_base, color=0x0000ff)
     field_count = 0
 
-    for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
         value = (
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
