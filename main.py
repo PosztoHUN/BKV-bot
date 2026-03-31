@@ -1505,13 +1505,23 @@ async def bkvfogas(ctx):
 # PARANCSOK - Trolibuszok
 # =======================
         
+def normalize_troli_reg(reg):
+    """
+    Trolibusz regisztráció normalizálása:
+    - Levágja a kezdő T-t
+    - Megtartja a számokat 3-5 számjegyig
+    """
+    if not reg or not reg.startswith("T"):
+        return reg
+    digits = "".join(c for c in reg if c.isdigit())
+    return str(int(digits))  # eltávolítja az esetleges vezető nullákat
+
 @bot.command()
 async def bkvtroli(ctx):
     active = {}
 
     async with aiohttp.ClientSession() as session:
         data = await fetch_json(session, VEHICLES_API)
-
         if not data:
             return await ctx.send("❌ Nincs elérhető adat az API-ból.")
 
@@ -1529,13 +1539,13 @@ async def bkvtroli(ctx):
 
             if not reg or lat is None or lon is None:
                 continue
-
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            # Trolibusz szűrés: ICS-ek kizárva
+            # 🔥 trolibusz szűrés
             if not (
-                is_ik280t(reg)
+                "ganz" in model
+                or is_ik280t(reg)
                 or is_ik411t(reg)
                 or is_ik412t(reg)
                 or is_ik412gt(reg)
@@ -1547,11 +1557,11 @@ async def bkvtroli(ctx):
             ):
                 continue
 
-            if is_fogas(reg) or is_ganz_troli(reg):
+            if is_fogas(reg) or is_ganz_troli(reg) or is_ics(reg):
                 continue
 
             # 🔥 típus meghatározása
-            if is_gst(reg):
+            if "ganz" in model and is_gst(reg):
                 vtype = "Ganz-Solaris Trolino 12B"
             elif is_ik411t(reg):
                 vtype = "Ikarus-Obus-Kiepe 411T"
@@ -1572,14 +1582,7 @@ async def bkvtroli(ctx):
             else:
                 vtype = "Ismeretlen"
 
-            # 🔥 Azonosító rövidítés
-            if reg.startswith("T") and len(reg) == 5:
-                reg_num = reg[1:]  # pl. T0266 -> 266
-            elif reg.startswith("T") and len(reg) == 4:  # pl. T722 -> 722
-                reg_num = reg[1:]
-            else:
-                reg_num = reg
-
+            reg_num = normalize_troli_reg(reg)
             active[reg_num] = {
                 "line": line_name,
                 "dest": dest,
@@ -1594,10 +1597,11 @@ async def bkvtroli(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív trolibuszok", color=0xff0000)
+    embed_title_base = "🚋 Aktív trolibuszok"
+    embed = discord.Embed(title=embed_title_base, color=0xff0000)
     field_count = 0
 
-    for reg, i in sorted(active.items()):
+    for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
         value = (
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
@@ -1607,7 +1611,7 @@ async def bkvtroli(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív trolibuszok (folytatás)", color=0xff0000)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xff0000)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
