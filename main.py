@@ -1419,6 +1419,60 @@ def is_citymax(reg):
 
     return False
 
+def is_bydb12(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - SKN817-819, 821
+    - AEGB791-792
+    - AILJ861
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # SKN817-819, 821
+    if reg.startswith("AOIA"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (470 <= n <= 477):
+                return True
+
+    # AEGB791-792
+    if reg.startswith("AOIB"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 790 <= int(digits) <= 811:
+            return True
+
+    return False
+
+def is_bydb19(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - SKN817-819, 821
+    - AEGB791-792
+    - AILJ861
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # SKN817-819, 821
+    if reg.startswith("AOIB"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (820 <= n <= 826):
+                return True
+
+    # AEGB791-792
+    if reg.startswith("AONW"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits and 951 <= int(digits) <= 967:
+            return True
+
+    return False
+
 async def fetch_json(session, url):
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as r:
@@ -3155,7 +3209,96 @@ async def bkvc2(ctx):
 
     embeds.append(embed)
     for e in embeds:
-        await ctx.send(embed=e)        
+        await ctx.send(embed=e)   
+        
+@bot.command()
+async def arrivabyd(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_bydb12(reg)
+                or is_bydb19(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_bydb12(reg):
+                vtype = "BYD B12E03 (B12.b)"
+            elif is_bydb19(reg):
+                vtype = "BYD B19E01"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív BYD busz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív BYD buszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)     
         
 # =======================
 # PARANCSOK - Egyébbek
