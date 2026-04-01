@@ -3002,7 +3002,7 @@ async def bkvc1(ctx):
                 or is_mbO530f(reg)
                 or is_mbO530fG(reg)
                 or is_mbO530G(reg)
-                or is_mbO530K
+                or is_mbO530K(reg)
             ):
                 continue
 
