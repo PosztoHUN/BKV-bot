@@ -22,34 +22,34 @@ TOKEN = os.getenv("TOKEN")
 
 VEHICLES_API = "https://holajarmu.hu/budapest/api/vehicles?city=budapest"
 
-# LINE_EXCEPTIONS = {
-#     "3600": "60 Fogaskerekű",
+LINE_EXCEPTIONS = {
+    "3600": "60 Fogaskerekű",
 
-#     "R3180": "R18",
-#     "R3230": "R23",
-#     "R3360": "R36",
-#     "R3800": "R80",
-#     "R3118": "R118",
+    "R3180": "R18",
+    "R3230": "R23",
+    "R3360": "R36",
+    "R3800": "R80",
+    "R3118": "R118",
 
-#     "N3020": "N2",
-#     "N3180": "N18",
-#     "N3190": "N19",
-#     "N3560": "N56",
-#     "N3581": "N58A",
-#     "N3600": "N60",
-#     "N4700": "N70",
-#     "N4740": "N74",
-#     "N4767": "N76-79",
+    "N3020": "N2",
+    "N3180": "N18",
+    "N3190": "N19",
+    "N3560": "N56",
+    "N3581": "N58A",
+    "N3600": "N60",
+    "N4700": "N70",
+    "N4740": "N74",
+    "N4767": "N76-79",
     
-#     "9999": "9999",
-#     "9997": "9997"
-# }
+    "9999": "9999",
+    "9997": "9997"
+}
 
 
-# 🔹 Supabase kapcsolat
-url = os.environ.get("SUPABASE_URL")
-key = os.environ.get("SUPABASE_KEY")
-supabase = create_client(url, key)
+# # 🔹 Supabase kapcsolat
+# url = os.environ.get("SUPABASE_URL")
+# key = os.environ.get("SUPABASE_KEY")
+# supabase = create_client(url, key)
 
 # 🔹 Suffix térkép
 SUFFIX_MAP = {
@@ -60,35 +60,35 @@ SUFFIX_MAP = {
     "8": "G"
 }
 
-# LINE_EXCEPTIONS lekérdezés a Supabase-ból
-def fetch_line_exceptions():
-    response = supabase.table("line_exceptions").select("*").execute()
-    print(response.data)
-    if response.data is None:
-        return {}
-    # kulcsok stringként
-    return {str(item["line_id"]).strip(): item["name"] for item in response.data}
+# # LINE_EXCEPTIONS lekérdezés a Supabase-ból
+# def fetch_line_exceptions():
+#     response = supabase.table("line_exceptions").select("*").execute()
+#     print(response.data)
+#     if response.data is None:
+#         return {}
+#     # kulcsok stringként
+#     return {str(item["line_id"]).strip(): item["name"] for item in response.data}
 
-LINE_EXCEPTIONS = {str(item["line_id"]): item["name"] for item in response.data}
+# LINE_EXCEPTIONS = {str(item["line_id"]): item["name"] for item in response.data}
 
-# --- Funkciók ---
-def fetch_line_exceptions():
-    """Lekéri a line_exceptions táblát és frissíti a dictet."""
-    global LINE_EXCEPTIONS
-    try:
-        response = supabase.table("line_exceptions").select("*").execute()
-        # debug: kiírja a választ
-        print("Supabase response:", response)
-        # kompatibilitás: ha response.data nincs, nézd response.json()
-        data = getattr(response, "data", None)
-        if data is None:
-            # lehet, hogy dictként jön vissza
-            data = response if isinstance(response, list) else []
-        LINE_EXCEPTIONS = {str(item["line_id"]): item["name"] for item in data}
-        print("Frissített LINE_EXCEPTIONS:", LINE_EXCEPTIONS)
-    except Exception as e:
-        print("Hiba a lekérés során:", e)
-        LINE_EXCEPTIONS = {}
+# # --- Funkciók ---
+# def fetch_line_exceptions():
+#     """Lekéri a line_exceptions táblát és frissíti a dictet."""
+#     global LINE_EXCEPTIONS
+#     try:
+#         response = supabase.table("line_exceptions").select("*").execute()
+#         # debug: kiírja a választ
+#         print("Supabase response:", response)
+#         # kompatibilitás: ha response.data nincs, nézd response.json()
+#         data = getattr(response, "data", None)
+#         if data is None:
+#             # lehet, hogy dictként jön vissza
+#             data = response if isinstance(response, list) else []
+#         LINE_EXCEPTIONS = {str(item["line_id"]): item["name"] for item in data}
+#         print("Frissített LINE_EXCEPTIONS:", LINE_EXCEPTIONS)
+#     except Exception as e:
+#         print("Hiba a lekérés során:", e)
+#         LINE_EXCEPTIONS = {}
 
 def decode_line(line_id: str) -> str:
     if not line_id:
@@ -132,23 +132,23 @@ def decode_line(line_id: str) -> str:
     # ha semmi nem illik
     return line_id
 
-# --- Fő loop ---
-def main_loop():
-    fetch_line_exceptions()
-    test_lines = ["3600", "R3180", "N3600", "9999", "3118", "4050"]
+# # --- Fő loop ---
+# def main_loop():
+#     fetch_line_exceptions()
+#     test_lines = ["3600", "R3180", "N3600", "9999", "3118", "4050"]
 
-    while True:
-        print("\n--- Dekódolt járatok ---")
-        for line in test_lines:
-            decoded = decode_line(line)
-            print(f"{line} → {decoded}")
-        # 24 órás sleep
-        print("\nVárakozás 24 órát az új frissítésig...")
-        time.sleep(24 * 60 * 60)
-        fetch_line_exceptions()
+#     while True:
+#         print("\n--- Dekódolt járatok ---")
+#         for line in test_lines:
+#             decoded = decode_line(line)
+#             print(f"{line} → {decoded}")
+#         # 24 órás sleep
+#         print("\nVárakozás 24 órát az új frissítésig...")
+#         time.sleep(24 * 60 * 60)
+#         fetch_line_exceptions()
 
-if __name__ == "__main__":
-    main_loop()
+# if __name__ == "__main__":
+#     main_loop()
 
 # 🔹 Kódoló függvény
 def encode_line(user_input: str) -> str:
