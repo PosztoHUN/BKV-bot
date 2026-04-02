@@ -41,6 +41,7 @@ LINE_EXCEPTIONS = {
     "N3180": "N18",
     "N3190": "N19",
     "N3560": "N56",
+    "N3581": "N58A",
     "N3600": "N60",
     "N4700": "N70",
     "N4740": "N74",
@@ -106,6 +107,46 @@ def decode_line(line_id: str) -> str:
     suffix = SUFFIX_MAP.get(suffix_digit, "")
 
     return f"{line_num}{suffix}"
+
+def encode_line(user_input: str) -> str:
+    user_input = user_input.upper().strip()
+
+    # 🔴 kivételek
+    for k, v in LINE_EXCEPTIONS.items():
+        if v.upper() == user_input:
+            return k
+
+    # 🔴 suffix leválasztás (pl 80A)
+    suffix_digit = "0"
+    if user_input[-1].isalpha():
+        letter = user_input[-1]
+        base = user_input[:-1]
+
+        for k, v in SUFFIX_MAP.items():
+            if v == letter:
+                suffix_digit = k
+                break
+    else:
+        base = user_input
+
+    if not base.isdigit():
+        return user_input
+
+    num = int(base)
+
+    # 🔴 TROLI (70–83 → 4700–4830)
+    if 70 <= num <= 83:
+        return f"4{num:02d}{suffix_digit}"
+
+    # 🔴 VILLAMOS (1–69 → 3010–3690)
+    if 1 <= num <= 69:
+        return f"3{num:02d}{suffix_digit}"
+
+    # 🔴 BUSZ (minden más)
+    if 1 <= num <= 999:
+        return f"{num:03d}{suffix_digit}"
+
+    return user_input
 
 POTLAS_TIPUSOK = {
     "t5c5",
@@ -1422,15 +1463,14 @@ def is_citymax(reg):
 def is_bydb12(reg):
     """
     Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
-    - SKN817-819, 821
-    - AEGB791-792
-    - AILJ861
+    - AOIA470-477
+    - AOIB790-811
     """
     if not isinstance(reg, str):
         return False
     reg = reg.upper().replace("", "").replace("", "")
 
-    # SKN817-819, 821
+    # AOIA470-477
     if reg.startswith("AOIA"):
         digits = ''.join(c for c in reg[3:] if c.isdigit())
         if digits:
@@ -1438,7 +1478,7 @@ def is_bydb12(reg):
             if (470 <= n <= 477):
                 return True
 
-    # AEGB791-792
+    # AOIB790-811
     if reg.startswith("AOIB"):
         digits = ''.join(c for c in reg[4:] if c.isdigit())
         if digits and 790 <= int(digits) <= 811:
@@ -1449,15 +1489,14 @@ def is_bydb12(reg):
 def is_bydb19(reg):
     """
     Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
-    - SKN817-819, 821
-    - AEGB791-792
-    - AILJ861
+    - AOIB820-826
+    - AONW951-967
     """
     if not isinstance(reg, str):
         return False
     reg = reg.upper().replace("", "").replace("", "")
 
-    # SKN817-819, 821
+    # AOIB820-826
     if reg.startswith("AOIB"):
         digits = ''.join(c for c in reg[3:] if c.isdigit())
         if digits:
@@ -1465,11 +1504,30 @@ def is_bydb19(reg):
             if (820 <= n <= 826):
                 return True
 
-    # AEGB791-792
+    # AONW951-967
     if reg.startswith("AONW"):
         digits = ''.join(c for c in reg[4:] if c.isdigit())
         if digits and 951 <= int(digits) <= 967:
             return True
+
+    return False
+
+def is_arrivacon(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - NCA401-532
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # NCA401-532
+    if reg.startswith("NCA"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (401 <= n <= 532):
+                return True
 
     return False
 
@@ -3298,7 +3356,93 @@ async def arrivabyd(ctx):
 
     embeds.append(embed)
     for e in embeds:
-        await ctx.send(embed=e)     
+        await ctx.send(embed=e)    
+        
+@bot.command()
+async def arrivabyd(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_arrivacon(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_arrivacon(reg):
+                vtype = "Mercedes-Benz Conecto II G"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Conecto busz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív Conecto buszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)  
         
 # =======================
 # PARANCSOK - Egyébbek
@@ -3366,6 +3510,8 @@ async def bkvkt(ctx):
 
 @bot.command()
 async def vehhist(ctx, vehicle: str, date: str = None):
+    vehicle = vehicle.upper()  # 🔥 EZ A LÉNYEG
+
     day = resolve_date(date)
     if day is None:
         return await ctx.send("❌ Hibás dátumformátum. Használd így: `YYYY-MM-DD`")
@@ -3520,6 +3666,88 @@ async def david(ctx, date: str = None):
     msg = "\n".join(out)
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i + 1900])
+        
+@bot.command()
+async def all(ctx, route_id: str):
+
+    # 🔥 visszaalakítás (pl 80 → 4800)
+    def encode_line(user_input: str) -> str:
+        user_input = user_input.upper().strip()
+
+        for k, v in LINE_EXCEPTIONS.items():
+            if v.upper() == user_input:
+                return k
+
+        if user_input.startswith(("R", "N")):
+            prefix = user_input[0]
+            num = user_input[1:]
+            if num.isdigit():
+                return f"{prefix}3{int(num):03d}"
+
+        suffix = "0"
+        base = user_input
+
+        if user_input[-1].isalpha():
+            base = user_input[:-1]
+            for k, v in SUFFIX_MAP.items():
+                if v == user_input[-1]:
+                    suffix = k
+                    break
+
+        if base.isdigit():
+            num = int(base)
+
+            if 0 <= num < 100:
+                return f"4{num:02d}{suffix}"
+            elif 100 <= num < 200:
+                return f"1{num-100:02d}{suffix}"
+            elif 200 <= num < 300:
+                return f"2{num-200:02d}{suffix}"
+            elif 900 <= num < 1000:
+                return f"9{num-900:02d}{suffix}"
+
+        return user_input
+
+    real_route_id = encode_line(route_id)
+
+    active = []
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue
+
+            line_id = str(v.get("route_id", ""))
+
+            if line_id != real_route_id:
+                continue
+
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+
+            active.append(
+                f"**{len(active)+1}. {reg}**\n"
+                f"Vonal: {line_name}\n"
+                f"Cél: {dest}\n"
+                f"Pozíció: {lat:.5f}, {lon:.5f}"
+            )
+
+    if not active:
+        return await ctx.send(f"❗ Nincs aktív jármű a *{route_id}* vonalon.")
+
+    msg = f"🚍 Aktív járművek – {route_id}\n\n" + "\n\n".join(active)
+
+    for i in range(0, len(msg), 1900):
+        await ctx.send(msg[i:i+1900])
 
 # =======================
 # START
