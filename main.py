@@ -4457,7 +4457,7 @@ async def fetch_json(session, url):
 def is_op_line(line_id):
     return str(line_id).upper().startswith("OP")
 
-@tasks.loop(minutes=5, wait=False)
+@tasks.loop(minutes=5)
 async def send_op_vehicles():
     # a loop tartalma ugyanaz
     global last_active, embed_messages
@@ -4557,10 +4557,10 @@ async def send_op_vehicles():
 # Automatikusan indul a bot indításakor
 @bot.event
 async def on_ready():
-    print(f"Bot készen áll, bejelentkezve: {bot.user}")
+    print(f"Bot készen: {bot.user}")
     # Első futtatás azonnal
     await send_op_vehicles()
-    # Ezután indul a loop
+    # Ezután indul a loop 5 percenként
     if not send_op_vehicles.is_running():
         send_op_vehicles.start()
 
