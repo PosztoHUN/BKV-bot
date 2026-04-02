@@ -116,35 +116,44 @@ def encode_line(user_input: str) -> str:
         if v.upper() == user_input:
             return k
 
-    # 🔴 suffix leválasztás (pl 80A)
-    suffix_digit = "0"
-    if user_input[-1].isalpha():
-        letter = user_input[-1]
-        base = user_input[:-1]
+    # 🔴 R / N
+    if user_input.startswith(("R", "N")):
+        prefix = user_input[0]
+        num = user_input[1:]
+        if num.isdigit():
+            return f"{prefix}3{int(num):03d}"
 
+    # 🔴 suffix
+    suffix = "0"
+    base = user_input
+
+    if user_input[-1].isalpha():
+        base = user_input[:-1]
         for k, v in SUFFIX_MAP.items():
-            if v == letter:
-                suffix_digit = k
+            if v == user_input[-1]:
+                suffix = k
                 break
-    else:
-        base = user_input
 
     if not base.isdigit():
         return user_input
 
     num = int(base)
 
-    # 🔴 TROLI (70–83 → 4700–4830)
+    # 🔥 1. TROLI
     if 70 <= num <= 83:
-        return f"4{num:02d}{suffix_digit}"
+        return f"4{num:02d}{suffix}"
 
-    # 🔴 VILLAMOS (1–69 → 3010–3690)
+    # 🔥 2. BUSZ (EZ ELŐBB VAN!)
+    if 5 <= num <= 99:
+        return f"{num:03d}{suffix}"
+
+    # 🔥 3. VILLAMOS
     if 1 <= num <= 69:
-        return f"3{num:02d}{suffix_digit}"
+        return f"3{num:02d}{suffix}"
 
-    # 🔴 BUSZ (minden más)
-    if 1 <= num <= 999:
-        return f"{num:03d}{suffix_digit}"
+    # 🔥 4. minden más busz
+    if 100 <= num <= 999:
+        return f"{num:03d}{suffix}"
 
     return user_input
 
@@ -385,7 +394,7 @@ def ensure_dirs():
     os.makedirs("logs", exist_ok=True)
     os.makedirs("logs/veh", exist_ok=True)
 
-NOSZTALGIA = {"V4000", "V4171", "V4200", "V4349", "JARMU1", "JARMU2", "JARMU3", "T0309", "T0359"}
+NOSZTALGIA = {"V4000", "V4171", "V4200", "V4349", "JARMU1", "JARMU2", "JARMU3", "T0309", "T0359", "BPI007", "BPI415", "BPI829", "BPI923", "BPO147", "BPO301", "BPO449", "BPO477", "AAIK405"}
 
 def is_nosztalgia(reg):
     if not is_t5c5k2(reg):
@@ -3279,6 +3288,393 @@ async def bkvc2(ctx):
         await ctx.send(embed=e)   
         
 @bot.command()
+async def bkvmodulo(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_modulo108D(reg)
+                or is_modulo168D(reg)
+                or is_moduloC68E(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_modulo108D(reg):
+                vtype = "MABI Modulo M108D"
+            elif is_modulo168D(reg):
+                vtype = "MABI Modulo M168D"
+            elif is_moduloC68E(reg):
+                vtype = "MABI Modulo MC68E"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Modulo busz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív Modulo buszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)   
+        
+        
+@bot.command()
+async def bkvvanhool(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_vhag318(reg)
+                or is_vhnew330cng(reg)
+                or is_vhnewa330(reg)
+                or is_vhnewag300(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_vhag318(reg):
+                vtype = "VanHool AG318"
+            elif is_vhnew330cng(reg):
+                vtype = "VanHool newA330 CNG"
+            elif is_vhnewa330(reg):
+                vtype = "VanHool newA330"
+            elif is_vhnewag300(reg):
+                vtype = "VanHool newAG300"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív VanHool busz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív VanHool buszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)   
+        
+@bot.command()
+async def bkvik(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_ik127(reg)
+                or is_ik187(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_ik127(reg):
+                vtype = "Ikarus V127"
+            elif is_ik187(reg):
+                vtype = "Ikarus V187"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív Ikarus busz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív Ikarus buszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)   
+        
+@bot.command()
+async def bkvmidi(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_karsan(reg)
+                or is_moduloC68E(reg)
+                or is_urbIII10(reg)
+                or is_urbIII8(reg)
+                or is_vehixel(reg) 
+                or is_eurosprinter(reg)
+                or is_itkreform(reg)
+                or is_sprinter65(reg)
+                or is_citymax(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_karsan(reg):
+                vtype = "Karsan Atak"
+            elif is_moduloC68E(reg):
+                vtype = "MABI Modulo C68E"
+            elif is_urbIII10(reg):
+                vtype = "Solaris Urbino III 10"
+            elif is_urbIII8(reg):
+                vtype = "Solaris Urbino III 8"
+            elif is_vehixel(reg):
+                vtype = "Vehixel Cytios 3/23"
+            elif is_eurosprinter(reg):
+                vtype = "Euro Limbus Sprinter"
+            elif is_itkreform(reg):
+                vtype = "ITK Reform-S City Max"
+            elif is_sprinter65(reg):
+                vtype = "Mercedes-Benz Sprinter City 65"
+            elif is_citymax(reg):
+                vtype = "TS City Max"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív midi busz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív midi buszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)   
+        
+@bot.command()
 async def arrivabyd(ctx):
     active = {}
 
@@ -3456,6 +3852,111 @@ async def arrivacon(ctx):
 # =======================
 # PARANCSOK - Egyébbek
 # =======================
+
+@bot.command()
+async def nosztalgia(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_nosztalgia(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_nosztalgia(reg):
+                if reg in ["BPI007"]:
+                    vtype = f"Ikarus 412.10A"
+                elif reg in ["BPI415"]:
+                    vtype = f"Ikarus 415.14"
+                elif reg in ["BPI829", "BPO477"]:
+                    vtype = f"Ikarus 280.49"
+                elif reg in ["BPI923"]:
+                    vtype = f"Ikarus 435.06"
+                elif reg in ["BPO147", "BPO301"]:
+                    vtype = f"Ikarus 260.46"
+                elif reg in ["BPO449"]:
+                    vtype = f"Ikarus 280.40A"
+                elif reg in ["AAIK405"]:
+                    vtype = f"Ikarus 405.06"
+                elif reg in ["V4000", "V4171", "V4200", "V4349"]:
+                    vtype = f"Tatra T5C5"
+                elif reg in ["T0309"]:
+                    vtype = f"Ikarus 435.81F"
+                elif reg in ["T0359"]:
+                    vtype = f"Gräf & Stift J09 NGE152"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív nosztalgia jármű.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív nosztalgia járművek"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)    
 
 @bot.command()
 async def bkvkt(ctx):
