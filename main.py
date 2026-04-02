@@ -1665,7 +1665,7 @@ def is_arrivaa21(reg):
 
     # NAY301-382
     if reg.startswith("NAY"):
-        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
         if digits:
             n = int(digits)
             if (301 <= n <= 382):
@@ -1673,7 +1673,7 @@ def is_arrivaa21(reg):
 
     # PDN601-650
     if reg.startswith("PDN"):
-        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
         if digits:
             n = int(digits)
             if (601 <= n <= 650):
@@ -1681,7 +1681,7 @@ def is_arrivaa21(reg):
 
     # SGY801-824
     if reg.startswith("SGY"):
-        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
         if digits:
             n = int(digits)
             if (801 <= n <= 824):
@@ -1689,7 +1689,7 @@ def is_arrivaa21(reg):
 
     # VTA641
     if reg.startswith("VTA"):
-        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
         if digits:
             n = int(digits)
             if (641 == n):
