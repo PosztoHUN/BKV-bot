@@ -2142,7 +2142,7 @@ async def bkvcombino(ctx):
         await ctx.send(embed=e)
 
 @bot.command()
-async def bkvoktato(ctx):
+async def bkvtanulo(ctx):
     active = {}
 
     async with aiohttp.ClientSession() as session:
