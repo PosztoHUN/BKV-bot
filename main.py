@@ -5252,11 +5252,9 @@ async def vehicle_alert_task():
         else:
             potlas_type = None
 
-            if "ganz" in model or "solaris" in model:
+            if "GANZ" in model or "SOLARIS" in model:
                 if route not in ALLOWED_GANZ_ROUTES:
-                    potlas_type = "GVM / Ikarus 280"
-                elif is_low_floor(trip_id):
-                    potlas_type = "GVM / Ikarus 280"
+                    potlas_type = "GST / Ganz-Solaris Trolino 12"
 
             if "412" in model and route not in ALLOWED_412_ROUTES and f != "?":
                 potlas_type = "Ikarus 412T"
