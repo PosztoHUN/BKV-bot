@@ -4611,7 +4611,10 @@ async def nosztalgia(ctx):
             if reg in supa_vehicles:
                 vtype = supa_vehicles[reg]["vtype"]
                 if is_obu(reg):
-                    display_reg = f"{supa_vehicles[reg]['plate']} ({reg})"  # plate + (JARMU)
+                    if reg in ["JARMU1", "JARMU2", "JARMU3"]:
+                        display_reg = f"{supa_vehicles[reg]['plate']} ({reg})"  # plate + (JARMU)
+                    elif reg in ["JARMU4", "JARMU5", "JARMU6", "JARMU7", "JARMU8"]:
+                        continue  # kihagyjuk
                 else:
                     display_reg = reg
             else:
