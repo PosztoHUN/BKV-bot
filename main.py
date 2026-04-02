@@ -1697,6 +1697,63 @@ def is_arrivaa21(reg):
 
     return False
 
+def is_vol12c(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - AAGL250-324
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # AAGL250-324
+    if reg.startswith("AAGL"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (250 <= n <= 324):
+                return True
+
+    return False
+
+def is_vol7900a(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - MOS283-299
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # MOS283-299
+    if reg.startswith("MOS"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (283 <= n <= 299):
+                return True
+
+    return False
+
+def is_volcon(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - RVY721-750
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # RVY721-750
+    if reg.startswith("RVY"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (721 <= n <= 750):
+                return True
+
+    return False
+
 async def fetch_json(session, url):
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as r:
@@ -4182,7 +4239,99 @@ async def arrivac2(ctx):
 
     embeds.append(embed)
     for e in embeds:
-        await ctx.send(embed=e)          
+        await ctx.send(embed=e)    
+        
+@bot.command()
+async def aggvolan(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_vol12c(reg)
+                or is_volcon(reg)
+                or is_vol7900a(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_volcon(reg):
+                vtype = "Mercedes-Benz Conecto III G"
+            elif is_vol12c(reg):
+                vtype = "MAN 12C Lion's City 12 G NL320"
+            elif is_vol7900a(reg):
+                vtype = "Volvo 7900A"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív agglomerációs volánbusz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív agglomerációs volánbuszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)    
         
 # =======================
 # PARANCSOK - Egyébbek
