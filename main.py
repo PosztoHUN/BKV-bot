@@ -1432,6 +1432,10 @@ def is_mbO530G(reg):
         digits = ''.join(c for c in reg[3:] if c.isdigit())
         if digits and 933 <= int(digits) <= 934:
             return True
+        
+    # PTG283 (konkrét)
+    if reg == "PTG283":
+        return True
 
     return False
 
