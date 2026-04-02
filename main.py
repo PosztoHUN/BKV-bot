@@ -4349,10 +4349,12 @@ async def aggvolan(ctx):
             elif is_vol7900a(reg):
                 vtype = "Volvo 7900A"
             elif is_obu(reg):
-                if reg in ["JARMU4", "JARMU5", "JARMU6", "JARMU7", "JARMU8"]:
+                if reg in ["JARMU1", "JARMU2", "JARMU3"]:
+                    continue  # vagy vtype = None és később csak a nem-None értékeket adjuk hozzá
+                elif reg in ["JARMU4", "JARMU5", "JARMU6", "JARMU7", "JARMU8"]:
                     vtype = "VOLVO 7900A"
                 else:
-                    False
+                    vtype = "Ismeretlen"
             else:
                 vtype = "Ismeretlen"
 
