@@ -10,6 +10,7 @@ import asyncio
 import requests
 from datetime import datetime, timedelta
 from collections import defaultdict
+from supabase import create_client
 
 # =======================
 # BEÁLLÍTÁSOK
@@ -19,37 +20,44 @@ TOKEN = os.getenv("TOKEN")
 
 VEHICLES_API = "https://holajarmu.hu/budapest/api/vehicles?city=budapest"
 
-# TRAM_LINES = {
-#     "3010", "3011", "3020", "3022", "3030", "3040", "3060", "3120", "3140",
-#     "3170", "3190", "3230", "3240", "3280", "3281", "3370", "3371", "3410",
-#     "3420", "3470", "3480", "3490", "3500", "3510", "3511", "3520", "3560",
-#     "3561", "3590", "3591", "3592", "3600", "3610", "3620", "3621", "3690",
-#     " ", "-", "9999", "9997", "R3180", "R3230", "R3360", "R3800", "R3118",
-#     "N3560", "N3020", "N3180", "N3190", "N3600"
+# LINE_EXCEPTIONS = {
+#     "3600": "60 Fogaskerekű",
+
+#     "R3180": "R18",
+#     "R3230": "R23",
+#     "R3360": "R36",
+#     "R3800": "R80",
+#     "R3118": "R118",
+
+#     "N3020": "N2",
+#     "N3180": "N18",
+#     "N3190": "N19",
+#     "N3560": "N56",
+#     "N3581": "N58A",
+#     "N3600": "N60",
+#     "N4700": "N70",
+#     "N4740": "N74",
+#     "N4767": "N76-79",
+    
+#     "9999": "9999",
+#     "9997": "9997"
 # }
 
-LINE_EXCEPTIONS = {
-    "3600": "60 Fogaskerekű",
 
-    "R3180": "R18",
-    "R3230": "R23",
-    "R3360": "R36",
-    "R3800": "R80",
-    "R3118": "R118",
+# Supabase hitelesítés
+url = "https://xyzcompany.supabase.co"
+key = "sb_publishable_9FZorECB2WSisCfVZKWFdg_TR8n47CC"
+supabase = create_client(url, key)
 
-    "N3020": "N2",
-    "N3180": "N18",
-    "N3190": "N19",
-    "N3560": "N56",
-    "N3581": "N58A",
-    "N3600": "N60",
-    "N4700": "N70",
-    "N4740": "N74",
-    "N4767": "N76-79",
-    
-    "9999": "9999",
-    "9997": "9997"
-}
+# Adatok lekérése a táblából
+response = supabase.table("line_exceptions").select("*").execute()
+
+# Ellenőrzés, hogy sikeres-e
+if response.data is not None:
+    LINE_EXCEPTIONS = {item["line_id"]: item["name"] for item in response.data}
+    print(LINE_EXCEPTIONS)
+else:
+    print("Nem sikerült lekérni az adatokat.")
 
 SUFFIX_MAP = {
     "0": "",
