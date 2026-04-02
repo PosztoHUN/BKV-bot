@@ -45,7 +45,7 @@ VEHICLES_API = "https://holajarmu.hu/budapest/api/vehicles?city=budapest"
 
 
 # Supabase hitelesítés
-url = "https://xyzcompany.supabase.co"
+url = "https://tsjmodenjvoltvyvnpvk.supabase.co"
 key = "sb_publishable_9FZorECB2WSisCfVZKWFdg_TR8n47CC"
 supabase = create_client(url, key)
 
