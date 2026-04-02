@@ -13,6 +13,7 @@ import requests
 from datetime import datetime, timedelta
 from collections import defaultdict
 from supabase import create_client
+from google.transit import gtfs_realtime_pb2
 
 # =======================
 # BEÁLLÍTÁSOK
@@ -21,6 +22,15 @@ from supabase import create_client
 TOKEN = os.getenv("TOKEN")
 
 VEHICLES_API = "https://holajarmu.hu/budapest/api/vehicles?city=budapest"
+
+API_KEY = "bfe1478f-1155-40d8-a80e-d735290a7a00"  # <-- ide tedd vissza a sajátodat
+PB_URL  = f"https://go.bkk.hu/api/query/v1/ws/gtfs-rt/full/VehiclePositions.pb?key={API_KEY}"
+
+GTFS_PATH = "budapest_gtfs.zip"
+TRIPS_META = {}
+tracked_potlases = {}
+tracked_other_ikarus = {}
+
 
 LINE_EXCEPTIONS = {
     "3600": "60 Fogaskerekű",
@@ -267,9 +277,38 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix=".", intents=intents)
 
-# =======================
+# ─────────────────────────────────────────────
+# HTTP / FEED SEGÉD
+# ─────────────────────────────────────────────
+
+UA_HEADERS = {
+    "User-Agent": "BKK-DiscordBot/1.0 (+https://discord.com)"
+}
+
+def _http_get(url: str, timeout: int = 15) -> requests.Response:
+    r = requests.get(url, headers=UA_HEADERS, timeout=timeout)
+    if r.status_code != 200:
+        snippet = (r.text or "")[:200].replace("\n", " ").replace("\r", " ")
+        raise RuntimeError(f"HTTP {r.status_code} {r.reason}. Válasz eleje: {snippet}")
+    return r
+
+def fetch_pb_feed() -> gtfs_realtime_pb2.FeedMessage:
+    r = _http_get(PB_URL)
+    feed = gtfs_realtime_pb2.FeedMessage()
+    try:
+        feed.ParseFromString(r.content)
+    except Exception as e:
+        snippet = (r.content[:200] or b"").decode("utf-8", errors="replace").replace("\n", " ").replace("\r", " ")
+        raise RuntimeError(f"PB parse hiba: {e}. Tartalom eleje: {snippet}")
+    return feed
+
+def fetch_txt_raw() -> str:
+    r = _http_get(TXT_URL)
+    return r.text or ""
+
+# ─────────────────────────────────────────────
 # GTFS SEGÉD
-# =======================
+# ─────────────────────────────────────────────
 
 def open_gtfs(name):
     z = zipfile.ZipFile(GTFS_PATH)
@@ -278,9 +317,22 @@ def open_gtfs(name):
 def tsec(t):
     try:
         h, m, s = map(int, t.split(":"))
-        return h * 3600 + m * 60 + s
-    except Exception:
+        return h*3600 + m*60 + s
+    except:
         return 10**9
+
+def _tsec_mod(t: str):
+    """
+    HH:MM:SS -> seconds mod 24h.
+    Kezeli a 24+:xx:xx (GTFS) és 00:xx:xx (GTFS-RT) esetet ugyanarra az időpontra.
+    """
+    if not t:
+        return None
+    try:
+        h, m, s = map(int, t.strip().split(":"))
+        return (h * 3600 + m * 60 + s) % 86400
+    except:
+        return None
 
 def daily_forda_id(block_id):
     p = block_id.split("_")
@@ -289,24 +341,24 @@ def daily_forda_id(block_id):
 def forgalmi_from_dfid(dfid):
     try:
         return int(dfid.split("_")[-1])
-    except Exception:
+    except:
         return None
 
 def service_active(service_id, date):
     return SERVICE_DATES.get(service_id, {}).get(date, False)
 
 def load_gtfs():
-    if not GTFS_PATH or not os.path.exists(GTFS_PATH):
-        return
-
+    # trips.txt
     with open_gtfs("trips.txt") as f:
         for r in csv.DictReader(f):
             TRIPS_META[r["trip_id"]] = r
 
+    # stops.txt
     with open_gtfs("stops.txt") as f:
         for r in csv.DictReader(f):
             STOPS[r["stop_id"]] = r["stop_name"]
 
+    # stop_times.txt
     first = {}
     with open_gtfs("stop_times.txt") as f:
         for r in csv.DictReader(f):
@@ -323,21 +375,24 @@ def load_gtfs():
                 "departure": r["departure_time"]
             })
 
-    try:
-        with open_gtfs("calendar_dates.txt") as f:
-            for r in csv.DictReader(f):
-                date = datetime.strptime(r["date"], "%Y%m%d").date()
-                if r["exception_type"] == "1":
-                    SERVICE_DATES[r["service_id"]][date] = True
-                elif r["exception_type"] == "2":
-                    SERVICE_DATES[r["service_id"]][date] = False
-    except Exception:
-        pass
+    # calendar_dates.txt
+    with open_gtfs("calendar_dates.txt") as f:
+        for r in csv.DictReader(f):
+            date = datetime.strptime(r["date"], "%Y%m%d").date()
+            if r["exception_type"] == "1":
+                SERVICE_DATES[r["service_id"]][date] = True
+            elif r["exception_type"] == "2":
+                SERVICE_DATES[r["service_id"]][date] = False
 
+    # fordák (csak a .forgalmi parancshoz)
+    count_total = 0
+    count_with_bid = 0
     for tid, t in TRIPS_META.items():
+        count_total += 1
         bid = t.get("block_id")
         if not bid:
             continue
+        count_with_bid += 1
         rid = t["route_id"]
         dfid = daily_forda_id(bid)
 
@@ -364,16 +419,16 @@ def load_gtfs():
             "last_time": last_time
         })
 
+    print(f"Total trips: {count_total}, with block_id: {count_with_bid}")
+    print(f"ROUTES keys: {list(ROUTES.keys())[:10]}")
+
     for rid in ROUTES:
         for dfid in ROUTES[rid]:
             ROUTES[rid][dfid].sort(key=lambda x: tsec(x["start_time"]))
 
 def parse_txt_feed():
-    if not TXT_URL:
-        return {}
-
     try:
-        text = requests.get(TXT_URL, timeout=10).text
+        text = fetch_txt_raw()
     except Exception:
         return {}
 
@@ -412,6 +467,45 @@ def is_low_floor(trip_id):
     t = TRIPS_META.get(trip_id)
     return t and t.get("wheelchair_accessible") == "1"
 
+# ✅ ÚJ: forgalmi fallback (24+:xx GTFS vs 00:xx RT), főleg 4800-nál
+def forgalmi_from_vehicle(v) -> str:
+    # 1) első próbálkozás: trip_id -> trips.txt -> block_id
+    trip_id = getattr(v.trip, "trip_id", None)
+    if trip_id:
+        bid = TRIPS_META.get(trip_id, {}).get("block_id")
+        f = menetrendi_forgalmi(bid)
+        if f != "?":
+            return f
+
+    # 2) fallback: route_id + start_time (mod 24h) alapján GTFS-ben keresés
+    route_id = getattr(v.trip, "route_id", None)
+    rt_start = getattr(v.trip, "start_time", None)  # GTFS-RT
+    if not route_id or not rt_start:
+        return "?"
+
+    rt_sec = _tsec_mod(rt_start)
+    if rt_sec is None:
+        return "?"
+
+    candidates = []
+    for tid, gtfs_start in TRIP_START.items():
+        meta = TRIPS_META.get(tid)
+        if not meta or meta.get("route_id") != route_id:
+            continue
+
+        gtfs_sec = _tsec_mod(gtfs_start)
+        if gtfs_sec is None:
+            continue
+
+        if gtfs_sec == rt_sec:
+            candidates.append(tid)
+
+    if not candidates:
+        return "?"
+
+    bid = TRIPS_META.get(candidates[0], {}).get("block_id")
+    return menetrendi_forgalmi(bid)
+
 def chunk_messages(header, lines):
     msg = header + "\n\n"
     for l in lines:
@@ -422,6 +516,62 @@ def chunk_messages(header, lines):
             msg += l + "\n\n"
     if msg.strip():
         yield msg.rstrip()
+
+async def send_paginated_embed_fields(ctx, title: str, color: discord.Color, fields, per_page: int = 20):
+    if not fields:
+        await ctx.send("❗ Nincs találat.")
+        return
+
+    total = len(fields)
+    pages = (total + per_page - 1) // per_page
+
+    for page in range(pages):
+        start = page * per_page
+        end = min(start + per_page, total)
+        embed = discord.Embed(title=title, color=color)
+        for name, value in fields[start:end]:
+            embed.add_field(name=name, value=value, inline=False)
+        if pages > 1:
+            embed.set_footer(text=f"Oldal {page+1}/{pages} • Összesen: {total}")
+        await ctx.send(embed=embed)
+
+async def send_paginated_embed_description(ctx, title: str, color: discord.Color, lines, max_chars: int = 3800):
+    if not lines:
+        await ctx.send("❗ Nincs találat.")
+        return
+
+    pages = []
+    current = []
+    current_len = 0
+
+    for line in lines:
+        add_len = len(line) + (2 if current else 0)
+        if current and current_len + add_len > max_chars:
+            pages.append(current)
+            current = [line]
+            current_len = len(line)
+        else:
+            current.append(line)
+            current_len += add_len
+
+    if current:
+        pages.append(current)
+
+    total_items = len(lines)
+
+    for idx, page_lines in enumerate(pages, start=1):
+        start_item = sum(len(p) for p in pages[:idx-1]) + 1
+        end_item = start_item + len(page_lines) - 1
+        embed = discord.Embed(
+            title=title,
+            description="\n\n".join(page_lines),
+            color=color
+        )
+        footer = f"{start_item}-{end_item} / {total_items} jármű"
+        if len(pages) > 1:
+            footer += f" • Oldal {idx}/{len(pages)}"
+        embed.set_footer(text=footer)
+        await ctx.send(embed=embed)
 
 # =======================
 # SEGÉDFÜGGVÉNYEK
@@ -5017,6 +5167,89 @@ async def all(ctx, route_id: str):
 
     for e in embeds:
         await ctx.send(embed=e)
+        
+        
+# ─────────────────────────────────────────────
+# AUTOMATIKUS FIGYELÉS
+# - pótlások
+# - egyéb IKARUS értesítés
+# ─────────────────────────────────────────────
+
+ALLOWED_GANZ_ROUTES = {"74"}
+ALLOWED_412_ROUTES = {"7", "9", "15", "16", "24", "25", "30", "32", "34", "35", "37", "38", "41", "44", "45", "47", "48", "56"}
+IGNORED_ROUTES = {"9999", "9997"}
+
+@tasks.loop(minutes=1)
+async def vehicle_alert_task():
+    ch = bot.get_channel(1461491191328673822)
+    if not ch:
+        return
+
+    try:
+        txt = parse_txt_feed()
+    except Exception:
+        txt = {}
+
+    try:
+        feed = fetch_pb_feed()
+    except Exception as e:
+        print(f"[PB ERROR] {e}")
+        return
+
+    current_potlas_ids = set()
+    current_other_ikarus_ids = set()
+
+    for e in feed.entity:
+        if not e.HasField("vehicle") or not e.vehicle.HasField("position"):
+            continue
+
+        v = e.vehicle
+        vid = v.vehicle.id
+        route = v.trip.route_id
+        dest = v.vehicle.label or "-"
+
+        model_raw = txt.get(vid, {}).get("vehicle_model", "N/A")
+        model = (model_raw or "").lower()
+
+        plate = txt.get(vid, {}).get("license_plate", "N/A")
+        trip_id = v.trip.trip_id
+
+        # ✅ CHANGED
+        f = forgalmi_from_vehicle(v)
+
+        # ─────────────────────────────
+        # PÓTLÁS logika (marad a régi elv)
+        # ─────────────────────────────
+        if route in IGNORED_ROUTES:
+            potlas_type = None
+        else:
+            potlas_type = None
+
+            if "ganz" in model or "solaris" in model:
+                if route not in ALLOWED_GANZ_ROUTES:
+                    potlas_type = "GVM / Ikarus 280"
+                elif is_low_floor(trip_id):
+                    potlas_type = "GVM / Ikarus 280"
+
+            if "412" in model and route not in ALLOWED_412_ROUTES and f != "?":
+                potlas_type = "Ikarus 412T"
+
+        if potlas_type:
+            current_potlas_ids.add(vid)
+
+            if vid not in tracked_potlases or tracked_potlases[vid] != dest:
+                tracked_potlases[vid] = dest
+
+                embed = discord.Embed(
+                    title=f"🚨 {potlas_type} – pótlás",
+                    color=discord.Color.red()
+                )
+                embed.add_field(name="🚌 Jármű", value=f"**{plate}**", inline=False)
+                embed.add_field(name="➡ Vonal", value=route, inline=True)
+                embed.add_field(name="🎯 Cél", value=dest, inline=True)
+                embed.add_field(name="📌 Menetrendi forgalmi", value=f or "?", inline=False)
+
+                await ch.send(embed=embed)
 
 # =======================
 # START
