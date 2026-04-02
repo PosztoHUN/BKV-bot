@@ -63,13 +63,13 @@ SUFFIX_MAP = {
 # LINE_EXCEPTIONS lekérdezés a Supabase-ból
 def fetch_line_exceptions():
     response = supabase.table("line_exceptions").select("*").execute()
-    print(response.data)  # Ez adja meg, mi jön vissza
+    print("Supabase data:", response.data)
     if response.data is None:
         return {}
     # kulcsok stringként
     return {str(item["line_id"]).strip(): item["name"] for item in response.data}
 
-LINE_EXCEPTIONS = fetch_line_exceptions()
+LINE_EXCEPTIONS = {str(item["line_id"]): item["name"] for item in response.data}
 
 def decode_line(line_id: str) -> str:
     """
