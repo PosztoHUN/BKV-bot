@@ -4429,7 +4429,7 @@ async def aggvolan(ctx):
 async def nosztalgia(ctx):
     active = {}
 
-    # Supabase járművek lekérése
+    # Supabase járművek lekérése aszinkron
     supa_vehicles = await fetch_supabase_vehicles_async()
     
     async with aiohttp.ClientSession() as session:
@@ -4465,11 +4465,12 @@ async def nosztalgia(ctx):
                 continue
 
             # 🔥 típus és megjelenítendő rendszám Supabase alapján
-            display_reg = reg  # alapértelmezett a jármű rendszáma
             if reg in supa_vehicles:
                 vtype = supa_vehicles[reg]["vtype"]
                 if is_obu(reg):
-                    display_reg = supa_vehicles[reg]["plate"]
+                    display_reg = f"{supa_vehicles[reg]['plate']} ({reg})"  # plate + (JARMU)
+                else:
+                    display_reg = reg
             else:
                 # fallback a régi logikára
                 if is_nosztalgia(reg):
@@ -4495,10 +4496,13 @@ async def nosztalgia(ctx):
                         vtype = "Gräf & Stift J09 NGE152"
                     else:
                         vtype = "Ismeretlen"
+                    display_reg = reg
                 elif is_obu(reg):
                     vtype = "Egyenlőre ismeretlen OBU jármű"
+                    display_reg = f"{reg} ({reg})"  # ha nincs Supabase adat
                 else:
                     vtype = "Ismeretlen"
+                    display_reg = reg
 
             active[display_reg] = {
                 "line": line_name,
@@ -4515,8 +4519,8 @@ async def nosztalgia(ctx):
     # Embed küldés
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = "🚌 Aktív nosztalgia járművek"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed_title_base = "Aktív nosztalgia járművek"
+    embed = discord.Embed(title=embed_title_base, color=0x00ff00)
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
@@ -4529,7 +4533,7 @@ async def nosztalgia(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
