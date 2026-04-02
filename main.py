@@ -1,5 +1,5 @@
 from urllib import response
-
+from datetime import datetime, UTC
 import discord
 from discord.ext import commands, tasks
 import aiohttp
@@ -10,7 +10,7 @@ import csv
 import zipfile
 import asyncio
 import requests
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from collections import defaultdict
 from supabase import create_client
 from google.transit import gtfs_realtime_pb2
@@ -2139,7 +2139,7 @@ async def update_active_today():
                 if is_ganz_troli(reg):
                     continue
 
-                now = datetime.utcnow()
+                now = datetime.now(UTC)
 
                 entry = active_today_villamos.setdefault(
                     reg,
@@ -5181,7 +5181,7 @@ IGNORED_ROUTES = {"9999", "9997"}
 
 @tasks.loop(minutes=1)
 async def vehicle_alert_task():
-    ch = bot.get_channel(1461491191328673822)
+    ch = bot.get_channel(1489320701532963040)  # cél csatorna ID
     if not ch:
         return
 
