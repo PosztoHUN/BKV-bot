@@ -4444,8 +4444,6 @@ import asyncio
 BOT_CHANNEL_ID = 1461491191328673822  # cél csatorna ID
 MAX_FIELDS = 20
 
-bot = commands.Bot(command_prefix="!")
-
 # Globális tároló a korábbi embedekhez és járműadatokhoz
 last_active = {}
 embed_messages = []
