@@ -2336,7 +2336,7 @@ async def bkvvillamos(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív villamosok", color=0xffff00)
+    embed = discord.Embed(title="🚋 Aktív villamosok", color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
@@ -2352,7 +2352,7 @@ async def bkvvillamos(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív villamosok (folytatás)", color=0xffff00)
+            embed = discord.Embed(title="🚋 Aktív villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -2413,13 +2413,13 @@ async def bkvkcsv7(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok", color=0xffaa00)
+    embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok", color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok (folytatás)", color=0xffaa00)
+            embed = discord.Embed(title="🚋 Aktív Ganz KCSV7 villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
         line = i["line"]
@@ -2470,13 +2470,13 @@ async def bkvics(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok", color=0xffaa00)
+    embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok", color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok (folytatás)", color=0xffaa00)
+            embed = discord.Embed(title="🚋 Aktív Ganz ICS villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_ICS else f"Vonal: {i['line']}"
@@ -2546,13 +2546,13 @@ async def bkvtw6000(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok", color=0xffaa00)
+    embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok", color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok (folytatás)", color=0xffaa00)
+            embed = discord.Embed(title="🚋 Aktív TW6000-es villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_TW else f"Vonal: {i['line']}"
@@ -2607,13 +2607,13 @@ async def bkvcombino(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív Combino villamosok", color=0xffff00)
+    embed = discord.Embed(title="🚋 Aktív Combino villamosok", color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív Combino villamosok (folytatás)", color=0xffff00)
+            embed = discord.Embed(title="🚋 Aktív Combino villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_COMBINO else f"Vonal: {i['line']}"
@@ -2669,13 +2669,13 @@ async def bkvtanulo(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚋 Aktív Tanulójáratok"
-    embed = discord.Embed(title=embed_title_base, color=0xffaa00)
+    embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffaa00)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
         embed.add_field(
@@ -2726,13 +2726,13 @@ async def bkvcaf5(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚋 Aktív CAF5 villamosok"
-    embed = discord.Embed(title=embed_title_base, color=0xffff00)
+    embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffff00)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_CAF5 else f"Vonal: {i['line']}"
@@ -2781,13 +2781,13 @@ async def bkvcaf9(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚋 Aktív CAF9 villamosok"
-    embed = discord.Embed(title=embed_title_base, color=0xffff00)
+    embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffff00)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_CAF9 else f"Vonal: {i['line']}"
@@ -2836,13 +2836,13 @@ async def bkvt5c5(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚋 Aktív T5C5 villamosok"
-    embed = discord.Embed(title=embed_title_base, color=0xffaa00)
+    embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffaa00)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_T5C5 else f"Vonal: {i['line']}"
@@ -2891,13 +2891,13 @@ async def bkvt5c5k2(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚋 Aktív T5C5K2 villamosok"
-    embed = discord.Embed(title=embed_title_base, color=0xffaa00)
+    embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffaa00)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_T5C5K2 else f"Vonal: {i['line']}"
@@ -2948,13 +2948,13 @@ async def bkvfogas(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚋 Aktív Fogaskerekűek"
-    embed = discord.Embed(title=embed_title_base, color=0xffff00)
+    embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffff00)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"Vonal: {i['line']}"
@@ -3079,7 +3079,7 @@ async def bkvtroli(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚎 Aktív trolibuszok"
-    embed = discord.Embed(title=embed_title_base, color=0xff0000)
+    embed = discord.Embed(title=embed_title_base, color=0xE41F18)
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
@@ -3092,7 +3092,7 @@ async def bkvtroli(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xff0000)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -3173,7 +3173,7 @@ async def bkviktroli(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚎 Aktív Ikarus trolibuszok"
-    embed = discord.Embed(title=embed_title_base, color=0xff0000)
+    embed = discord.Embed(title=embed_title_base, color=0xE41F18)
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
@@ -3186,7 +3186,7 @@ async def bkviktroli(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xff0000)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -3262,7 +3262,7 @@ async def bkvgst(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚎 Aktív GST trolibuszok"
-    embed = discord.Embed(title=embed_title_base, color=0xff0000)
+    embed = discord.Embed(title=embed_title_base, color=0xE41F18)
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
@@ -3275,7 +3275,7 @@ async def bkvgst(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xff0000)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -3356,7 +3356,7 @@ async def bkvsst(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚎 Aktív Solaris trolibuszok"
-    embed = discord.Embed(title=embed_title_base, color=0xff0000)
+    embed = discord.Embed(title=embed_title_base, color=0xE41F18)
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: int(x[0])):
@@ -3369,7 +3369,7 @@ async def bkvsst(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xff0000)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -3457,7 +3457,7 @@ async def bkvvolvo(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív Volvo buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -3471,7 +3471,7 @@ async def bkvvolvo(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -3552,7 +3552,7 @@ async def bkvconecto(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív Conecto buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -3566,7 +3566,7 @@ async def bkvconecto(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -3650,7 +3650,7 @@ async def bkvc1(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív Citaro C1 buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -3664,7 +3664,7 @@ async def bkvc1(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -3742,7 +3742,7 @@ async def bkvc2(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív Citaro C2 buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -3756,7 +3756,7 @@ async def bkvc2(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -3834,7 +3834,7 @@ async def bkvmodulo(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív Modulo buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -3848,7 +3848,7 @@ async def bkvmodulo(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -3930,7 +3930,7 @@ async def bkvvanhool(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív VanHool buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -3944,7 +3944,7 @@ async def bkvvanhool(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -4019,7 +4019,7 @@ async def bkvik(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív Ikarus buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -4033,7 +4033,7 @@ async def bkvik(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -4129,7 +4129,7 @@ async def bkvmidi(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív midi buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -4143,7 +4143,7 @@ async def bkvmidi(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -4218,7 +4218,7 @@ async def arrivabyd(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív BYD buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -4232,7 +4232,7 @@ async def arrivabyd(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -4304,7 +4304,7 @@ async def arrivaconecto(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív Conecto buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -4318,7 +4318,7 @@ async def arrivaconecto(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -4396,7 +4396,7 @@ async def arrivaman(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív MAN buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -4410,7 +4410,7 @@ async def arrivaman(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -4482,7 +4482,7 @@ async def arrivac2(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív Citaro C2 buszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint ábécé sorrendben
@@ -4496,7 +4496,7 @@ async def arrivac2(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -4589,7 +4589,7 @@ async def aggvolan(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív agglomerációs volánbuszok"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
@@ -4602,7 +4602,7 @@ async def aggvolan(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -5172,7 +5172,7 @@ async def all(ctx, route_id: str):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = f"🚍 Aktív járművek – {route_id}"
-    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
     field_count = 0
 
     # 🔹 rendszám szerint rendezve
@@ -5187,7 +5187,7 @@ async def all(ctx, route_id: str):
             embeds.append(embed)
             embed = discord.Embed(
                 title=f"{embed_title_base} (folytatás)",
-                color=0x0000ff
+                color=0x009EE3
             )
             field_count = 0
 
