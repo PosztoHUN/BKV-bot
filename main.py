@@ -3670,7 +3670,7 @@ async def david(ctx, date: str = None):
 @bot.command()
 async def all(ctx, route_id: str):
 
-    # 🔥 visszaalakítás (pl 80 → 4800)
+    # 🔥 visszaalakítás
     def encode_line(user_input: str) -> str:
         user_input = user_input.upper().strip()
 
@@ -3697,20 +3697,18 @@ async def all(ctx, route_id: str):
         if base.isdigit():
             num = int(base)
 
-            if 0 <= num < 100:
+            if 70 <= num <= 83:  # troli
                 return f"4{num:02d}{suffix}"
-            elif 100 <= num < 200:
-                return f"1{num-100:02d}{suffix}"
-            elif 200 <= num < 300:
-                return f"2{num-200:02d}{suffix}"
-            elif 900 <= num < 1000:
-                return f"9{num-900:02d}{suffix}"
+            elif 1 <= num <= 69:  # villamos
+                return f"3{num:02d}{suffix}"
+            else:  # busz
+                return f"{num:03d}{suffix}"
 
         return user_input
 
     real_route_id = encode_line(route_id)
 
-    active = []
+    active = {}
 
     async with aiohttp.ClientSession() as session:
         data = await fetch_json(session, VEHICLES_API)
@@ -3725,29 +3723,59 @@ async def all(ctx, route_id: str):
                 continue
 
             line_id = str(v.get("route_id", ""))
-
             if line_id != real_route_id:
+                continue
+
+            lat = v.get("lat")
+            lon = v.get("lon")
+            if lat is None or lon is None:
+                continue
+
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
-            lat = v.get("lat")
-            lon = v.get("lon")
 
-            active.append(
-                f"**{len(active)+1}. {reg}**\n"
-                f"Vonal: {line_name}\n"
-                f"Cél: {dest}\n"
-                f"Pozíció: {lat:.5f}, {lon:.5f}"
-            )
+            active[reg] = {
+                "line": line_name,
+                "dest": dest,
+                "lat": lat,
+                "lon": lon
+            }
 
     if not active:
         return await ctx.send(f"❗ Nincs aktív jármű a *{route_id}* vonalon.")
 
-    msg = f"🚍 Aktív járművek – {route_id}\n\n" + "\n\n".join(active)
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = f"🚍 Aktív járművek – {route_id}"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
 
-    for i in range(0, len(msg), 1900):
-        await ctx.send(msg[i:i+1900])
+    # 🔹 rendszám szerint rendezve
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(
+                title=f"{embed_title_base} (folytatás)",
+                color=0x0000ff
+            )
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+
+    for e in embeds:
+        await ctx.send(embed=e)
 
 # =======================
 # START
