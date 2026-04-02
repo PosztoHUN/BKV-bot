@@ -4325,6 +4325,9 @@ async def arrivac2(ctx):
 async def aggvolan(ctx):
     active = {}
 
+    # Supabase járművek lekérése aszinkron
+    supa_vehicles = await fetch_supabase_vehicles_async()
+    
     async with aiohttp.ClientSession() as session:
         data = await fetch_json(session, VEHICLES_API)
         if not data:
@@ -4362,7 +4365,8 @@ async def aggvolan(ctx):
             if is_fogas(reg) or is_ics(reg):
                 continue
 
-            # 🔥 típus meghatározása
+            # 🔥 típus és megjelenítendő rendszám Supabase alapján
+            display_reg = reg
             if is_volcon(reg):
                 vtype = "Mercedes-Benz Conecto III G"
             elif is_vol12c(reg):
@@ -4371,18 +4375,20 @@ async def aggvolan(ctx):
                 vtype = "Volvo 7900A"
             elif is_obu(reg):
                 if reg in ["JARMU1", "JARMU2", "JARMU3"]:
-                    continue  # vagy vtype = None és később csak a nem-None értékeket adjuk hozzá
+                    continue  # kihagyjuk
                 elif reg in ["JARMU4", "JARMU5", "JARMU6", "JARMU7", "JARMU8"]:
-                    vtype = "VOLVO 7900A"
+                    if reg in supa_vehicles:
+                        vtype = supa_vehicles[reg]["vtype"]
+                        display_reg = f"{supa_vehicles[reg]['plate']} ({reg})"
+                    else:
+                        vtype = "VOLVO 7900A"
+                        display_reg = f"{reg} ({reg})"
                 else:
                     vtype = "Ismeretlen"
             else:
                 vtype = "Ismeretlen"
 
-            # megtartjuk a teljes rendszámot betűkkel együtt
-            reg_num = reg
-
-            active[reg_num] = {
+            active[display_reg] = {
                 "line": line_name,
                 "dest": dest,
                 "trip_id": trip_id,
@@ -4394,13 +4400,13 @@ async def aggvolan(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív agglomerációs volánbusz.")
 
+    # Embed küldés
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív agglomerációs volánbuszok"
     embed = discord.Embed(title=embed_title_base, color=0x0000ff)
     field_count = 0
 
-    # 🔹 rendszám szerint ábécé sorrendben
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
         value = (
             f"Vonal: {i['line']}\n"
@@ -4419,11 +4425,142 @@ async def aggvolan(ctx):
 
     embeds.append(embed)
     for e in embeds:
-        await ctx.send(embed=e)    
+        await ctx.send(embed=e)
         
 # =======================
 # PARANCSOK - Egyébbek
 # =======================
+
+# Segédfüggvény a vonal OP-szűréshez
+def is_op_line(line_id):
+    return line_id.upper().startswith("OP")
+
+# Automatikus 5 perces küldés
+from discord.ext import commands, tasks
+import discord
+import aiohttp
+import asyncio
+
+BOT_CHANNEL_ID = 1461491191328673822  # cél csatorna ID
+MAX_FIELDS = 20
+
+bot = commands.Bot(command_prefix="!")
+
+# Globális tároló a korábbi embedekhez és járműadatokhoz
+last_active = {}
+embed_messages = []
+
+async def fetch_json(session, url):
+    async with session.get(url) as resp:
+        if resp.status == 200:
+            return await resp.json()
+        return None
+
+def is_op_line(line_id):
+    return str(line_id).upper().startswith("OP")
+
+@tasks.loop(minutes=5)
+async def send_op_vehicles():
+    global last_active, embed_messages
+
+    channel = bot.get_channel(BOT_CHANNEL_ID)
+    if not channel:
+        return
+
+    active = {}
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            await channel.send("❌ Nem sikerült lekérni az adatokat az API-ból.")
+            return
+
+        vehicles = data.get("vehicles", [])
+        for v in vehicles:
+            line_id = str(v.get("route_id", "—"))
+            if not is_op_line(line_id):
+                continue
+
+            reg = v.get("license_plate") or "Ismeretlen"
+            dest = v.get("label") or "Ismeretlen"
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            vtype = v.get("vehicle_model") or "Ismeretlen"
+
+            if lat is None or lon is None:
+                continue
+
+            active[reg] = {
+                "line": line_id,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    # Ha nincs aktív jármű
+    if not active:
+        if last_active != active:
+            await channel.send("🚫 Nincs aktív OP vonalon járó jármű.")
+            last_active = {}
+        return
+
+    # Csak akkor frissítünk, ha van változás
+    if active == last_active:
+        return
+    last_active = active
+
+    # Embed létrehozása
+    embeds = []
+    embed_title_base = "🚌 Aktív OP vonalon járó járművek"
+    embed = discord.Embed(title=embed_title_base, color=0x00ff00)
+    field_count = 0
+
+    for reg, info in sorted(active.items()):
+        value = (
+            f"Vonal: {info['line']}\n"
+            f"Cél: {info['dest']}\n"
+            f"Típus: {info['type']}\n"
+            f"Pozíció: {info['lat']:.5f}, {info['lon']:.5f}"
+        )
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+    embeds.append(embed)
+
+    # Embed üzenetek küldése / frissítése
+    if not embed_messages:
+        # Ha még nincs elküldött embed, újakat küldünk
+        embed_messages = []
+        for e in embeds:
+            msg = await channel.send(embed=e)
+            embed_messages.append(msg)
+    else:
+        # Frissítjük a meglévő üzeneteket
+        for i, e in enumerate(embeds):
+            if i < len(embed_messages):
+                try:
+                    await embed_messages[i].edit(embed=e)
+                except discord.NotFound:
+                    # Ha az üzenet törlésre került, újraküldjük
+                    msg = await channel.send(embed=e)
+                    embed_messages[i] = msg
+            else:
+                # Ha több embed van, mint korábban, újakat küldünk
+                msg = await channel.send(embed=e)
+                embed_messages.append(msg)
+
+# Automatikusan indul a bot indításakor
+@bot.event
+async def on_ready():
+    if not send_op_vehicles.is_running():
+        send_op_vehicles.start()
+    print(f"Bot készen áll, bejelentkezve: {bot.user}")
 
 @bot.command()
 async def nosztalgia(ctx):
