@@ -603,6 +603,10 @@ async def send_paginated_embed_description(ctx, title: str, color: discord.Color
 # =======================
 # SEGÉDFÜGGVÉNYEK
 # =======================
+def normalize_vid(vid: str) -> str:
+    if not vid:
+        return ""
+    return vid.replace("BKK_", "").strip()
 
 def resolve_date(date_str=None):
     if not date_str:
@@ -5202,6 +5206,7 @@ async def all(ctx, route_id: str):
 # - egyéb IKARUS értesítés
 # ─────────────────────────────────────────────
 
+
 ALLOWED_GANZ_ROUTES = {"71"}
 ALLOWED_412_ROUTES = {"7", "9", "15", "16", "24", "25", "30", "32", "34", "35", "37", "38", "41", "44", "45", "47", "48", "56"}
 IGNORED_ROUTES = {"9999", "9997"}
@@ -5231,14 +5236,18 @@ async def vehicle_alert_task():
             continue
 
         v = e.vehicle
-        vid = v.vehicle.id
-        route = v.trip.route_id
-        dest = v.vehicle.label or "-"
+        vid_raw = v.vehicle.id
+        vid = normalize_vid(vid_raw)
 
-        model_raw = txt.get(vid, {}).get("vehicle_model", "N/A")
+        route_raw = v.trip.route_id
+        route = route_raw.lstrip("0")  # pl. "4700" -> "4700" marad, de néha segít
+        dest = v.vehicle.label or "-"
+        data = txt.get(vid) or txt.get(vid_raw) or {}
+
+        model_raw = data.get("vehicle_model", "N/A")
         model = (model_raw or "").lower()
 
-        plate = txt.get(vid, {}).get("license_plate", "N/A")
+        plate = data.get("license_plate", "N/A")
         trip_id = v.trip.trip_id
 
         # ✅ CHANGED
@@ -5275,6 +5284,7 @@ async def vehicle_alert_task():
                 embed.add_field(name="📌 Menetrendi forgalmi", value=f or "?", inline=False)
 
                 await ch.send(embed=embed)
+    print(f"[DEBUG] vid_raw={vid_raw} vid={vid} route={route} model_raw={model_raw}")
 
 # =======================
 # START
