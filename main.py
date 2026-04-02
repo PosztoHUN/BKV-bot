@@ -1572,8 +1572,8 @@ def is_arrivac2(reg):
     if reg.startswith("AOIM"):
         digits = ''.join(c for c in reg[4:] if c.isdigit())
         if digits:
-            n = int(digits)
-            if (001 <= n <= 056):
+            n = int(digits)  # int automatikusan kezeli az esetleges 0-kat
+            if 1 <= n <= 56:  # ❌ vezető nullák nélkül
                 return True
             
     # AOJM860-886
