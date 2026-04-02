@@ -5175,7 +5175,7 @@ async def all(ctx, route_id: str):
 # - egyéb IKARUS értesítés
 # ─────────────────────────────────────────────
 
-ALLOWED_GANZ_ROUTES = {"74"}
+ALLOWED_GANZ_ROUTES = {"71"}
 ALLOWED_412_ROUTES = {"7", "9", "15", "16", "24", "25", "30", "32", "34", "35", "37", "38", "41", "44", "45", "47", "48", "56"}
 IGNORED_ROUTES = {"9999", "9997"}
 
