@@ -3359,7 +3359,7 @@ async def arrivabyd(ctx):
         await ctx.send(embed=e)    
         
 @bot.command()
-async def arrivabyd(ctx):
+async def arrivacon(ctx):
     active = {}
 
     async with aiohttp.ClientSession() as session:
