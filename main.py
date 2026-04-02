@@ -5252,6 +5252,7 @@ async def vehicle_alert_task():
 
         # ✅ CHANGED
         f = forgalmi_from_vehicle(v)
+        print(f"[DEBUG] vid_raw={vid_raw} vid={vid} route={route} model_raw={model_raw}")
 
         # ─────────────────────────────
         # PÓTLÁS logika (marad a régi elv)
@@ -5284,7 +5285,6 @@ async def vehicle_alert_task():
                 embed.add_field(name="📌 Menetrendi forgalmi", value=f or "?", inline=False)
 
                 await ch.send(embed=embed)
-    print(f"[DEBUG] vid_raw={vid_raw} vid={vid} route={route} model_raw={model_raw}")
 
 # =======================
 # START
