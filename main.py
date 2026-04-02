@@ -5090,46 +5090,7 @@ async def david(ctx, date: str = None):
         await ctx.send(msg[i:i + 1900])
         
 @bot.command()
-async def all(ctx, route_id: str):
-
-    # 🔥 visszaalakítás
-    def encode_line(user_input: str) -> str:
-        user_input = user_input.upper().strip()
-
-        for k, v in LINE_EXCEPTIONS.items():
-            if v.upper() == user_input:
-                return k
-
-        if user_input.startswith(("R", "N")):
-            prefix = user_input[0]
-            num = user_input[1:]
-            if num.isdigit():
-                return f"{prefix}3{int(num):03d}"
-
-        suffix = "0"
-        base = user_input
-
-        if user_input[-1].isalpha():
-            base = user_input[:-1]
-            for k, v in SUFFIX_MAP.items():
-                if v == user_input[-1]:
-                    suffix = k
-                    break
-
-        if base.isdigit():
-            num = int(base)
-
-            if 70 <= num <= 83:  # troli
-                return f"4{num:02d}{suffix}"
-            elif 1 <= num <= 69:  # villamos
-                return f"3{num:02d}{suffix}"
-            else:  # busz
-                return f"{num:03d}{suffix}"
-
-        return user_input
-
-    real_route_id = encode_line(route_id)
-
+async def all(ctx):
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -5144,9 +5105,7 @@ async def all(ctx, route_id: str):
             if not reg:
                 continue
 
-            line_id = str(v.get("route_id", ""))
-            if line_id != real_route_id:
-                continue
+            public_id = str(v.get("public_route_id", ""))
 
             lat = v.get("lat")
             lon = v.get("lon")
@@ -5156,70 +5115,82 @@ async def all(ctx, route_id: str):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
 
-            active[reg] = {
-                "line": line_name,
+            # Gyűjtés public_route_id alapján
+            if public_id not in active:
+                active[public_id] = []
+
+            active[public_id].append({
+                "reg": reg,
                 "dest": dest,
                 "lat": lat,
                 "lon": lon
-            }
+            })
 
     if not active:
-        return await ctx.send(f"❗ Nincs aktív jármű a *{route_id}* vonalon.")
+        return await ctx.send("❗ Nincs aktív jármű az adatbázisban.")
 
-    MAX_FIELDS = 20
-    embeds = []
-    embed_title_base = f"🚍 Aktív járművek – {route_id}"
-    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
-    field_count = 0
+    # Embedek készítése minden public_route_id-hez
+    for route_id, vehicles_list in sorted(active.items(), key=lambda x: x[0]):
+        MAX_FIELDS = 20
+        embed_title_base = f"🚍 Aktív járművek – {route_id}"
+        embed = discord.Embed(title=embed_title_base, color=0x009EE3)
+        field_count = 0
 
-    # 🔹 rendszám szerint rendezve
-    for reg, i in sorted(active.items(), key=lambda x: x[0]):
-        value = (
-            f"Vonal: {i['line']}\n"
-            f"Cél: {i['dest']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
-        )
-
-        if field_count >= MAX_FIELDS:
-            embeds.append(embed)
-            embed = discord.Embed(
-                title=f"{embed_title_base} (folytatás)",
-                color=0x009EE3
+        for v in sorted(vehicles_list, key=lambda x: x["reg"]):
+            value = (
+                f"Cél: {v['dest']}\n"
+                f"Pozíció: {v['lat']:.5f}, {v['lon']:.5f}"
             )
-            field_count = 0
 
-        embed.add_field(name=reg, value=value, inline=False)
-        field_count += 1
+            if field_count >= MAX_FIELDS:
+                await ctx.send(embed=embed)
+                embed = discord.Embed(
+                    title=f"{embed_title_base} (folytatás)",
+                    color=0x009EE3
+                )
+                field_count = 0
 
-    embeds.append(embed)
+            embed.add_field(name=v["reg"], value=value, inline=False)
+            field_count += 1
 
-    for e in embeds:
-        await ctx.send(embed=e)
-        
+        await ctx.send(embed=embed)
         
 # ─────────────────────────────────────────────
 # AUTOMATIKUS FIGYELÉS
 # - pótlások
-# - egyéb IKARUS értesítés
 # ─────────────────────────────────────────────
-
 
 ALLOWED_GANZ_ROUTES = {"71"}
 ALLOWED_412_ROUTES = {"7", "9", "15", "16", "24", "25", "30", "32", "34", "35", "37", "38", "41", "44", "45", "47", "48", "56"}
 IGNORED_ROUTES = {"9999", "9997"}
 
+
+def normalize_vid(vid: str) -> str:
+    if not vid:
+        return ""
+    return vid.replace("BKK_", "").strip()
+
+
+def normalize_route(route_raw: str) -> str:
+    if not route_raw:
+        return ""
+    # "0210" → "21"
+    route = route_raw[:-1]
+    return route.lstrip("0")
+
+
 @tasks.loop(minutes=1)
 async def vehicle_alert_task():
-    ch = bot.get_channel(1489320701532963040)  # cél csatorna ID
+    ch = bot.get_channel(1489320701532963040)
     if not ch:
         return
 
     try:
         txt = parse_txt_feed()
-    except Exception:
+    except Exception as e:
+        print(f"[TXT ERROR] {e}")
         txt = {}
 
     try:
@@ -5229,19 +5200,25 @@ async def vehicle_alert_task():
         return
 
     current_potlas_ids = set()
-    current_other_ikarus_ids = set()
 
     for e in feed.entity:
         if not e.HasField("vehicle") or not e.vehicle.HasField("position"):
             continue
 
         v = e.vehicle
+
+        # ───── ID ─────
         vid_raw = v.vehicle.id
         vid = normalize_vid(vid_raw)
 
+        # ───── ROUTE ─────
         route_raw = v.trip.route_id
-        route = route_raw.lstrip("0")  # pl. "4700" -> "4700" marad, de néha segít
+        route = normalize_route(route_raw)
+
+        # ───── DEST ─────
         dest = v.vehicle.label or "-"
+
+        # ───── TXT DATA ─────
         data = txt.get(vid) or txt.get(vid_raw) or {}
 
         model_raw = data.get("vehicle_model", "N/A")
@@ -5250,25 +5227,29 @@ async def vehicle_alert_task():
         plate = data.get("license_plate", "N/A")
         trip_id = v.trip.trip_id
 
-        # ✅ CHANGED
+        # ───── FORGALMI ─────
         f = forgalmi_from_vehicle(v)
-        print(f"[DEBUG] vid_raw={vid_raw} vid={vid} route={route} model_raw={model_raw}")
+
+        # DEBUG
+        print(f"[DEBUG] vid={vid} route={route} model={model}")
 
         # ─────────────────────────────
-        # PÓTLÁS logika (marad a régi elv)
+        # PÓTLÁS LOGIKA
         # ─────────────────────────────
-        if route in IGNORED_ROUTES:
-            potlas_type = None
-        else:
-            potlas_type = None
+        potlas_type = None
 
-            if "GANZ" in model or "SOLARIS" in model:
+        if route not in IGNORED_ROUTES:
+
+            # Ganz-Solaris troli
+            if "ganz" in model or "solaris" in model:
                 if route not in ALLOWED_GANZ_ROUTES:
-                    potlas_type = "GST / Ganz-Solaris Trolino 12"
+                    potlas_type = "GST / Ganz-Solaris Trollino 12"
 
+            # Ikarus 412
             if "412" in model and route not in ALLOWED_412_ROUTES and f != "?":
                 potlas_type = "Ikarus 412T"
 
+        # ───── ÜZENET ─────
         if potlas_type:
             current_potlas_ids.add(vid)
 
