@@ -4457,12 +4457,12 @@ async def fetch_json(session, url):
 def is_op_line(line_id):
     return str(line_id).upper().startswith("OP")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=1)
 async def send_op_vehicles():
     # a loop tartalma ugyanaz
     global last_active, embed_messages
 
-    channel = bot.get_channel(BOT_CHANNEL_ID)
+    channel = bot.get_channel(1461491191328673822)
     if not channel:
         return
 
