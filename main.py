@@ -4457,8 +4457,9 @@ async def fetch_json(session, url):
 def is_op_line(line_id):
     return str(line_id).upper().startswith("OP")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=5, wait=False)
 async def send_op_vehicles():
+    # a loop tartalma ugyanaz
     global last_active, embed_messages
 
     channel = bot.get_channel(BOT_CHANNEL_ID)
@@ -4556,9 +4557,12 @@ async def send_op_vehicles():
 # Automatikusan indul a bot indításakor
 @bot.event
 async def on_ready():
+    print(f"Bot készen áll, bejelentkezve: {bot.user}")
+    # Első futtatás azonnal
+    await send_op_vehicles()
+    # Ezután indul a loop
     if not send_op_vehicles.is_running():
         send_op_vehicles.start()
-    print(f"Bot készen áll, bejelentkezve: {bot.user}")
 
 @bot.command()
 async def nosztalgia(ctx):
