@@ -2160,20 +2160,27 @@ async def bkvoktato(ctx):
 
             if not reg or lat is None or lon is None:
                 continue
-            if not is_oktato(reg):
+
+            # 🔥 EZ LETT A SZŰRÉS
+            if dest != "Tanulójárat":
                 continue
+
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            active[reg] = {
+                "line": line_name,
+                "dest": dest,
+                "lat": lat,
+                "lon": lon
+            }
 
     if not active:
-        return await ctx.send("🚫 Nincs aktív Oktató villamos.")
+        return await ctx.send("🚫 Nincs aktív Tanulójárat.")
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = "🚋 Aktív Oktató villamosok"
+    embed_title_base = "🚋 Aktív Tanulójáratok"
     embed = discord.Embed(title=embed_title_base, color=0xffaa00)
     field_count = 0
 
@@ -2183,11 +2190,13 @@ async def bkvoktato(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xffaa00)
             field_count = 0
 
-        line_text = f"Vonal: {i['line']}"
-
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            value=(
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            ),
             inline=False
         )
         field_count += 1
