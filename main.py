@@ -1540,6 +1540,163 @@ def is_arrivacon(reg):
 
     return False
 
+def is_arrivac2(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - AOCT651-677
+    - AOGF651-780
+    - AOIM001-056
+    - AOJM860-886
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # AOCT651-677
+    if reg.startswith("AOCT"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (651 <= n <= 677):
+                return True
+            
+    # AOGF651-780
+    if reg.startswith("AOGF"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (651 <= n <= 780):
+                return True
+            
+    # AOIM001-056
+    if reg.startswith("AOIM"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (001 <= n <= 056):
+                return True
+            
+    # AOJM860-886
+    if reg.startswith("AOJM"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (860 <= n <= 886):
+                return True
+
+    return False
+
+def is_arriva12c(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - AAHY801-881
+    - AOGL301-325
+    - AOLH517-518
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # AAHY801-881
+    if reg.startswith("AAHY"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (801 <= n <= 881):
+                return True
+            
+    # AOGL301-325
+    if reg.startswith("AOGL"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (301 <= n <= 325):
+                return True
+            
+    # AOLH517-518
+    if reg.startswith("AOLH"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (517 <= n <= 518):
+                return True
+
+    return False
+
+def is_arriva18c(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - AAMH601-681
+    - AOLH515-516
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # AAMH601-681
+    if reg.startswith("AAMH"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (601 <= n <= 681):
+                return True
+
+    # AOLH515-516
+    if reg.startswith("AOLH"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (515 <= n <= 516):
+                return True
+
+    return False
+
+def is_arrivaa21(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - NAY301-382
+    - PDN601-650
+    - SGY801-824
+    - VTA641
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # NAY301-382
+    if reg.startswith("NAY"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (301 <= n <= 382):
+                return True
+
+    # PDN601-650
+    if reg.startswith("PDN"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (601 <= n <= 650):
+                return True
+
+    # SGY801-824
+    if reg.startswith("SGY"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (801 <= n <= 824):
+                return True
+
+    # VTA641
+    if reg.startswith("VTA"):
+        digits = ''.join(c for c in reg[4:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (641 == n):
+                return True
+
+    return False
+
 async def fetch_json(session, url):
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as r:
@@ -3764,7 +3921,7 @@ async def arrivabyd(ctx):
         await ctx.send(embed=e)    
         
 @bot.command()
-async def arrivacon(ctx):
+async def arrivaconecto(ctx):
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3825,6 +3982,98 @@ async def arrivacon(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív Conecto buszok"
+    embed = discord.Embed(title=embed_title_base, color=0x0000ff)
+    field_count = 0
+
+    # 🔹 rendszám szerint ábécé sorrendben
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x0000ff)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        await ctx.send(embed=e)  
+        
+@bot.command()
+async def arrivaman(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            if not reg:
+                continue  # nincs rendszám
+
+            line_id = str(v.get("route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if lat is None or lon is None:
+                continue
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 Mercedes busz szűrés
+            if not (
+                is_arriva12c(reg)
+                or is_arriva18c(reg)
+                or is_arriva12c(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ics(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_arrivaa21(reg):
+                vtype = "MAN A21 Lion's City NL283"
+            elif is_arriva12c(reg):
+                vtype = "MAN 12C Lion's City 12 NL280"
+            elif is_arriva18c(reg):
+                vtype = "MAN 18C Lion's City 18 NG330"
+            else:
+                vtype = "Ismeretlen"
+
+            # megtartjuk a teljes rendszámot betűkkel együtt
+            reg_num = reg
+
+            active[reg_num] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív MAN busz.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = "🚌 Aktív MAN buszok"
     embed = discord.Embed(title=embed_title_base, color=0x0000ff)
     field_count = 0
 
