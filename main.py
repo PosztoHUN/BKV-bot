@@ -1,3 +1,5 @@
+from urllib import response
+
 import discord
 from discord.ext import commands, tasks
 import aiohttp
@@ -44,21 +46,12 @@ VEHICLES_API = "https://holajarmu.hu/budapest/api/vehicles?city=budapest"
 # }
 
 
-# Supabase hitelesítés
-url = "https://tsjmodenjvoltvyvnpvk.supabase.co"
-key = "sb_publishable_9FZorECB2WSisCfVZKWFdg_TR8n47CC"
+# 🔹 Supabase kapcsolat
+url = os.getenv("SUPABASE_URL")
+key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 supabase = create_client(url, key)
 
-# Adatok lekérése a táblából
-response = supabase.table("line_exceptions").select("*").execute()
-
-# Ellenőrzés, hogy sikeres-e
-if response.data is not None:
-    LINE_EXCEPTIONS = {item["line_id"]: item["name"] for item in response.data}
-    print(LINE_EXCEPTIONS)
-else:
-    print("Nem sikerült lekérni az adatokat.")
-
+# 🔹 Suffix térkép
 SUFFIX_MAP = {
     "0": "",
     "1": "A",
@@ -67,40 +60,44 @@ SUFFIX_MAP = {
     "8": "G"
 }
 
+# LINE_EXCEPTIONS lekérdezés a Supabase-ból
+def fetch_line_exceptions():
+    response = supabase.table("line_exceptions").select("*").execute()
+    print(response.data)  # Ez adja meg, mi jön vissza
+    if response.data is None:
+        return {}
+    # kulcsok stringként
+    return {str(item["line_id"]).strip(): item["name"] for item in response.data}
+
+LINE_EXCEPTIONS = fetch_line_exceptions()
+
 def decode_line(line_id: str) -> str:
+    """
+    Dekódolja a line_id-t a Supabase LINE_EXCEPTIONS alapján.
+    Ha nincs kivétel, normál logika fut (busz/villamos/troli R/N).
+    """
     if not line_id:
         return "—"
 
-    line_id = str(line_id)
+    line_id = str(line_id).strip()
 
-    # 🔴 1. KIVÉTEL FELÜLÍR
+    # 🔴 1️⃣ KIVÉTELEK – Supabase azonnal
     if line_id in LINE_EXCEPTIONS:
         return LINE_EXCEPTIONS[line_id]
 
-    prefix = ""
-    
-    # 🔴 2. R / N kezelés
-    if line_id.startswith(("R", "N")):
+    # 🔴 2️⃣ R / N vonalak – csak akkor, ha nincs kivétel
+    if line_id.startswith(("R", "N")) and line_id[1:].isdigit():
         prefix = line_id[0]
         core = line_id[1:]
+        # Ha core 3-4 számjegy, vegyük az utolsó 2-3 számjegyet
+        return f"{prefix}{int(core)}"
 
-        if not core.isdigit():
-            return line_id
+    # 🔴 3️⃣ Normál 4 számjegyű busz/villamos/troli
+    if line_id.isdigit() and len(line_id) == 4:
+        first = line_id[0]
+        line_num = int(line_id[1:3])
+        suffix = SUFFIX_MAP.get(line_id[3], "")
 
-        # itt NINCS betű logika!
-        line_number = int(core[1:])  # pl 3118 → 118
-        return f"{prefix}{line_number}"
-
-    # 🔴 3. normál 4 számjegy
-    if not line_id.isdigit() or len(line_id) != 4:
-        return line_id
-
-    first = line_id[0]
-    line_num = int(line_id[1:3])
-    suffix_digit = line_id[3]
-
-    # busz sávok
-    if first in {"0", "1", "2", "9"}:
         if first == "1":
             line_num += 100
         elif first == "2":
@@ -108,33 +105,35 @@ def decode_line(line_id: str) -> str:
         elif first == "9":
             line_num += 900
 
-    # villamos (3) / troli (4) → sima 0-99
-    elif first in {"3", "4"}:
-        pass
+        return f"{line_num}{suffix}"
 
-    suffix = SUFFIX_MAP.get(suffix_digit, "")
+    # 🔴 4️⃣ Ha semmi sem illik
+    return line_id
 
-    return f"{line_num}{suffix}"
+# Teszt
+teszt = ["3600", "R3180", "N3600", "9999", "3118", "4050"]
+for code in teszt:
+    print(f"{code} → {decode_line(code)}")
 
+# 🔹 Kódoló függvény
 def encode_line(user_input: str) -> str:
     user_input = user_input.upper().strip()
 
-    # 🔴 kivételek
+    # 1️⃣ Kivételek ellenőrzése
     for k, v in LINE_EXCEPTIONS.items():
         if v.upper() == user_input:
             return k
 
-    # 🔴 R / N
+    # 2️⃣ R / N vonalak
     if user_input.startswith(("R", "N")):
         prefix = user_input[0]
         num = user_input[1:]
         if num.isdigit():
             return f"{prefix}3{int(num):03d}"
 
-    # 🔴 suffix
+    # 3️⃣ Suffix kezelés
     suffix = "0"
     base = user_input
-
     if user_input[-1].isalpha():
         base = user_input[:-1]
         for k, v in SUFFIX_MAP.items():
@@ -147,23 +146,29 @@ def encode_line(user_input: str) -> str:
 
     num = int(base)
 
-    # 🔥 1. TROLI
+    # Troli
     if 70 <= num <= 83:
         return f"4{num:02d}{suffix}"
 
-    # 🔥 2. BUSZ (EZ ELŐBB VAN!)
+    # Busz (elsőbbség)
     if 5 <= num <= 99:
         return f"{num:03d}{suffix}"
 
-    # 🔥 3. VILLAMOS
+    # Villamos
     if 1 <= num <= 69:
         return f"3{num:02d}{suffix}"
 
-    # 🔥 4. minden más busz
+    # Minden más busz
     if 100 <= num <= 999:
         return f"{num:03d}{suffix}"
 
     return user_input
+
+# 🔹 Teszt
+if __name__ == "__main__":
+    teszt_kódok = ["3600", "R3180", "N3600", "9999", "3118", "4050"]
+    for code in teszt_kódok:
+        print(f"{code} → {decode_line(code)}")
 
 POTLAS_TIPUSOK = {
     "t5c5",
@@ -1759,6 +1764,23 @@ def is_volcon(reg):
             n = int(digits)
             if (721 <= n <= 750):
                 return True
+
+    return False
+
+def is_obu(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - JARMU1-8
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace(" ", "").replace("-", "")
+
+    # JARMU1-8
+    if reg.startswith("JARMU"):
+        digits = ''.join(c for c in reg[5:] if c.isdigit())
+        if digits and 1 <= int(digits) <= 8:
+            return True
 
     return False
 
@@ -4283,6 +4305,7 @@ async def aggvolan(ctx):
                 is_vol12c(reg)
                 or is_volcon(reg)
                 or is_vol7900a(reg)
+                or is_obu(reg)
             ):
                 continue
 
@@ -4296,6 +4319,9 @@ async def aggvolan(ctx):
                 vtype = "MAN 12C Lion's City 12 G NL320"
             elif is_vol7900a(reg):
                 vtype = "Volvo 7900A"
+            elif is_obu(reg):
+                if reg in ["JARMU4", "JARMU5", "JARMU6", "JARMU7", "JARMU8"]:
+                    vtype = "VOLVO 7900A"
             else:
                 vtype = "Ismeretlen"
 
