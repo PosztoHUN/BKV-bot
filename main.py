@@ -5090,7 +5090,13 @@ async def david(ctx, date: str = None):
         await ctx.send(msg[i:i + 1900])
         
 @bot.command()
-async def all(ctx):
+async def all(ctx, route_id: str):
+    """
+    Listázza a megadott public_route_id-hez tartozó aktív járműveket.
+    """
+
+    route_id = route_id.strip()  # felhasználó által beírt vonal
+
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -5106,6 +5112,8 @@ async def all(ctx):
                 continue
 
             public_id = str(v.get("public_route_id", ""))
+            if public_id != route_id:
+                continue  # csak a felhasználó által megadott vonal
 
             lat = v.get("lat")
             lon = v.get("lon")
@@ -5117,45 +5125,44 @@ async def all(ctx):
 
             dest = v.get("label", "Ismeretlen")
 
-            # Gyűjtés public_route_id alapján
-            if public_id not in active:
-                active[public_id] = []
-
-            active[public_id].append({
-                "reg": reg,
+            active[reg] = {
+                "line": public_id,
                 "dest": dest,
                 "lat": lat,
                 "lon": lon
-            })
+            }
 
     if not active:
-        return await ctx.send("❗ Nincs aktív jármű az adatbázisban.")
+        return await ctx.send(f"❗ Nincs aktív jármű a *{route_id}* vonalon.")
 
-    # Embedek készítése minden public_route_id-hez
-    for route_id, vehicles_list in sorted(active.items(), key=lambda x: x[0]):
-        MAX_FIELDS = 20
-        embed_title_base = f"🚍 Aktív járművek – {route_id}"
-        embed = discord.Embed(title=embed_title_base, color=0x009EE3)
-        field_count = 0
+    # Embed készítése
+    MAX_FIELDS = 20
+    embeds = []
+    embed_title_base = f"🚍 Aktív járművek – {route_id}"
+    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
+    field_count = 0
 
-        for v in sorted(vehicles_list, key=lambda x: x["reg"]):
-            value = (
-                f"Cél: {v['dest']}\n"
-                f"Pozíció: {v['lat']:.5f}, {v['lon']:.5f}"
+    for reg, i in sorted(active.items(), key=lambda x: x[0]):
+        value = (
+            f"Cél: {i['dest']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(
+                title=f"{embed_title_base} (folytatás)",
+                color=0x009EE3
             )
+            field_count = 0
 
-            if field_count >= MAX_FIELDS:
-                await ctx.send(embed=embed)
-                embed = discord.Embed(
-                    title=f"{embed_title_base} (folytatás)",
-                    color=0x009EE3
-                )
-                field_count = 0
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
 
-            embed.add_field(name=v["reg"], value=value, inline=False)
-            field_count += 1
+    embeds.append(embed)
 
-        await ctx.send(embed=embed)
+    for e in embeds:
+        await ctx.send(embed=e)
         
 # ─────────────────────────────────────────────
 # AUTOMATIKUS FIGYELÉS
