@@ -429,7 +429,8 @@ def load_gtfs():
 def parse_txt_feed():
     try:
         text = fetch_txt_raw()
-    except Exception:
+    except Exception as e:
+        print(f"[TXT ERROR] {e}")
         return {}
 
     mapping = {}
@@ -444,17 +445,43 @@ def parse_txt_feed():
 
     for l in text.splitlines():
         l = l.strip()
-        if l.startswith('id: "'):
+
+        # ───── ID ─────
+        if l.startswith('id:'):
             commit()
-            cur = {"id": l.split('"')[1], "license_plate": None, "vehicle_model": None}
-        elif l.startswith('license_plate: "'):
-            cur["license_plate"] = l.split('"')[1]
-        elif 'vehicle_model:' in l:
-            p = l.split('"')
-            if len(p) >= 2:
-                cur["vehicle_model"] = p[1]
+            if '"' in l:
+                cur = {
+                    "id": l.split('"')[1],
+                    "license_plate": None,
+                    "vehicle_model": None
+                }
+            else:
+                cur = {
+                    "id": l.split("id:")[1].strip(),
+                    "license_plate": None,
+                    "vehicle_model": None
+                }
+
+        # ───── RENDSZÁM ─────
+        elif l.startswith('license_plate:'):
+            if '"' in l:
+                cur["license_plate"] = l.split('"')[1]
+            else:
+                cur["license_plate"] = l.split("license_plate:")[1].strip()
+
+        # ───── MODELL ─────
+        elif l.startswith('vehicle_model:'):
+            if '"' in l:
+                cur["vehicle_model"] = l.split('"')[1]
+            else:
+                cur["vehicle_model"] = l.split("vehicle_model:")[1].strip()
+
+            # DEBUG (opcionális)
+            # print(f"[MODEL] {cur['id']} -> {cur['vehicle_model']}")
 
     commit()
+
+    print(f"[TXT PARSED] {len(mapping)} jármű")
     return mapping
 
 def menetrendi_forgalmi(block_id):
