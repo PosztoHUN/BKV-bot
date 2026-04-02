@@ -393,7 +393,7 @@ def load_gtfs():
         if not bid:
             continue
         count_with_bid += 1
-        rid = t["route_id"]
+        rid = t["public_route_id"]
         dfid = daily_forda_id(bid)
 
         stops = sorted(TRIP_STOPS[tid], key=lambda x: x["seq"])
@@ -2143,7 +2143,7 @@ async def update_active_today():
 
         for v in vehicles:
             reg = v.get("license_plate")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)  # 🔥 EZ AZ ÚJ
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -2229,7 +2229,7 @@ async def logger_loop():
                 reg = v.get("license_plate")
                 lat = v.get("lat")
                 lon = v.get("lon")
-                line = str(v.get("route_id", "—"))
+                line = str(v.get("public_route_id", "—"))
                 dest = v.get("label", "Ismeretlen")
 
                 # új API
@@ -2268,7 +2268,7 @@ async def bkvvillamos(ctx):
 
         for v in vehicles:
             reg = v.get("license_plate")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -2386,7 +2386,7 @@ async def bkvkcsv7(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)  # új rendszerhez igazítva
 
             if is_ganz_troli(reg) or is_ics(reg):
@@ -2450,7 +2450,7 @@ async def bkvics(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
 
             if is_ganz_troli(reg) or is_kcsv7(reg):
@@ -2520,7 +2520,7 @@ async def bkvtw6000(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
 
             if not reg_raw or lat is None or lon is None:
@@ -2589,7 +2589,7 @@ async def bkvcombino(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
@@ -2643,7 +2643,7 @@ async def bkvtanulo(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
@@ -2707,7 +2707,7 @@ async def bkvcaf5(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
@@ -2762,7 +2762,7 @@ async def bkvcaf9(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
@@ -2817,7 +2817,7 @@ async def bkvt5c5(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
@@ -2872,7 +2872,7 @@ async def bkvt5c5k2(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
 
             if not reg or lat is None or lon is None:
@@ -2927,7 +2927,7 @@ async def bkvfogas(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             dest = v.get("label", "Ismeretlen")
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)  # új rendszerhez igazítva
 
             if not reg or lat is None or lon is None:
@@ -3005,7 +3005,7 @@ async def bkvtroli(ctx):
             if not reg or not reg.startswith("T"):
                 continue  # csak T-vel kezdődő trolik
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3118,7 +3118,7 @@ async def bkviktroli(ctx):
             if not reg or not reg.startswith("T"):
                 continue  # csak T-vel kezdődő trolik
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3212,7 +3212,7 @@ async def bkvgst(ctx):
             if not reg or not reg.startswith("T"):
                 continue  # csak T-vel kezdődő trolik
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3301,7 +3301,7 @@ async def bkvsst(ctx):
             if not reg or not reg.startswith("T"):
                 continue  # csak T-vel kezdődő trolik
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3399,7 +3399,7 @@ async def bkvvolvo(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3497,7 +3497,7 @@ async def bkvconecto(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3592,7 +3592,7 @@ async def bkvc1(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3690,7 +3690,7 @@ async def bkvc2(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3782,7 +3782,7 @@ async def bkvmodulo(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3875,7 +3875,7 @@ async def bkvvanhool(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -3970,7 +3970,7 @@ async def bkvik(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -4059,7 +4059,7 @@ async def bkvmidi(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -4169,7 +4169,7 @@ async def arrivabyd(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -4258,7 +4258,7 @@ async def arrivaconecto(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -4344,7 +4344,7 @@ async def arrivaman(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -4436,7 +4436,7 @@ async def arrivac2(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -4525,7 +4525,7 @@ async def aggvolan(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -4660,7 +4660,7 @@ async def send_op_vehicles():
 
         vehicles = data.get("vehicles", [])
         for v in vehicles:
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             if not is_op_line(line_id):
                 continue
 
@@ -4768,7 +4768,7 @@ async def nosztalgia(ctx):
             if not reg:
                 continue  # nincs rendszám
 
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
@@ -4885,7 +4885,7 @@ async def bkvkt(ctx):
             if dest != "Központi tartalék":
                 continue  # csak a Központi tartalék célállomás
             reg = v.get("license_plate") or "Ismeretlen"
-            line_id = str(v.get("route_id", "—"))
+            line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             lat = v.get("lat")
             lon = v.get("lon")
