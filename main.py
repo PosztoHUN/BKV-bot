@@ -90,6 +90,27 @@ SUFFIX_MAP = {
 #         print("Hiba a lekérés során:", e)
 #         LINE_EXCEPTIONS = {}
 
+from supabase import create_client
+
+import httpx
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+async def fetch_supabase_vehicles_async():
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(SUPABASE_URL, headers=headers, params={"select": "*"})
+        resp.raise_for_status()
+        data = resp.json()
+        return {item["obuid"]: {"plate": item["plate"], "vtype": item["vtype"]} for item in data}
+
+vehicles = asyncio.run(fetch_supabase_vehicles_async())
+print(vehicles)
+
 def decode_line(line_id: str) -> str:
     if not line_id:
         return "—"
@@ -4408,6 +4429,9 @@ async def aggvolan(ctx):
 async def nosztalgia(ctx):
     active = {}
 
+    # Supabase járművek lekérése
+    supa_vehicles = await fetch_supabase_vehicles_async()
+    
     async with aiohttp.ClientSession() as session:
         data = await fetch_json(session, VEHICLES_API)
         if not data:
@@ -4434,47 +4458,49 @@ async def nosztalgia(ctx):
                 continue
 
             # 🔥 Mercedes busz szűrés
-            if not (
-                is_nosztalgia(reg)
-                or is_obu(reg)
-            ):
+            if not (is_nosztalgia(reg) or is_obu(reg)):
                 continue
 
             if is_fogas(reg) or is_ics(reg):
                 continue
 
-            # 🔥 típus meghatározása
-            if is_nosztalgia(reg):
-                if reg in ["BPI007"]:
-                    vtype = f"Ikarus 412.10A"
-                elif reg in ["BPI415"]:
-                    vtype = f"Ikarus 415.14"
-                elif reg in ["BPI829", "BPO477"]:
-                    vtype = f"Ikarus 280.49"
-                elif reg in ["BPI923"]:
-                    vtype = f"Ikarus 435.06"
-                elif reg in ["BPO147", "BPO301"]:
-                    vtype = f"Ikarus 260.46"
-                elif reg in ["BPO449"]:
-                    vtype = f"Ikarus 280.40A"
-                elif reg in ["AAIK405"]:
-                    vtype = f"Ikarus 405.06"
-                elif reg in ["V4000", "V4171", "V4200", "V4349"]:
-                    vtype = f"Tatra T5C5"
-                elif reg in ["T0309"]:
-                    vtype = f"Ikarus 435.81F"
-                elif reg in ["T0359"]:
-                    vtype = f"Gräf & Stift J09 NGE152"
-            if is_obu(reg):
-                if reg in ["JARMU1", "JARMU2", "JARMU3"]:
-                    vtype = f"Egyenlőre ismeretlen OBU jármű"
+            # 🔥 típus és megjelenítendő rendszám Supabase alapján
+            display_reg = reg  # alapértelmezett a jármű rendszáma
+            if reg in supa_vehicles:
+                vtype = supa_vehicles[reg]["vtype"]
+                if is_obu(reg):
+                    display_reg = supa_vehicles[reg]["plate"]
             else:
-                vtype = "Ismeretlen"
+                # fallback a régi logikára
+                if is_nosztalgia(reg):
+                    if reg in ["BPI007"]:
+                        vtype = "Ikarus 412.10A"
+                    elif reg in ["BPI415"]:
+                        vtype = "Ikarus 415.14"
+                    elif reg in ["BPI829", "BPO477"]:
+                        vtype = "Ikarus 280.49"
+                    elif reg in ["BPI923"]:
+                        vtype = "Ikarus 435.06"
+                    elif reg in ["BPO147", "BPO301"]:
+                        vtype = "Ikarus 260.46"
+                    elif reg in ["BPO449"]:
+                        vtype = "Ikarus 280.40A"
+                    elif reg in ["AAIK405"]:
+                        vtype = "Ikarus 405.06"
+                    elif reg in ["V4000", "V4171", "V4200", "V4349"]:
+                        vtype = "Tatra T5C5"
+                    elif reg in ["T0309"]:
+                        vtype = "Ikarus 435.81F"
+                    elif reg in ["T0359"]:
+                        vtype = "Gräf & Stift J09 NGE152"
+                    else:
+                        vtype = "Ismeretlen"
+                elif is_obu(reg):
+                    vtype = "Egyenlőre ismeretlen OBU jármű"
+                else:
+                    vtype = "Ismeretlen"
 
-            # megtartjuk a teljes rendszámot betűkkel együtt
-            reg_num = reg
-
-            active[reg_num] = {
+            active[display_reg] = {
                 "line": line_name,
                 "dest": dest,
                 "trip_id": trip_id,
@@ -4486,13 +4512,13 @@ async def nosztalgia(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív nosztalgia jármű.")
 
+    # Embed küldés
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "🚌 Aktív nosztalgia járművek"
     embed = discord.Embed(title=embed_title_base, color=0x0000ff)
     field_count = 0
 
-    # 🔹 rendszám szerint ábécé sorrendben
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
         value = (
             f"Vonal: {i['line']}\n"
@@ -4511,7 +4537,7 @@ async def nosztalgia(ctx):
 
     embeds.append(embed)
     for e in embeds:
-        await ctx.send(embed=e)    
+        await ctx.send(embed=e)
 
 @bot.command()
 async def bkvkt(ctx):
