@@ -4436,6 +4436,7 @@ async def nosztalgia(ctx):
             # 🔥 Mercedes busz szűrés
             if not (
                 is_nosztalgia(reg)
+                or is_obu(reg)
             ):
                 continue
 
@@ -4464,6 +4465,9 @@ async def nosztalgia(ctx):
                     vtype = f"Ikarus 435.81F"
                 elif reg in ["T0359"]:
                     vtype = f"Gräf & Stift J09 NGE152"
+            if is_obu(reg):
+                if reg in ["JARMU1", "JARMU2", "JARMU3"]:
+                    vtype = f"Egyenlőre ismeretlen OBU jármű"
             else:
                 vtype = "Ismeretlen"
 
