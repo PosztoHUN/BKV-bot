@@ -47,8 +47,8 @@ VEHICLES_API = "https://holajarmu.hu/budapest/api/vehicles?city=budapest"
 
 
 # 🔹 Supabase kapcsolat
-url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")  # a Project Settings → API → service_role
+url = os.environ.get("SUPABASE_URL")
+key = os.environ.get("SUPABASE_KEY")
 supabase = create_client(url, key)
 
 # 🔹 Suffix térkép
