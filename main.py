@@ -5091,12 +5091,57 @@ async def david(ctx, date: str = None):
         
 @bot.command()
 async def all(ctx, route_id: str):
-    """
-    Listázza a megadott public_route_id-hez tartozó aktív járműveket.
-    """
 
-    route_id = route_id.strip()  # felhasználó által beírt vonal
+    route_id = route_id.strip().upper()
 
+    # ─────────────────────────────
+    # VONAL TÍPUS MEGHATÁROZÁS
+    # ─────────────────────────────
+    TRAM_LINES = {
+        "1","1A","2","2B","3","4","6","12","12A","14","28","28A","37A",
+        "41","42","50","51","51A","52","56","56A","59","59A","59B",
+        "60","61","62","62A","69"
+    }
+
+    TROLLEY_LINES = {
+        "70","72","73","74","75","76","77","78","79","80","81","82","83"
+    }
+
+    NIGHT_LINES = {
+        "6","907A","908A","909A","914A","922B","931A",
+        "950A","972B","973A","979A","994B","996A"
+    }
+
+    # ───── típus meghatározás ─────
+    if route_id in NIGHT_LINES or (route_id.isdigit() and 900 <= int(route_id) <= 999):
+        color = 0x000000
+        title_prefix = "🚍 Aktív járművek –"
+
+    elif route_id in TRAM_LINES:
+        color = 0xFFD800
+        title_prefix = "🚊 Aktív járművek –"
+
+    elif route_id in TROLLEY_LINES:
+        color = 0xE41F18
+        title_prefix = "🚎 Aktív járművek –"
+
+    else:
+        # busz (0–300 ami nem villamos/troli)
+        if route_id.rstrip("A").isdigit():
+            num = int(route_id.rstrip("A"))
+            if 0 <= num <= 300:
+                color = 0x009EE3
+                title_prefix = "🚍 Aktív járművek –"
+            else:
+                color = 0x009EE3
+                title_prefix = "🚍 Aktív járművek –"
+        else:
+            color = 0x009EE3
+            title_prefix = "🚍 Aktív járművek –"
+
+    # ─────────────────────────────
+    # API LEKÉRÉS
+    # ─────────────────────────────
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -5111,9 +5156,9 @@ async def all(ctx, route_id: str):
             if not reg:
                 continue
 
-            public_id = str(v.get("public_route_id", ""))
+            public_id = str(v.get("public_route_id", "")).upper()
             if public_id != route_id:
-                continue  # csak a felhasználó által megadott vonal
+                continue
 
             lat = v.get("lat")
             lon = v.get("lon")
@@ -5126,7 +5171,6 @@ async def all(ctx, route_id: str):
             dest = v.get("label", "Ismeretlen")
 
             active[reg] = {
-                "line": public_id,
                 "dest": dest,
                 "lat": lat,
                 "lon": lon
@@ -5135,11 +5179,13 @@ async def all(ctx, route_id: str):
     if not active:
         return await ctx.send(f"❗ Nincs aktív jármű a *{route_id}* vonalon.")
 
-    # Embed készítése
+    # ─────────────────────────────
+    # EMBED
+    # ─────────────────────────────
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = f"🚍 Aktív járművek – {route_id}"
-    embed = discord.Embed(title=embed_title_base, color=0x009EE3)
+    embed_title_base = f"{title_prefix} {route_id}"
+    embed = discord.Embed(title=embed_title_base, color=color)
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
@@ -5152,7 +5198,7 @@ async def all(ctx, route_id: str):
             embeds.append(embed)
             embed = discord.Embed(
                 title=f"{embed_title_base} (folytatás)",
-                color=0x009EE3
+                color=color
             )
             field_count = 0
 
