@@ -71,49 +71,84 @@ def fetch_line_exceptions():
 
 LINE_EXCEPTIONS = {str(item["line_id"]): item["name"] for item in response.data}
 
+# --- Funkciók ---
+def fetch_line_exceptions():
+    """Lekéri a line_exceptions táblát és frissíti a dictet."""
+    global LINE_EXCEPTIONS
+    try:
+        response = supabase.table("line_exceptions").select("*").execute()
+        # debug: kiírja a választ
+        print("Supabase response:", response)
+        # kompatibilitás: ha response.data nincs, nézd response.json()
+        data = getattr(response, "data", None)
+        if data is None:
+            # lehet, hogy dictként jön vissza
+            data = response if isinstance(response, list) else []
+        LINE_EXCEPTIONS = {str(item["line_id"]): item["name"] for item in data}
+        print("Frissített LINE_EXCEPTIONS:", LINE_EXCEPTIONS)
+    except Exception as e:
+        print("Hiba a lekérés során:", e)
+        LINE_EXCEPTIONS = {}
+
 def decode_line(line_id: str) -> str:
-    """
-    Dekódolja a line_id-t a Supabase LINE_EXCEPTIONS alapján.
-    Ha nincs kivétel, normál logika fut (busz/villamos/troli R/N).
-    """
     if not line_id:
         return "—"
 
-    line_id = str(line_id).strip()
+    line_id = str(line_id)
 
-    # 🔴 1️⃣ KIVÉTELEK – Supabase azonnal
+    # 🔴 KIVÉTEL FELÜLÍR
     if line_id in LINE_EXCEPTIONS:
         return LINE_EXCEPTIONS[line_id]
 
-    # 🔴 2️⃣ R / N vonalak – csak akkor, ha nincs kivétel
-    if line_id.startswith(("R", "N")) and line_id[1:].isdigit():
+    prefix = ""
+    
+    # 🔴 R / N kezelés
+    if line_id.startswith(("R", "N")):
         prefix = line_id[0]
         core = line_id[1:]
-        # Ha core 3-4 számjegy, vegyük az utolsó 2-3 számjegyet
-        return f"{prefix}{int(core)}"
+        if not core.isdigit():
+            return line_id
+        # pl R3118 → 118
+        line_number = int(core[-3:])  # mindig utolsó 3 számjegy
+        return f"{prefix}{line_number}"
 
-    # 🔴 3️⃣ Normál 4 számjegyű busz/villamos/troli
+    # 🔴 normál 4 számjegy
     if line_id.isdigit() and len(line_id) == 4:
         first = line_id[0]
         line_num = int(line_id[1:3])
-        suffix = SUFFIX_MAP.get(line_id[3], "")
+        suffix_digit = line_id[3]
 
-        if first == "1":
-            line_num += 100
-        elif first == "2":
-            line_num += 200
-        elif first == "9":
-            line_num += 900
-
+        # busz sávok
+        if first in {"0", "1", "2", "9"}:
+            if first == "1":
+                line_num += 100
+            elif first == "2":
+                line_num += 200
+            elif first == "9":
+                line_num += 900
+        suffix = SUFFIX_MAP.get(suffix_digit, "")
         return f"{line_num}{suffix}"
 
-    # 🔴 4️⃣ Ha semmi sem illik
+    # ha semmi nem illik
     return line_id
 
-# Teszt
-teszt = ["3600", "R3180", "N3600", "9999", "3118", "4050"]
-for code in teszt:
-    print(f"{code} → {decode_line(code)}")
+# --- Fő loop ---
+def main_loop():
+    fetch_line_exceptions()
+    test_lines = ["3600", "R3180", "N3600", "9999", "3118", "4050"]
+
+    while True:
+        print("\n--- Dekódolt járatok ---")
+        for line in test_lines:
+            decoded = decode_line(line)
+            print(f"{line} → {decoded}")
+        # 24 órás sleep
+        print("\nVárakozás 24 órát az új frissítésig...")
+        time.sleep(24 * 60 * 60)
+        fetch_line_exceptions()
+
+if __name__ == "__main__":
+    main_loop()
 
 # 🔹 Kódoló függvény
 def encode_line(user_input: str) -> str:
@@ -163,12 +198,6 @@ def encode_line(user_input: str) -> str:
         return f"{num:03d}{suffix}"
 
     return user_input
-
-# 🔹 Teszt
-if __name__ == "__main__":
-    teszt_kódok = ["3600", "R3180", "N3600", "9999", "3118", "4050"]
-    for code in teszt_kódok:
-        print(f"{code} → {decode_line(code)}")
 
 POTLAS_TIPUSOK = {
     "t5c5",
@@ -4322,6 +4351,8 @@ async def aggvolan(ctx):
             elif is_obu(reg):
                 if reg in ["JARMU4", "JARMU5", "JARMU6", "JARMU7", "JARMU8"]:
                     vtype = "VOLVO 7900A"
+                else:
+                    False
             else:
                 vtype = "Ismeretlen"
 
