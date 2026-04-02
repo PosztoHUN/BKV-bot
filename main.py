@@ -47,9 +47,9 @@ VEHICLES_API = "https://holajarmu.hu/budapest/api/vehicles?city=budapest"
 
 
 # 🔹 Supabase kapcsolat
-url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-supabase = create_client(url, key)
+SUPABASE_URL = "https://tsjmodenjvoltvyvnpvk.supabase.co"
+SUPABASE_KEY = "sb_publishable_9FZorECB2WSisCfVZKWFdg_TR8n47CC"  # a Project Settings → API → service_role
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 🔹 Suffix térkép
 SUFFIX_MAP = {
@@ -63,7 +63,7 @@ SUFFIX_MAP = {
 # LINE_EXCEPTIONS lekérdezés a Supabase-ból
 def fetch_line_exceptions():
     response = supabase.table("line_exceptions").select("*").execute()
-    print("Supabase data:", response.data)
+    print(response.data)
     if response.data is None:
         return {}
     # kulcsok stringként
