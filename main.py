@@ -4847,7 +4847,7 @@ async def nosztalgia(ctx):
     MAX_FIELDS = 20
     embeds = []
     embed_title_base = "Aktív nosztalgia járművek"
-    embed = discord.Embed(title=embed_title_base, color=0x00ff00)
+    embed = discord.Embed(title=embed_title_base, color=0xFF9913)
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
@@ -4860,7 +4860,7 @@ async def nosztalgia(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFF9913)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
@@ -5110,7 +5110,6 @@ async def all(ctx, route_id: str):
     NIGHT_LINES = {
         "907A","908A","909A","914A","922B","931A", "950A","972B","973A","979A","994B","996A", 
     }
-    NIGHT_LINES.update({str(i) for i in range(900, 1000)})
 
     # ───── típus meghatározás ─────
     if route_id in NIGHT_LINES or (route_id.isdigit() and 900 <= int(route_id) <= 999):
