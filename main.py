@@ -5297,11 +5297,72 @@ async def all(ctx, route_id: str):
 # AUTOMATIKUS FIGYELÉS
 # - pótlások
 # ─────────────────────────────────────────────
+IGNORED_ROUTES = ("9999", "9997")
+ALLOWED_GANZ_ROUTES = {"71", "80", "81", "82", "83"}
+ALERT_CHANNEL_ID = 123456789  # ide a csatorna ID
+#ALERT_ROLE_ID = 987654321     # opcionális ping
 
-ALLOWED_GANZ_ROUTES = {"71"}
-ALLOWED_412_ROUTES = {"7", "9", "15", "16", "24", "25", "30", "32", "34", "35", "37", "38", "41", "44", "45", "47", "48", "56"}
-IGNORED_ROUTES = {"9999", "9997"}
+import time
+from discord.ext import tasks
 
+@tasks.loop(seconds=30)
+async def ganz_monitor():
+    global last_alert_time
+
+    ch = bot.get_channel(ALERT_CHANNEL_ID)
+    if not ch:
+        return
+
+    ganz_wrong = []
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+        if not data:
+            return
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            line = str(v.get("public_route_id", ""))
+            model = (v.get("vehicle_model") or "").lower()
+            reg = v.get("license_plate") or "Ismeretlen"
+
+            # 🔥 Ganz / Solaris felismerés
+            if "ganz" in model or "trollino" in model or "solaris" in model:
+
+                # ❌ nem megengedett vonal
+                if line not in ALLOWED_GANZ_ROUTES:
+                    ganz_wrong.append((reg, line, model))
+
+    # 🚨 ha van rossz helyen lévő jármű
+    if ganz_wrong:
+        now = time.time()
+
+        # cooldown (Railway-safe)
+        if now - last_alert_time < ALERT_COOLDOWN:
+            return
+
+        last_alert_time = now
+
+        msg = "🚨 **Ganz/Solaris troli rossz vonalon!**\n\n"
+
+        for reg, line, model in ganz_wrong[:10]:
+            msg += f"• {reg} → {line} ({model})\n"
+
+        # if ALERT_ROLE_ID:
+        #     msg = f"<@&{ALERT_ROLE_ID}>\n" + msg
+
+        await ch.send(msg)
+
+# Railway-safe cooldown (memória reset oké)
+last_alert_time = 0
+ALERT_COOLDOWN = 300  # másodperc (5 perc)
+
+@ganz_monitor.before_loop
+async def before_ganz():
+    await bot.wait_until_ready()
+
+ganz_monitor.start()
 
 def normalize_vid(vid: str) -> str:
     if not vid:
