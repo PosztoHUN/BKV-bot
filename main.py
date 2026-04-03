@@ -645,6 +645,16 @@ def is_nosztalgia(reg):
         return False
     return reg in NOSZTALGIA
 
+def is_mx(reg):
+    if not is_t5c5k2(reg):
+        return False
+    return reg in {"861-631-862", "863-632-864", "865-633-866", "867-634-868", "869-635-870", "871-636-872", "873-637-874", "875-638-876", "877-639-878", "879-640-880", "881-641-882", "883-642-884", "885-643-886", "887-644-888", "889-645-890", "891-646-892"}
+
+def is_mxa(reg):
+    if not is_t5c5k2(reg):
+        return False
+    return reg in {"901-651-902", "903-652-904", "905-653-906", "907-654-908", "909-655-910", "911-656-912", "913-657-914", "915-658-916", "917-659-918", "919-660-920", "921-661-922", "923-662-924", "925-663-926", "927-664-928", "929-665-930", "931-666-932", "933-667-934", "935-668-936", "937-669-938", "939-670-940", "941-671-942", "943-672-944", "945-673-946", "947-674-948", "949-675-950", "951-676-952", "953-677-954", "955-678-956", "957-679-958", "959-680-960", "961-681-962", "963-682-964", "965-683-966", "967-684-968", "969-685-970", "971-686-972", "973-687-974", "975-688-976", "977-689-978", "979-690-980", "981-691-982", "983-692-984", "985-693-986", "987-694-988", "989-695-990", "991-696-992", "993-697-994", "995-698-996", "997-699-998", "999-700-1000", "1101-751-1102", "1103-752-1104", "1105-753-1106", "1107-754-1108", "1109-755-1110", "1111-756-1112", "1113-757-1114", "1115-758-1116", "1117-759-1118", "1119-760-1120", "1121-761-1122", "1123-762-1124", "1125-763-1126", "1127-764-1128", "1129-765-1130", "1131-766-1132", "1133-767-1134", "1135-768-1136", "1137-769-1138", "1139-770-1140", "1141-771-1142", "1143-772-1144", "1145-773-1146", "1147-774-1148", "1149-775-1150"}
+
 def is_tw6000(reg):
     if not isinstance(reg, str):
         return False
@@ -2253,6 +2263,93 @@ async def logger_loop():
 # =======================
 # PARANCSOK - Villamosok
 # =======================
+
+@bot.command()
+async def hev(ctx):
+    active = {}
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
+
+        if not data:
+            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+
+        vehicles = data.get("vehicles", [])
+
+        for v in vehicles:
+            reg = v.get("license_plate")
+            line_id = str(v.get("public_route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            model = (v.get("vehicle_model") or "").lower()
+
+            if not reg or lat is None or lon is None:
+                continue
+
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
+
+            # 🔥 villamos szűrés
+            if not (
+                is_mx(reg)
+                or is_mxa(reg)
+            ):
+                continue
+
+            if is_fogas(reg) or is_ganz_troli(reg):
+                continue
+
+            # 🔥 típus meghatározása
+            if is_mx(reg):
+                vtype = "MX-PXXVIII-MX"
+            elif is_mxa(reg):
+                vtype = "MXa-PXXVIIIa-MXa"
+            else:
+                vtype = "Ismeretlen"             
+
+            active[reg] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
+
+    if not active:
+        return await ctx.send("🚫 Nincs aktív HÉV.")
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed = discord.Embed(title="🚋 Aktív HÉVek", color=0xFFD800)
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        forgalmi = menetrendi_forgalmi(i["trip_id"])
+
+        value = (
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+            # f"Forgalmi szám: {forgalmi}\n"
+            f"Típus: {i['type']}\n"
+            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title="🚋 Aktív HÉVek (folytatás)", color=0xFFD800)
+            field_count = 0
+
+        embed.add_field(name=reg, value=value, inline=False)
+        field_count += 1
+
+    embeds.append(embed)
+
+    for e in embeds:
+        await ctx.send(embed=e)
 
 @bot.command()
 async def bkvvillamos(ctx):
@@ -4992,42 +5089,42 @@ async def vehhist(ctx, vehicle: str, date: str = None):
     for i in range(0, len(msg), 1900):
         await ctx.send(msg[i:i + 1900])
 
-@bot.command()
-async def jaratinfo(ctx, trip_id: str, date: str = None):
-    day = resolve_date(date)
-    if day is None:
-        return await ctx.send("❌ Hibás dátumformátum. Használd így: `YYYY-MM-DD`")
+# @bot.command()
+# async def jaratinfo(ctx, trip_id: str, date: str = None):
+#     day = resolve_date(date)
+#     if day is None:
+#         return await ctx.send("❌ Hibás dátumformátum. Használd így: `YYYY-MM-DD`")
 
-    day_str = day.strftime("%Y-%m-%d")
-    trip_path = f"logs/{day_str}/{trip_id}.txt"
+#     day_str = day.strftime("%Y-%m-%d")
+#     trip_path = f"logs/{day_str}/{trip_id}.txt"
 
-    if os.path.exists(trip_path):
-        with open(trip_path, "r", encoding="utf-8") as f:
-            txt = f.read()
-        return await ctx.send(f"📄 **Járat {trip_id} – {day_str}**\n```{txt[:1800]}```")
+#     if os.path.exists(trip_path):
+#         with open(trip_path, "r", encoding="utf-8") as f:
+#             txt = f.read()
+#         return await ctx.send(f"📄 **Járat {trip_id} – {day_str}**\n```{txt[:1800]}```")
 
-    found = []
-    veh_dir = "logs/veh"
-    if os.path.exists(veh_dir):
-        for fname in os.listdir(veh_dir):
-            path = os.path.join(veh_dir, fname)
-            if not path.endswith(".txt"):
-                continue
-            with open(path, "r", encoding="utf-8") as f:
-                for line in f:
-                    if line.startswith(day_str) and f"ID {trip_id} " in line:
-                        found.append((fname.replace(".txt", ""), line.strip()))
+#     found = []
+#     veh_dir = "logs/veh"
+#     if os.path.exists(veh_dir):
+#         for fname in os.listdir(veh_dir):
+#             path = os.path.join(veh_dir, fname)
+#             if not path.endswith(".txt"):
+#                 continue
+#             with open(path, "r", encoding="utf-8") as f:
+#                 for line in f:
+#                     if line.startswith(day_str) and f"ID {trip_id} " in line:
+#                         found.append((fname.replace(".txt", ""), line.strip()))
 
-    if not found:
-        return await ctx.send(f"❌ Nincs adat erre a járatra ezen a napon ({day_str}).")
+#     if not found:
+#         return await ctx.send(f"❌ Nincs adat erre a járatra ezen a napon ({day_str}).")
 
-    out = [f"📄 Járat {trip_id} – {day_str}"]
-    for veh, l in found:
-        out.append(f"{veh}: {l}")
+#     out = [f"📄 Járat {trip_id} – {day_str}"]
+#     for veh, l in found:
+#         out.append(f"{veh}: {l}")
 
-    msg = "\n".join(out)
-    for i in range(0, len(msg), 1900):
-        await ctx.send(msg[i:i + 1900])
+#     msg = "\n".join(out)
+#     for i in range(0, len(msg), 1900):
+#         await ctx.send(msg[i:i + 1900])
 
 @bot.command()
 async def vehicleinfo(ctx, vehicle: str):
@@ -5110,6 +5207,14 @@ async def all(ctx, route_id: str):
     NIGHT_LINES = {
         "907A","908A","909A","914A","922B","931A", "950A","972B","973A","979A","994B","996A", 
     }
+    
+    BUS_LINES = {
+        "5","7","7E","7G","8E","9","10","11","13","13A","15","16","16A","20E","21","21A","22","22A","25","26","27","29","30","30A","31","32","33","33A","34","35","36","38","38A","39","40","40B","40E","44","45","46","54","53","55","57","58","59","60B","63","64B","64","64A","65","65A","66","66B","66E","67","68","71","84E","85","85E","87","87A","88","88A","89E","91","92A","91","92","93","93A","94E","95","96","97E","98","98E","99","100E","101B","101E","102","104","104A","105","106","107","108E","110","111","112","113","113A","114","116","117","118","119","120","121","122E","123","123A","124","125","126","128","129","130","131","132E","133E","134","135","136","137","138","139","140","140A","140B","141","142E","144","146A","146","147","148","149","150","151","152","153","154","155","156","157A","157","158","159","160","161","161A","161E","162","164B","164","165","166","168E","169E","170","172","173","174","175","176E","178","179","181","182","182A","183","184","185","187","188","188E","191","193E","194","194B","195","196","196A","197","198","200E","202E","204","210","210B","212","212A","212B","213","214","216","217","217E","218","219","220","221","222","223E","224","224E","225","230","231B","231","236","236A","237","238","240","243","244","250B","250","251","251A","251E","254E","255E","257","260","261E","262","264","266","268","269","270","272","274","275","276E","277","278","279","279B","280","280B","281","282E","284E","287","291","294E","296","296A","297","298"
+    }
+    
+    HEV_LINES = {
+        "H5", "H6", "H7", "H8", "H9"
+    }
 
     # ───── típus meghatározás ─────
     if route_id in NIGHT_LINES or (route_id.isdigit() and 900 <= int(route_id) <= 999):
@@ -5124,19 +5229,18 @@ async def all(ctx, route_id: str):
         color = 0xE41F18
         title_prefix = "🚎 Aktív járművek –"
 
+    elif route_id in BUS_LINES:
+        color = 0x009EE3
+        title_prefix = "🚍 Aktív járművek –"
+        
+    elif route_id in HEV_LINES:
+        color = 0x003200
+        title_prefix = "🚆 Aktív járművek –"
+
     else:
-        # busz (0–300 ami nem villamos/troli)
-        if route_id.rstrip("A").isdigit():
-            num = int(route_id.rstrip("A"))
-            if 0 <= num <= 300:
-                color = 0x009EE3
-                title_prefix = "🚍 Aktív járművek –"
-            else:
-                color = 0x009EE3
-                title_prefix = "🚍 Aktív járművek –"
-        else:
-            color = 0x009EE3
-            title_prefix = "🚍 Aktív járművek –"
+        # fallback (ha nincs listában)
+        color = 0x00FF00
+        title_prefix = "Aktív járművek –"
 
     # ─────────────────────────────
     # API LEKÉRÉS
