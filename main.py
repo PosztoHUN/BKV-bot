@@ -5358,11 +5358,7 @@ async def ganz_monitor():
 last_alert_time = 0
 ALERT_COOLDOWN = 300  # másodperc (5 perc)
 
-@ganz_monitor.before_loop
-async def before_ganz():
-    await bot.wait_until_ready()
 
-ganz_monitor.start()
 
 def normalize_vid(vid: str) -> str:
     if not vid:
@@ -5482,6 +5478,12 @@ async def on_ready():
 
     if not update_active_today.is_running():
         update_active_today.start()
+        
+@ganz_monitor.before_loop
+async def before_ganz():
+    await bot.wait_until_ready()
+
+ganz_monitor.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
