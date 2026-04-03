@@ -2304,7 +2304,7 @@ async def hev(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚋 Aktív HÉVek", color=0xFFD800)
+    embed = discord.Embed(title="🚆 Aktív HÉVek", color=0x003200)
     field_count = 0
 
     for reg, i in sorted(active.items()):
@@ -2320,7 +2320,7 @@ async def hev(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚋 Aktív HÉVek (folytatás)", color=0xFFD800)
+            embed = discord.Embed(title="🚆 Aktív HÉVek (folytatás)", color=0x003200)
             field_count = 0
 
         embed.add_field(name=str(reg), value=value, inline=False)
