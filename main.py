@@ -5478,12 +5478,10 @@ async def on_ready():
 
     if not update_active_today.is_running():
         update_active_today.start()
-        
-@ganz_monitor.before_loop
-async def before_ganz():
-    await bot.wait_until_ready()
 
-ganz_monitor.start()
+    # 🔹 Ganz monitor elindítása csak itt
+    if not ganz_monitor.is_running():
+        ganz_monitor.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
