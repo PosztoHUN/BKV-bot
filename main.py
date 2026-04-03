@@ -645,16 +645,6 @@ def is_nosztalgia(reg):
         return False
     return reg in NOSZTALGIA
 
-def is_mx(reg):
-    if not is_t5c5k2(reg):
-        return False
-    return reg in {"861-631-862", "863-632-864", "865-633-866", "867-634-868", "869-635-870", "871-636-872", "873-637-874", "875-638-876", "877-639-878", "879-640-880", "881-641-882", "883-642-884", "885-643-886", "887-644-888", "889-645-890", "891-646-892"}
-
-def is_mxa(reg):
-    if not is_t5c5k2(reg):
-        return False
-    return reg in {"901-651-902", "903-652-904", "905-653-906", "907-654-908", "909-655-910", "911-656-912", "913-657-914", "915-658-916", "917-659-918", "919-660-920", "921-661-922", "923-662-924", "925-663-926", "927-664-928", "929-665-930", "931-666-932", "933-667-934", "935-668-936", "937-669-938", "939-670-940", "941-671-942", "943-672-944", "945-673-946", "947-674-948", "949-675-950", "951-676-952", "953-677-954", "955-678-956", "957-679-958", "959-680-960", "961-681-962", "963-682-964", "965-683-966", "967-684-968", "969-685-970", "971-686-972", "973-687-974", "975-688-976", "977-689-978", "979-690-980", "981-691-982", "983-692-984", "985-693-986", "987-694-988", "989-695-990", "991-696-992", "993-697-994", "995-698-996", "997-699-998", "999-700-1000", "1101-751-1102", "1103-752-1104", "1105-753-1106", "1107-754-1108", "1109-755-1110", "1111-756-1112", "1113-757-1114", "1115-758-1116", "1117-759-1118", "1119-760-1120", "1121-761-1122", "1123-762-1124", "1125-763-1126", "1127-764-1128", "1129-765-1130", "1131-766-1132", "1133-767-1134", "1135-768-1136", "1137-769-1138", "1139-770-1140", "1141-771-1142", "1143-772-1144", "1145-773-1146", "1147-774-1148", "1149-775-1150"}
-
 def is_tw6000(reg):
     if not isinstance(reg, str):
         return False
@@ -2268,6 +2258,8 @@ async def logger_loop():
 async def hev(ctx):
     active = {}
 
+    HEV_LINES = {"H5", "H6", "H7", "H8", "H9"}
+
     async with aiohttp.ClientSession() as session:
         data = await fetch_json(session, VEHICLES_API)
 
@@ -2284,39 +2276,27 @@ async def hev(ctx):
             lat = v.get("lat")
             lon = v.get("lon")
             trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
-            model = (v.get("vehicle_model") or "").lower()
+            model = v.get("vehicle_model") or "Ismeretlen"
 
-            if not reg or lat is None or lon is None:
+            # alap ellenőrzések
+            if lat is None or lon is None:
                 continue
 
+            # Budapest szűrés
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            # 🔥 villamos szűrés
-            if not (
-                is_mx(reg)
-                or is_mxa(reg)
-            ):
+            # 🚋 HÉV szűrés VONAL alapján
+            if line_id not in HEV_LINES:
                 continue
 
-            if is_fogas(reg) or is_ganz_troli(reg):
-                continue
-
-            # 🔥 típus meghatározása
-            if is_mx(reg):
-                vtype = "MX-PXXVIII-MX"
-            elif is_mxa(reg):
-                vtype = "MXa-PXXVIIIa-MXa"
-            else:
-                vtype = "Ismeretlen"             
-
-            active[reg] = {
+            active[reg or trip_id] = {
                 "line": line_name,
                 "dest": dest,
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
-                "type": vtype
+                "type": model  # 🔥 közvetlenül az API-ból
             }
 
     if not active:
@@ -2343,7 +2323,7 @@ async def hev(ctx):
             embed = discord.Embed(title="🚋 Aktív HÉVek (folytatás)", color=0xFFD800)
             field_count = 0
 
-        embed.add_field(name=reg, value=value, inline=False)
+        embed.add_field(name=str(reg), value=value, inline=False)
         field_count += 1
 
     embeds.append(embed)
