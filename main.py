@@ -2256,6 +2256,7 @@ async def logger_loop():
 
 @bot.command()
 async def hev(ctx):
+    """Kiírja az összes bejelentkezett HÉV-et."""
     active = {}
 
     HEV_LINES = {"H5", "H6", "H7", "H8", "H9"}
@@ -2333,6 +2334,7 @@ async def hev(ctx):
 
 @bot.command()
 async def bkvvillamos(ctx):
+    """Kiírja az összes bejelentkezett villamost."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -2451,6 +2453,7 @@ KIEMELT_VONALAK_T5C5K2 = {"1", "1A", "12", "14", "17", "19", "28", "28A", "37", 
 
 @bot.command()
 async def bkvkcsv7(ctx):
+    "Kiírja az összes bejelentkezett Ganz-Hunslet KCSV7 villamost."
     active = {}
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_vehicles(session)
@@ -2515,6 +2518,7 @@ async def bkvkcsv7(ctx):
 
 @bot.command()
 async def bkvics(ctx):
+    """Kiírja az összes bejelentkezett Ganz ICS villamost."""
     active = {}
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_vehicles(session)
@@ -2586,6 +2590,7 @@ def is_fixlepcsos(reg):
 
 @bot.command()
 async def bkvtw6000(ctx):
+    """Kiírja az összes bejelentkezett Düwag TW6000 és LHB TW6100 villamost."""
     active = {}
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_vehicles(session)
@@ -2655,6 +2660,7 @@ async def bkvtw6000(ctx):
 
 @bot.command()
 async def bkvcombino(ctx):
+    """Kiírja az összes bejelentkezett Siemens Combino Supra NF12B villamost."""
     active = {}
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_vehicles(session)
@@ -2708,6 +2714,7 @@ async def bkvcombino(ctx):
 
 @bot.command()
 async def bkvtanulo(ctx):
+    """Kiírja az összes Tanulójáratként bejelentkezett járművet."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -2772,6 +2779,7 @@ async def bkvtanulo(ctx):
 
 @bot.command()
 async def bkvcaf5(ctx):
+    """Kiírja az összes bejelentkezett CAF Urbos 3 (5 modulos) villamost."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -2827,6 +2835,7 @@ async def bkvcaf5(ctx):
 
 @bot.command()
 async def bkvcaf9(ctx):
+    """Kiírja az összes bejelentkezett CAF Urbos 3 (9 modulos) villamost."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -2882,6 +2891,7 @@ async def bkvcaf9(ctx):
 
 @bot.command()
 async def bkvt5c5(ctx):
+    """Kiírja az összes bejelentkezett Tatra T5C5 villamost."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -2937,6 +2947,7 @@ async def bkvt5c5(ctx):
 
 @bot.command()
 async def bkvt5c5k2(ctx):
+    """Kiírja az összes bejelentkezett Tatra-BKV T5C5K2 villamost."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -2992,6 +3003,7 @@ async def bkvt5c5k2(ctx):
 
 @bot.command()
 async def bkvfogas(ctx):
+    """Kiírja az összes bejelentkezett Fogaskerekűt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3068,6 +3080,7 @@ def normalize_troli_reg(reg):
 
 @bot.command()
 async def bkvtroli(ctx):
+    """Kiírja az összes bejelentkezett trolibuszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3181,6 +3194,7 @@ async def bkvtroli(ctx):
 
 @bot.command()
 async def bkviktroli(ctx):
+    """Kiírja az összes bejelentkezett Ikarus trolibuszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3275,6 +3289,7 @@ async def bkviktroli(ctx):
         
 @bot.command()
 async def bkvgst(ctx):
+    """Kiírja az összes bejelentkezett Ganz-Solaris Trolino trolibuszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3364,6 +3379,7 @@ async def bkvgst(ctx):
         
 @bot.command()
 async def bkvsst(ctx):
+    """Kiírja az összes bejelentkezett Solaris-Škoda Trollino trolibuszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3462,6 +3478,7 @@ async def bkvsst(ctx):
 
 @bot.command()
 async def bkvvolvo(ctx):
+    """Kiírja az összes bejelentkezett Volvo buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3560,6 +3577,7 @@ async def bkvvolvo(ctx):
         
 @bot.command()
 async def bkvconecto(ctx):
+    """Kiírja az összes bejelentkezett BKV-s Mercedes-Benz Conecto buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3655,6 +3673,7 @@ async def bkvconecto(ctx):
         
 @bot.command()
 async def bkvc1(ctx):
+    """Kiírja az összes bejelentkezett C1-es buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3753,6 +3772,7 @@ async def bkvc1(ctx):
         
 @bot.command()
 async def bkvc2(ctx):
+    """Kiírja az összes bejelentkezett BKV-s C2-es buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3845,6 +3865,7 @@ async def bkvc2(ctx):
         
 @bot.command()
 async def bkvmodulo(ctx):
+    """Kiírja az összes bejelentkezett Modulo buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -3938,6 +3959,7 @@ async def bkvmodulo(ctx):
         
 @bot.command()
 async def bkvvanhool(ctx):
+    """Kiírja az összes bejelentkezett Van Hool buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -4033,6 +4055,7 @@ async def bkvvanhool(ctx):
         
 @bot.command()
 async def bkvik(ctx):
+    """Kiírja az összes bejelentkezett Ikarus buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -4122,6 +4145,7 @@ async def bkvik(ctx):
         
 @bot.command()
 async def bkvmidi(ctx):
+    """Kiírja az összes bejelentkezett midi buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -4232,6 +4256,7 @@ async def bkvmidi(ctx):
         
 @bot.command()
 async def arrivabyd(ctx):
+    """Kiírja az összes bejelentkezett BYD buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -4321,6 +4346,7 @@ async def arrivabyd(ctx):
         
 @bot.command()
 async def arrivaconecto(ctx):
+    """Kiírja az összes bejelentkezett Arriva Conecto buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -4407,6 +4433,7 @@ async def arrivaconecto(ctx):
         
 @bot.command()
 async def arrivaman(ctx):
+    """Kiírja az összes bejelentkezett Arriva MAN buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -4499,6 +4526,7 @@ async def arrivaman(ctx):
         
 @bot.command()
 async def arrivac2(ctx):
+    """Kiírja az összes bejelentkezett Arriva C2 buszt."""
     active = {}
 
     async with aiohttp.ClientSession() as session:
@@ -4585,6 +4613,7 @@ async def arrivac2(ctx):
         
 @bot.command()
 async def aggvolan(ctx):
+    """Kiírja az összes bejelentkezett agglomerációs volánbuszokat."""
     active = {}
 
     # Supabase járművek lekérése aszinkron
@@ -4828,6 +4857,7 @@ async def on_ready():
 
 @bot.command()
 async def nosztalgia(ctx):
+    """Kiírja az összes bejelentkezett nosztalgia minősítésű járművet."""
     active = {}
 
     # Supabase járművek lekérése aszinkron
@@ -4949,6 +4979,7 @@ async def nosztalgia(ctx):
 
 @bot.command()
 async def bkvkt(ctx):
+    """Kiírja az összes bejelentkezett Központi Tartalékot."""
     vehicles_list = []
 
     async with aiohttp.ClientSession() as session:
@@ -5009,6 +5040,7 @@ async def bkvkt(ctx):
 
 @bot.command()
 async def vehhist(ctx, vehicle: str, date: str = None):
+    """Kiírja egy adott jármű meneteit egy adott napon a naplófájlok alapján. Példa: V1301 2026-04-08"""
     vehicle = vehicle.upper()  # 🔥 EZ A LÉNYEG
 
     day = resolve_date(date)
@@ -5108,6 +5140,7 @@ async def vehhist(ctx, vehicle: str, date: str = None):
 
 @bot.command()
 async def vehicleinfo(ctx, vehicle: str):
+    """Kiírja egy adott jármű utolsó menetét a naplófájlok alapján. Példa: V1301"""
     path = f"logs/veh/{vehicle}.txt"
     if not os.path.exists(path):
         return await ctx.send(f"❌ Nincs adat a(z) {vehicle} járműről.")
@@ -5168,6 +5201,7 @@ async def david(ctx, date: str = None):
         
 @bot.command()
 async def all(ctx, route_id: str):
+    """Kiírja az adott vonalon közlekedő összes járművet."""
 
     route_id = route_id.strip().upper()
 
