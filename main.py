@@ -3,6 +3,7 @@ from datetime import datetime, UTC
 import discord
 from discord.ext import commands, tasks
 import aiohttp
+import re
 import os
 import sys
 import io
