@@ -5271,6 +5271,25 @@ async def all(ctx, route_id: str):
             if not reg:
                 continue
 
+            reg = reg.strip().upper()
+
+            # ─────────────────────────────
+            # AZONOSÍTÓ FORMÁZÁS
+            # ─────────────────────────────
+
+            # T + 4 szám
+            if re.fullmatch(r"T\d{4}", reg):
+                if reg[1] == "0":
+                    reg = reg[2:]   # pl. T0207 -> 207
+                else:
+                    reg = reg[1:]   # pl. T8001 -> 8001
+
+            # V + 4 szám
+            elif re.fullmatch(r"V\d{4}", reg):
+                reg = reg[1:]       # pl. V4200 -> 4200
+
+            # minden más (pl. NCA401) változatlan marad
+
             public_id = str(v.get("public_route_id", "")).upper()
             if public_id != route_id:
                 continue
