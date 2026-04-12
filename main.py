@@ -5270,6 +5270,17 @@ async def all(ctx, route_id: str):
         title_prefix = "Aktív járművek –"
 
     # ─────────────────────────────
+    # REPLACEMENT LINE HANDLING
+    # ─────────────────────────────
+    # Build list of route IDs to search for
+    route_ids_to_search = {route_id}
+    
+    # If it's a tram line, also search for OP and VP replacement lines
+    if route_id in TRAM_LINES:
+        route_ids_to_search.add(f"OP{route_id}")
+        route_ids_to_search.add(f"VP{route_id}")
+
+    # ─────────────────────────────
     # API LEKÉRÉS
     # ─────────────────────────────
     active = {}
@@ -5299,7 +5310,7 @@ async def all(ctx, route_id: str):
                 reg = reg[1:]
 
             public_id = str(v.get("public_route_id", "")).upper()
-            if public_id != route_id:
+            if public_id not in route_ids_to_search:
                 continue
 
             lat = v.get("lat")
@@ -5501,13 +5512,18 @@ async def all(ctx, route_id: str):
                 if route_id in TRAM_LINES or route_id in TROLLEY_LINES:
                     is_normal_bus_on_special_line = True
 
+            # Check if this vehicle is from a replacement line
+            is_from_replacement_line = public_id in {f"OP{route_id}", f"VP{route_id}"}
+
             active[reg] = {
                 "dest": dest,
                 "lat": lat,
                 "lon": lon,
                 "type": vtype,
                 "replacement": is_replacement,
-                "bus_on_special": is_normal_bus_on_special_line
+                "bus_on_special": is_normal_bus_on_special_line,
+                "public_id": public_id,
+                "is_from_replacement_line": is_from_replacement_line
             }
 
     if not active:
@@ -5518,7 +5534,15 @@ async def all(ctx, route_id: str):
     # ─────────────────────────────
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = f"{title_prefix} {route_id}"
+    
+    # Check if there are vehicles from replacement lines
+    has_replacement_line_vehicles = any(v.get("is_from_replacement_line") for v in active.values())
+    
+    if has_replacement_line_vehicles:
+        embed_title_base = f"{title_prefix} {route_id} (+ OP{route_id}, VP{route_id})"
+    else:
+        embed_title_base = f"{title_prefix} {route_id}"
+    
     embed = discord.Embed(title=embed_title_base, color=color)
     field_count = 0
 
@@ -5534,7 +5558,10 @@ async def all(ctx, route_id: str):
             value += "\n🚧 Pótlóbusz"
 
         if i["bus_on_special"]:
-            value += "\n⚠️ Pótlóbusz"
+            value += "\n⚠️ Normál busz villamos/troli vonalon!"
+
+        if i["is_from_replacement_line"]:
+            value += f"\n🔄 Pótlóvonal: {i['public_id']}"
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
