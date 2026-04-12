@@ -2364,7 +2364,7 @@ async def bkvvillamos(ctx):
 
             # 🔥 villamos szűrés
 
-             if not (
+            if not (
                 "ganz" in model
                 or is_tw6000(reg)
                 or is_combino(reg)
