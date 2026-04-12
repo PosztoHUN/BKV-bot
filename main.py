@@ -5461,12 +5461,53 @@ async def all(ctx, route_id: str):
                 route_id in HEV_LINES
             ) and is_bus_replacement_plate(reg)
 
+            # ─────────────────────────────
+            # NORMÁL BUSZ DETEKTÁLÁS VILLAMOS/TROLI VONALON
+            # ─────────────────────────────
+            # Detektálás: normál busz van-e villamos/troli vonalon
+            is_normal_bus_on_special_line = False
+            
+            is_trolley_type = (
+                is_ik280t(raw_reg) or is_ik412t(raw_reg) or is_ik412gt(raw_reg) or 
+                is_ik411t(raw_reg) or is_sst12iii(raw_reg) or is_sst18iii(raw_reg) or 
+                is_sst12iv(raw_reg) or is_sst18iv(raw_reg)
+            )
+            
+            is_tram_type = (
+                "ganz" in model or is_tw6000(raw_reg) or is_combino(raw_reg) or 
+                is_caf5(raw_reg) or is_caf9(raw_reg) or is_t5c5(raw_reg) or 
+                is_t5c5k2(raw_reg) or is_fogas(raw_reg)
+            )
+            
+            is_normal_bus = (
+                is_mbconiii(raw_reg) or is_mbconiiig(raw_reg) or is_volvo7700a(raw_reg) or
+                is_mbconii(raw_reg) or is_mbc2k(raw_reg) or is_mbconiig(raw_reg) or
+                is_modulo108D(raw_reg) or is_vhnew330cng(raw_reg) or is_vhnewag300(raw_reg) or
+                is_mbO530(raw_reg) or is_volvo7700H(raw_reg) or is_volvo7700(raw_reg) or
+                is_modulo168D(raw_reg) or is_mbO530fG(raw_reg) or is_ik127(raw_reg) or
+                is_karsan(raw_reg) or is_mbc2(raw_reg) or is_volvo7000(raw_reg) or
+                is_mbc2g(raw_reg) or is_vhag318(raw_reg) or is_volvo7900H(raw_reg) or
+                is_mbO530f(raw_reg) or is_moduloC68E(raw_reg) or is_urbIII10(raw_reg) or
+                is_vehixel(raw_reg) or is_mbO530K(raw_reg) or is_eurosprinter(raw_reg) or
+                is_mbO530G(raw_reg) or is_urbIII8(raw_reg) or is_vhnewa330(raw_reg) or
+                is_ik187(raw_reg) or is_itkreform(raw_reg) or is_sprinter65(raw_reg) or
+                is_citymax(raw_reg) or is_bydb12(raw_reg) or is_bydb19(raw_reg) or
+                is_arrivacon(raw_reg) or is_arrivac2(raw_reg) or is_arriva12c(raw_reg) or
+                is_arriva18c(raw_reg) or is_arrivaa21(raw_reg) or is_vol12c(raw_reg) or
+                is_vol7900a(raw_reg) or is_volcon(raw_reg)
+            )
+            
+            if is_normal_bus and not is_replacement:
+                if route_id in TRAM_LINES or route_id in TROLLEY_LINES:
+                    is_normal_bus_on_special_line = True
+
             active[reg] = {
                 "dest": dest,
                 "lat": lat,
                 "lon": lon,
                 "type": vtype,
-                "replacement": is_replacement
+                "replacement": is_replacement,
+                "bus_on_special": is_normal_bus_on_special_line
             }
 
     if not active:
@@ -5491,6 +5532,9 @@ async def all(ctx, route_id: str):
 
         if i["replacement"]:
             value += "\n🚧 Pótlóbusz"
+
+        if i["bus_on_special"]:
+            value += "\n⚠️ Pótlóbusz"
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
