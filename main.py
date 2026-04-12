@@ -5492,8 +5492,7 @@ async def all(ctx, route_id: str):
             # ─────────────────────────────
             # PÓTLÓ LOGIKA
             # ─────────────────────────────
-            replacement = is_replacement_vehicle(route_id, reg)
-
+            replacement = is_replacement_vehicle(route_id, reg, model)
             active[reg] = {
                 "dest": dest,
                 "lat": lat,
