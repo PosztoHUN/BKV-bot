@@ -5209,7 +5209,7 @@ async def all(ctx, route_id: str):
     route_id = route_id.strip().upper()
 
     # ─────────────────────────────
-    # VONAL TÍPUSOK
+    # VONAL TÍPUS MEGHATÁROZÁS
     # ─────────────────────────────
     TRAM_LINES = {
         "1","1A","2","2B","3","4","6","12","12A","14","17","19","23","24",
@@ -5237,39 +5237,14 @@ async def all(ctx, route_id: str):
 
     HEV_LINES = {"H5", "H6", "H7", "H8", "H9"}
 
-    # ─────────────────────────────
-    # PÓTLÓ LOGIKA (STABIL)
-    # ─────────────────────────────
-    def is_replacement_vehicle(route_id: str, reg: str, model: str) -> bool:
-        reg = reg.upper().strip()
-        model = (model or "").lower()
-
-        is_rta = reg.startswith("RTA")
-
-        is_bus_like = (
-            "mercedes" in model or
-            "volvo" in model or
-            "man" in model or
-            "ikarus" in model or
-            "solaris" in model or
-            "byd" in model or
-            "karsan" in model
+    # ───── segédfüggvény: pótlóbusz rendszám ─────
+    def is_bus_replacement_plate(reg: str) -> bool:
+        return bool(
+            re.fullmatch(r"\d{3}[A-Z]{3}", reg) or
+            re.fullmatch(r"\d{4}[A-Z]{3}", reg)
         )
 
-        if route_id in TRAM_LINES:
-            return is_rta or (is_bus_like and not re.fullmatch(r"V\d{4}", reg))
-
-        if route_id in TROLLEY_LINES:
-            return is_rta or (is_bus_like and not re.fullmatch(r"T\d{4}", reg))
-
-        if route_id in HEV_LINES:
-            return is_rta or (is_bus_like and not reg.startswith("H"))
-
-        return is_rta
-
-    # ─────────────────────────────
-    # SZÍN + CÍM
-    # ─────────────────────────────
+    # ───── cím + szín ─────
     if route_id in NIGHT_LINES or (route_id.isdigit() and 900 <= int(route_id) <= 999):
         color = 0x000000
         title_prefix = "🚍 Aktív járművek –"
@@ -5295,7 +5270,7 @@ async def all(ctx, route_id: str):
         title_prefix = "Aktív járművek –"
 
     # ─────────────────────────────
-    # ADATOK
+    # API LEKÉRÉS
     # ─────────────────────────────
     active = {}
 
@@ -5307,13 +5282,21 @@ async def all(ctx, route_id: str):
         vehicles = data.get("vehicles", [])
 
         for v in vehicles:
-
-            # ─────────────────────────────
-            # FONTOS: eredeti rendszám NEM módosul
-            # ─────────────────────────────
-            raw_reg = (v.get("license_plate") or "").strip().upper()
-            if not raw_reg:
+            reg = v.get("license_plate")
+            if not reg:
                 continue
+
+            raw_reg = reg.strip().upper()
+            reg = raw_reg
+
+            # ───── rendszám formázás ─────
+            if re.fullmatch(r"T\d{4}", reg):
+                if reg[1] == "0":
+                    reg = reg[2:]
+                else:
+                    reg = reg[1:]
+            elif re.fullmatch(r"V\d{4}", reg):
+                reg = reg[1:]
 
             public_id = str(v.get("public_route_id", "")).upper()
             if public_id != route_id:
@@ -5331,12 +5314,22 @@ async def all(ctx, route_id: str):
             model = (v.get("vehicle_model") or "").lower()
 
             # ─────────────────────────────
-            # TÍPUS DETEKTÁLÁS (változatlan)
+            # villamos/troli/HÉV speciális szűrés
+            # ─────────────────────────────
+            if route_id in TRAM_LINES:
+                if is_fogas(raw_reg) or is_ganz_troli(raw_reg):
+                    continue
+
+            # ─────────────────────────────
+            # JÁRMŰ TÍPUS DETEKTÁLÁS
             # ─────────────────────────────
             vtype = "Ismeretlen"
 
             if "ganz" in model and not is_tw6000(raw_reg):
-                vtype = "Ganz ICS"
+                if is_kcsv7(raw_reg):
+                    vtype = "Ganz-Hunslet KCSV7"
+                else:
+                    vtype = "Ganz ICS"
 
             elif is_kcsv7(raw_reg):
                 vtype = "Ganz-Hunslet KCSV7"
@@ -5353,23 +5346,127 @@ async def all(ctx, route_id: str):
             elif is_t5c5k2(raw_reg):
                 vtype = "Tatra-BKV T5C5K2"
             elif is_ik280t(raw_reg):
-                vtype = "Ikarus 280"
+                vtype = "Ikarus-GVM 280.94"
+            elif is_ik412t(raw_reg):
+                vtype = "Ikarus-Kiepe 412.81"
+            elif is_ik412gt(raw_reg):
+                vtype = "Ikarus-BKV (GVM) 412.81GT"
+            elif is_ik411t(raw_reg):
+                vtype = "Ikarus-Obus-Kiepe 411 T"
+            elif is_sst12iii(raw_reg):
+                vtype = "Škoda-Solaris Trollino 12 gen III"
+            elif is_sst18iii(raw_reg):
+                vtype = "Škoda-Solaris Trollino 18 gen III"
+            elif is_sst12iv(raw_reg):
+                vtype = "Škoda-Solaris Trollino 12 gen IV"
+            elif is_sst18iv(raw_reg):
+                vtype = "Škoda-Solaris Trollino 18 gen IV"
+            elif is_mbconiii(raw_reg):
+                vtype = "Mercedes-Benz Conecto III"
+            elif is_mbconiiig(raw_reg):
+                vtype = "Mercedes-Benz Conecto III G"
+            elif is_volvo7700a(raw_reg):
+                vtype = "Volvo 7700A"
+            elif is_mbconii(raw_reg):
+                vtype = "Mercedes-Benz Conecto II"
+            elif is_mbc2k(raw_reg):
+                vtype = "Mercedes-Benz C2K"
+            elif is_mbconiig(raw_reg):
+                vtype = "Mercedes-Benz Conecto II G"
+            elif is_modulo108D(raw_reg):
+                vtype = "MABI Modulo 108D"
+            elif is_vhnew330cng(raw_reg):
+                vtype = "VanHool newA330 CNG"
+            elif is_vhnewag300(raw_reg):
+                vtype = "VanHool newAG300"
             elif is_mbO530(raw_reg):
-                vtype = "Mercedes-Benz Citaro"
+                vtype = "Mercedes-Benz O530 Citaro"
+            elif is_volvo7700H(raw_reg):
+                vtype = "Volvo 7700H"
+            elif is_volvo7700(raw_reg):
+                vtype = "Volvo 7700"
+            elif is_modulo168D(raw_reg):
+                vtype = "MABI Modulo 168D"
+            elif is_mbO530fG(raw_reg):
+                vtype = "Mercedes-Benz O530G Citaro facelift G"
+            elif is_ik127(raw_reg):
+                vtype = "Ikarus V127"
+            elif is_karsan(raw_reg):
+                vtype = "Karsan Atak"
+            elif is_mbc2(raw_reg):
+                vtype = "Mercedes-Benz C2"
+            elif is_volvo7000(raw_reg):
+                vtype = "Volvo 7000"
+            elif is_mbc2g(raw_reg):
+                vtype = "Mercedes-Benz C2G"
+            elif is_vhag318(raw_reg):
+                vtype = "VanHool AG318"
+            elif is_volvo7900H(raw_reg):
+                vtype = "Volvo 7900H"
+            elif is_mbO530f(raw_reg):
+                vtype = "Mercedes-Benz O530 facelift"
+            elif is_moduloC68E(raw_reg):
+                vtype = "MABI Modulo C68E"
+            elif is_urbIII10(raw_reg):
+                vtype = "Solaris Urbino III 10"
+            elif is_vehixel(raw_reg):
+                vtype = "Vehixel Cytios 3/23"
+            elif is_mbO530K(raw_reg):
+                vtype = "Mercedes-Benz O530K Citaro K"
+            elif is_eurosprinter(raw_reg):
+                vtype = "Euro Limbus Sprinter"
+            elif is_mbO530G(raw_reg):
+                vtype = "Mercedes-Benz O530G Citaro G"
+            elif is_urbIII8(raw_reg):
+                vtype = "Solaris Urbino III 8.9 LE"
+            elif is_vhnewa330(raw_reg):
+                vtype = "VanHool newA330"
+            elif is_ik187(raw_reg):
+                vtype = "Ikarus V187"
+            elif is_itkreform(raw_reg):
+                vtype = "ITK Reform-S City Max"
+            elif is_sprinter65(raw_reg):
+                vtype = "Mercedes-Benz Sprinter City 65"
+            elif is_citymax(raw_reg):
+                vtype = "TS City Max"
+            elif is_bydb12(raw_reg):
+                vtype = "BYD B12E03 (B12.b)"
+            elif is_bydb19(raw_reg):
+                vtype = "BYD B19E01"
+            elif is_arrivacon(raw_reg):
+                vtype = "Mercedes-Benz Conecto II G"
+            elif is_arrivac2(raw_reg):
+                vtype = "Mercedes-Benz Citaro C2 G"
+            elif is_arriva12c(raw_reg):
+                vtype = "MAN 12C Lion's City 12 NL280"
+            elif is_arriva18c(raw_reg):
+                vtype = "MAN 18C Lion's City 18 NG330"
+            elif is_arrivaa21(raw_reg):
+                vtype = "MAN A21 Lion's City NL283"
+            elif is_vol12c(raw_reg):
+                vtype = "MAN 12C Lion's City 12 G NL320"
+            elif is_vol7900a(raw_reg):
+                vtype = "Volvo 7900A"
+            elif is_volcon(raw_reg):
+                vtype = "Mercedes-Benz Conecto III G"
             else:
                 vtype = "ISMERETLEN"
 
             # ─────────────────────────────
-            # PÓTLÓ DETEKTÁLÁS
+            # PÓTLÓBUSZ DETEKTÁLÁS
             # ─────────────────────────────
-            replacement = is_replacement_vehicle(route_id, raw_reg, model)
+            is_replacement = (
+                route_id in TRAM_LINES or
+                route_id in TROLLEY_LINES or
+                route_id in HEV_LINES
+            ) and is_bus_replacement_plate(reg)
 
-            active[raw_reg] = {
+            active[reg] = {
                 "dest": dest,
                 "lat": lat,
                 "lon": lon,
                 "type": vtype,
-                "replacement": replacement
+                "replacement": is_replacement
             }
 
     if not active:
