@@ -5237,14 +5237,35 @@ async def all(ctx, route_id: str):
 
     HEV_LINES = {"H5", "H6", "H7", "H8", "H9"}
 
-    # ───── segédfüggvény: pótlóbusz rendszám ─────
-    def is_bus_replacement_plate(reg: str) -> bool:
-        return bool(
-            re.fullmatch(r"\d{3}[A-Z]{3}", reg) or
-            re.fullmatch(r"\d{4}[A-Z]{3}", reg)
-        )
+    # ─────────────────────────────
+    # PÓTLÓ LOGIKA (ÚJ)
+    # ─────────────────────────────
+    def is_replacement_vehicle(route_id: str, reg: str) -> bool:
+        reg = reg.upper().strip()
 
-    # ───── cím + szín ─────
+        # ── VILLAMOS ──
+        if route_id in TRAM_LINES:
+            return (not re.fullmatch(r"V\d{4}", reg)) and bool(re.fullmatch(r"\d{4}", reg))
+
+        # ── TROLIBUSZ ──
+        if route_id in TROLLEY_LINES:
+            return (not re.fullmatch(r"T\d{4}", reg)) and bool(re.fullmatch(r"\d{4}", reg))
+
+        # ── HÉV ──
+        if route_id in HEV_LINES:
+            return (
+                not reg.startswith("H")
+                and (
+                    re.fullmatch(r"\d{3}-\d{3}-\d{3}", reg)
+                    or re.fullmatch(r"\d{3}-\d{3}-\d{3}-\d{3}-\d{3}-\d{3}", reg)
+                )
+            )
+
+        return False
+
+    # ─────────────────────────────
+    # SZÍN + CÍM
+    # ─────────────────────────────
     if route_id in NIGHT_LINES or (route_id.isdigit() and 900 <= int(route_id) <= 999):
         color = 0x000000
         title_prefix = "🚍 Aktív járművek –"
@@ -5314,7 +5335,7 @@ async def all(ctx, route_id: str):
             model = (v.get("vehicle_model") or "").lower()
 
             # ─────────────────────────────
-            # villamos/troli/HÉV speciális szűrés
+            # villamos speciális szűrés
             # ─────────────────────────────
             if route_id in TRAM_LINES:
                 if is_fogas(raw_reg) or is_ganz_troli(raw_reg):
@@ -5453,20 +5474,16 @@ async def all(ctx, route_id: str):
                 vtype = "ISMERETLEN"
 
             # ─────────────────────────────
-            # PÓTLÓBUSZ DETEKTÁLÁS
+            # PÓTLÓ LOGIKA
             # ─────────────────────────────
-            is_replacement = (
-                route_id in TRAM_LINES or
-                route_id in TROLLEY_LINES or
-                route_id in HEV_LINES
-            ) and is_bus_replacement_plate(reg)
+            replacement = is_replacement_vehicle(route_id, reg)
 
             active[reg] = {
                 "dest": dest,
                 "lat": lat,
                 "lon": lon,
                 "type": vtype,
-                "replacement": is_replacement
+                "replacement": replacement
             }
 
     if not active:
