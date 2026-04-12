@@ -5240,28 +5240,44 @@ async def all(ctx, route_id: str):
     # ─────────────────────────────
     # PÓTLÓ LOGIKA (ÚJ)
     # ─────────────────────────────
-    def is_replacement_vehicle(route_id: str, reg: str) -> bool:
+    def is_replacement_vehicle(route_id: str, reg: str, model: str) -> bool:
         reg = reg.upper().strip()
+        model = (model or "").lower()
 
-        # ── VILLAMOS ──
+        # ─────────────────────────────
+        # RTA / tartalék / busz jelleg
+        # ─────────────────────────────
+        is_rta = reg.startswith("RTA")
+
+        is_bus_like = (
+            "mercedes" in model or
+            "volvo" in model or
+            "man" in model or
+            "ikarus" in model or
+            "solaris" in model or
+            "byd" in model or
+            "karsan" in model
+        )
+
+        # ─────────────────────────────
+        # VILLAMOS
+        # ─────────────────────────────
         if route_id in TRAM_LINES:
-            return (not re.fullmatch(r"V\d{4}", reg)) and bool(re.fullmatch(r"\d{4}", reg))
+            return is_rta or (is_bus_like and not re.fullmatch(r"V\d{4}", reg))
 
-        # ── TROLIBUSZ ──
+        # ─────────────────────────────
+        # TROLIBUSZ
+        # ─────────────────────────────
         if route_id in TROLLEY_LINES:
-            return (not re.fullmatch(r"T\d{4}", reg)) and bool(re.fullmatch(r"\d{4}", reg))
+            return is_rta or (is_bus_like and not re.fullmatch(r"T\d{4}", reg))
 
-        # ── HÉV ──
+        # ─────────────────────────────
+        # HÉV
+        # ─────────────────────────────
         if route_id in HEV_LINES:
-            return (
-                not reg.startswith("H")
-                and (
-                    re.fullmatch(r"\d{3}-\d{3}-\d{3}", reg)
-                    or re.fullmatch(r"\d{3}-\d{3}-\d{3}-\d{3}-\d{3}-\d{3}", reg)
-                )
-            )
+            return is_rta or (is_bus_like and not reg.startswith("H"))
 
-        return False
+        return is_rta
 
     # ─────────────────────────────
     # SZÍN + CÍM
