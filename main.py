@@ -5347,17 +5347,18 @@ async def all(ctx, route_id: str):
             # ─────────────────────────────
             # SUPABASE PRIORITÁS + OBU KEZELÉS
             # ─────────────────────────────
-            if raw_reg in supa_vehicles:
-                vtype = supa_vehicles[raw_reg]["vtype"]
-                display_reg = supa_vehicles[raw_reg].get("plate", raw_reg)
+            display_reg = raw_reg
+            vtype = None
 
-                # OBU: rendszám felülírás
-                if is_obu(raw_reg):
-                    display_reg = supa_vehicles[raw_reg].get("plate", raw_reg)
+            obu_data = supa_vehicles.get(raw_reg)
+
+            if obu_data:
+                vtype = obu_data.get("vtype", vtype)
+                
+                plate = obu_data.get("plate")
+                if plate:
+                    display_reg = plate  # 🔥 EZ CSERÉL: STZ839 -> BPI280
             else:
-                display_reg = raw_reg
-
-                # OBU fallback
                 if is_obu(raw_reg):
                     display_reg = f"{raw_reg} (OBU)"
 
@@ -5558,6 +5559,7 @@ async def all(ctx, route_id: str):
             is_from_replacement_line = public_id in {f"OP{route_id}", f"VP{route_id}"}
 
             active[reg] = {
+                "display_reg": display_reg,
                 "dest": dest,
                 "lat": lat,
                 "lon": lon,
@@ -5567,7 +5569,6 @@ async def all(ctx, route_id: str):
                 "public_id": public_id,
                 "is_from_replacement_line": is_from_replacement_line
             }
-
     if not active:
         return await ctx.send(f"❗ Nincs aktív jármű a *{route_id}* vonalon.")
 
@@ -5594,6 +5595,12 @@ async def all(ctx, route_id: str):
             f"Típus: {i['type']}\n"
             f"Cél: {i['dest']}\n"
             f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+        )
+
+        embed.add_field(
+            name=i["display_reg"],  # 🔥 EZ LESZ: BPI280
+            value=value,
+            inline=False
         )
 
         if i["replacement"]:
