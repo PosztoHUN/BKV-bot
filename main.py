@@ -2017,6 +2017,9 @@ def is_obu(reg):
         digits = ''.join(c for c in reg[5:] if c.isdigit())
         if digits and 1 <= int(digits) <= 8:
             return True
+        
+    if reg == "V2211":
+        return True    
 
     return False
 
@@ -5574,9 +5577,6 @@ async def all(ctx, route_id: str):
 
         if i["replacement"]:
             value += "\n🚧 Pótlóbusz"
-
-        if i["bus_on_special"]:
-            value += "\n⚠️ Normál busz villamos/troli vonalon!"
 
         if i["is_from_replacement_line"]:
             value += f"\n🔄 Pótlóvonal: {i['public_id']}"
