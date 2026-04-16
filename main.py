@@ -5360,134 +5360,148 @@ async def all(ctx, route_id: str):
             # ─────────────────────────────
             # JÁRMŰ TÍPUS DETEKTÁLÁS
             # ─────────────────────────────
+
             vtype = "Ismeretlen"
 
-            if "ganz" in model and not is_tw6000(raw_reg):
-                if is_kcsv7(raw_reg):
-                    vtype = "Ganz-Hunslet KCSV7"
+            # ─────────────────────────────
+            # 🔥 OBU PRIORITÁS (LEGELSŐ!)
+            # ─────────────────────────────
+            if is_obu(raw_reg):
+                if raw_reg in supa_vehicles and "vtype" in supa_vehicles[raw_reg]:
+                    vtype = supa_vehicles[raw_reg]["vtype"]
                 else:
-                    vtype = "Ganz ICS"
+                    vtype = "OBU teszt jármű"
 
-            elif is_kcsv7(raw_reg):
-                vtype = "Ganz-Hunslet KCSV7"
-            elif is_tw6000(raw_reg):
-                vtype = "Düwag TW6000"
-            elif is_combino(raw_reg):
-                vtype = "Siemens Combino Supra NF12B"
-            elif is_caf5(raw_reg):
-                vtype = "CAF Urbos 3 (5 modulos)"
-            elif is_caf9(raw_reg):
-                vtype = "CAF Urbos 3 (9 modulos)"
-            elif is_t5c5(raw_reg):
-                vtype = "Tatra T5C5"
-            elif is_t5c5k2(raw_reg):
-                vtype = "Tatra-BKV T5C5K2"
-            elif is_ik280t(raw_reg):
-                vtype = "Ikarus-GVM 280.94"
-            elif is_ik412t(raw_reg):
-                vtype = "Ikarus-Kiepe 412.81"
-            elif is_ik412gt(raw_reg):
-                vtype = "Ikarus-BKV (GVM) 412.81GT"
-            elif is_ik411t(raw_reg):
-                vtype = "Ikarus-Obus-Kiepe 411 T"
-            elif is_sst12iii(raw_reg):
-                vtype = "Škoda-Solaris Trollino 12 gen III"
-            elif is_sst18iii(raw_reg):
-                vtype = "Škoda-Solaris Trollino 18 gen III"
-            elif is_sst12iv(raw_reg):
-                vtype = "Škoda-Solaris Trollino 12 gen IV"
-            elif is_sst18iv(raw_reg):
-                vtype = "Škoda-Solaris Trollino 18 gen IV"
-            elif is_mbconiii(raw_reg):
-                vtype = "Mercedes-Benz Conecto III"
-            elif is_mbconiiig(raw_reg):
-                vtype = "Mercedes-Benz Conecto III G"
-            elif is_volvo7700a(raw_reg):
-                vtype = "Volvo 7700A"
-            elif is_mbconii(raw_reg):
-                vtype = "Mercedes-Benz Conecto II"
-            elif is_mbc2k(raw_reg):
-                vtype = "Mercedes-Benz C2K"
-            elif is_mbconiig(raw_reg):
-                vtype = "Mercedes-Benz Conecto II G"
-            elif is_modulo108D(raw_reg):
-                vtype = "MABI Modulo 108D"
-            elif is_vhnew330cng(raw_reg):
-                vtype = "VanHool newA330 CNG"
-            elif is_vhnewag300(raw_reg):
-                vtype = "VanHool newAG300"
-            elif is_mbO530(raw_reg):
-                vtype = "Mercedes-Benz O530 Citaro"
-            elif is_volvo7700H(raw_reg):
-                vtype = "Volvo 7700H"
-            elif is_volvo7700(raw_reg):
-                vtype = "Volvo 7700"
-            elif is_modulo168D(raw_reg):
-                vtype = "MABI Modulo 168D"
-            elif is_mbO530fG(raw_reg):
-                vtype = "Mercedes-Benz O530G Citaro facelift G"
-            elif is_ik127(raw_reg):
-                vtype = "Ikarus V127"
-            elif is_karsan(raw_reg):
-                vtype = "Karsan Atak"
-            elif is_mbc2(raw_reg):
-                vtype = "Mercedes-Benz C2"
-            elif is_volvo7000(raw_reg):
-                vtype = "Volvo 7000"
-            elif is_mbc2g(raw_reg):
-                vtype = "Mercedes-Benz C2G"
-            elif is_vhag318(raw_reg):
-                vtype = "VanHool AG318"
-            elif is_volvo7900H(raw_reg):
-                vtype = "Volvo 7900H"
-            elif is_mbO530f(raw_reg):
-                vtype = "Mercedes-Benz O530 facelift"
-            elif is_moduloC68E(raw_reg):
-                vtype = "MABI Modulo C68E"
-            elif is_urbIII10(raw_reg):
-                vtype = "Solaris Urbino III 10"
-            elif is_vehixel(raw_reg):
-                vtype = "Vehixel Cytios 3/23"
-            elif is_mbO530K(raw_reg):
-                vtype = "Mercedes-Benz O530K Citaro K"
-            elif is_eurosprinter(raw_reg):
-                vtype = "Euro Limbus Sprinter"
-            elif is_mbO530G(raw_reg):
-                vtype = "Mercedes-Benz O530G Citaro G"
-            elif is_urbIII8(raw_reg):
-                vtype = "Solaris Urbino III 8.9 LE"
-            elif is_vhnewa330(raw_reg):
-                vtype = "VanHool newA330"
-            elif is_ik187(raw_reg):
-                vtype = "Ikarus V187"
-            elif is_itkreform(raw_reg):
-                vtype = "ITK Reform-S City Max"
-            elif is_sprinter65(raw_reg):
-                vtype = "Mercedes-Benz Sprinter City 65"
-            elif is_citymax(raw_reg):
-                vtype = "TS City Max"
-            elif is_bydb12(raw_reg):
-                vtype = "BYD B12E03 (B12.b)"
-            elif is_bydb19(raw_reg):
-                vtype = "BYD B19E01"
-            elif is_arrivacon(raw_reg):
-                vtype = "Mercedes-Benz Conecto II G"
-            elif is_arrivac2(raw_reg):
-                vtype = "Mercedes-Benz Citaro C2 G"
-            elif is_arriva12c(raw_reg):
-                vtype = "MAN 12C Lion's City 12 NL280"
-            elif is_arriva18c(raw_reg):
-                vtype = "MAN 18C Lion's City 18 NG330"
-            elif is_arrivaa21(raw_reg):
-                vtype = "MAN A21 Lion's City NL283"
-            elif is_vol12c(raw_reg):
-                vtype = "MAN 12C Lion's City 12 G NL320"
-            elif is_vol7900a(raw_reg):
-                vtype = "Volvo 7900A"
-            elif is_volcon(raw_reg):
-                vtype = "Mercedes-Benz Conecto III G"
             else:
-                vtype = "ISMERETLEN"
+
+                # ─────────────────────────────
+                # NORMAL TÍPUS DETEKTÁLÁS
+                # ─────────────────────────────
+
+                if "ganz" in model and not is_tw6000(raw_reg):
+                    if is_kcsv7(raw_reg):
+                        vtype = "Ganz-Hunslet KCSV7"
+                    else:
+                        vtype = "Ganz ICS"
+
+                elif is_kcsv7(raw_reg):
+                    vtype = "Ganz-Hunslet KCSV7"
+                elif is_tw6000(raw_reg):
+                    vtype = "Düwag TW6000"
+                elif is_combino(raw_reg):
+                    vtype = "Siemens Combino Supra NF12B"
+                elif is_caf5(raw_reg):
+                    vtype = "CAF Urbos 3 (5 modulos)"
+                elif is_caf9(raw_reg):
+                    vtype = "CAF Urbos 3 (9 modulos)"
+                elif is_t5c5(raw_reg):
+                    vtype = "Tatra T5C5"
+                elif is_t5c5k2(raw_reg):
+                    vtype = "Tatra-BKV T5C5K2"
+                elif is_ik280t(raw_reg):
+                    vtype = "Ikarus-GVM 280.94"
+                elif is_ik412t(raw_reg):
+                    vtype = "Ikarus-Kiepe 412.81"
+                elif is_ik412gt(raw_reg):
+                    vtype = "Ikarus-BKV (GVM) 412.81GT"
+                elif is_ik411t(raw_reg):
+                    vtype = "Ikarus-Obus-Kiepe 411 T"
+                elif is_sst12iii(raw_reg):
+                    vtype = "Škoda-Solaris Trollino 12 gen III"
+                elif is_sst18iii(raw_reg):
+                    vtype = "Škoda-Solaris Trollino 18 gen III"
+                elif is_sst12iv(raw_reg):
+                    vtype = "Škoda-Solaris Trollino 12 gen IV"
+                elif is_sst18iv(raw_reg):
+                    vtype = "Škoda-Solaris Trollino 18 gen IV"
+                elif is_mbconiii(raw_reg):
+                    vtype = "Mercedes-Benz Conecto III"
+                elif is_mbconiiig(raw_reg):
+                    vtype = "Mercedes-Benz Conecto III G"
+                elif is_volvo7700a(raw_reg):
+                    vtype = "Volvo 7700A"
+                elif is_mbconii(raw_reg):
+                    vtype = "Mercedes-Benz Conecto II"
+                elif is_mbc2k(raw_reg):
+                    vtype = "Mercedes-Benz C2K"
+                elif is_mbconiig(raw_reg):
+                    vtype = "Mercedes-Benz Conecto II G"
+                elif is_modulo108D(raw_reg):
+                    vtype = "MABI Modulo 108D"
+                elif is_vhnew330cng(raw_reg):
+                    vtype = "VanHool newA330 CNG"
+                elif is_vhnewag300(raw_reg):
+                    vtype = "VanHool newAG300"
+                elif is_mbO530(raw_reg):
+                    vtype = "Mercedes-Benz O530 Citaro"
+                elif is_volvo7700H(raw_reg):
+                    vtype = "Volvo 7700H"
+                elif is_volvo7700(raw_reg):
+                    vtype = "Volvo 7700"
+                elif is_modulo168D(raw_reg):
+                    vtype = "MABI Modulo 168D"
+                elif is_mbO530fG(raw_reg):
+                    vtype = "Mercedes-Benz O530G Citaro facelift G"
+                elif is_ik127(raw_reg):
+                    vtype = "Ikarus V127"
+                elif is_karsan(raw_reg):
+                    vtype = "Karsan Atak"
+                elif is_mbc2(raw_reg):
+                    vtype = "Mercedes-Benz C2"
+                elif is_volvo7000(raw_reg):
+                    vtype = "Volvo 7000"
+                elif is_mbc2g(raw_reg):
+                    vtype = "Mercedes-Benz C2G"
+                elif is_vhag318(raw_reg):
+                    vtype = "VanHool AG318"
+                elif is_volvo7900H(raw_reg):
+                    vtype = "Volvo 7900H"
+                elif is_mbO530f(raw_reg):
+                    vtype = "Mercedes-Benz O530 facelift"
+                elif is_moduloC68E(raw_reg):
+                    vtype = "MABI Modulo C68E"
+                elif is_urbIII10(raw_reg):
+                    vtype = "Solaris Urbino III 10"
+                elif is_vehixel(raw_reg):
+                    vtype = "Vehixel Cytios 3/23"
+                elif is_mbO530K(raw_reg):
+                    vtype = "Mercedes-Benz O530K Citaro K"
+                elif is_eurosprinter(raw_reg):
+                    vtype = "Euro Limbus Sprinter"
+                elif is_mbO530G(raw_reg):
+                    vtype = "Mercedes-Benz O530G Citaro G"
+                elif is_urbIII8(raw_reg):
+                    vtype = "Solaris Urbino III 8.9 LE"
+                elif is_vhnewa330(raw_reg):
+                    vtype = "VanHool newA330"
+                elif is_ik187(raw_reg):
+                    vtype = "Ikarus V187"
+                elif is_itkreform(raw_reg):
+                    vtype = "ITK Reform-S City Max"
+                elif is_sprinter65(raw_reg):
+                    vtype = "Mercedes-Benz Sprinter City 65"
+                elif is_citymax(raw_reg):
+                    vtype = "TS City Max"
+                elif is_bydb12(raw_reg):
+                    vtype = "BYD B12E03 (B12.b)"
+                elif is_bydb19(raw_reg):
+                    vtype = "BYD B19E01"
+                elif is_arrivacon(raw_reg):
+                    vtype = "Mercedes-Benz Conecto II G"
+                elif is_arrivac2(raw_reg):
+                    vtype = "Mercedes-Benz Citaro C2 G"
+                elif is_arriva12c(raw_reg):
+                    vtype = "MAN 12C Lion's City 12 NL280"
+                elif is_arriva18c(raw_reg):
+                    vtype = "MAN 18C Lion's City 18 NG330"
+                elif is_arrivaa21(raw_reg):
+                    vtype = "MAN A21 Lion's City NL283"
+                elif is_vol12c(raw_reg):
+                    vtype = "MAN 12C Lion's City 12 G NL320"
+                elif is_vol7900a(raw_reg):
+                    vtype = "Volvo 7900A"
+                elif is_volcon(raw_reg):
+                    vtype = "Mercedes-Benz Conecto III G"
 
             # ─────────────────────────────
             # PÓTLÓBUSZ DETEKTÁLÁS
