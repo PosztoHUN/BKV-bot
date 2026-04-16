@@ -5207,6 +5207,11 @@ async def all(ctx, route_id: str):
     """Kiírja az adott vonalon közlekedő összes járművet."""
 
     route_id = route_id.strip().upper()
+    
+    # ─────────────────────────────
+    # SUPABASE ADATOK BETÖLTÉSE
+    # ─────────────────────────────
+    supa_vehicles = await fetch_supabase_vehicles_async()
 
     # ─────────────────────────────
     # VONAL TÍPUS MEGHATÁROZÁS
@@ -5258,6 +5263,14 @@ async def all(ctx, route_id: str):
     elif route_id in HEV_LINES:
         color = 0x003200
         title_prefix = "🚆 Aktív járművek –"
+        
+    elif route_id.startswith("N"):
+        color = 0xFF9913
+        title_prefix = "Noszalgia járat -"
+        
+    elif route_id.startswith("R"):
+        color = 0xFF9913
+        title_prefix = "Retró járat -"
 
     else:
         color = 0x00FF00
@@ -5324,6 +5337,17 @@ async def all(ctx, route_id: str):
             if route_id in TRAM_LINES:
                 if is_fogas(raw_reg) or is_ganz_troli(raw_reg):
                     continue
+                
+                        # ─────────────────────────────
+            # 🔥 SUPABASE PRIORITÁS
+            # ─────────────────────────────
+            if raw_reg in supa_vehicles:
+                vtype = supa_vehicles[raw_reg]["vtype"]
+
+                # opcionális: egyedi rendszám megjelenítés
+                display_reg = supa_vehicles[raw_reg].get("plate", raw_reg)
+            else:
+                display_reg = raw_reg
 
             # ─────────────────────────────
             # JÁRMŰ TÍPUS DETEKTÁLÁS
