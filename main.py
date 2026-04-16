@@ -2018,7 +2018,7 @@ def is_obu(reg):
         if digits and 1 <= int(digits) <= 8:
             return True
         
-    if reg == "V2211":
+    if reg == "STZ839":
         return True    
 
     return False
