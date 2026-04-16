@@ -5341,16 +5341,21 @@ async def all(ctx, route_id: str):
                 if is_fogas(raw_reg) or is_ganz_troli(raw_reg):
                     continue
                 
-                        # ─────────────────────────────
-            # 🔥 SUPABASE PRIORITÁS
+            vtype = None
+            display_reg = raw_reg
+
+            # ─────────────────────────────
+            # SUPABASE PRIORITÁS
             # ─────────────────────────────
             if raw_reg in supa_vehicles:
                 vtype = supa_vehicles[raw_reg]["vtype"]
-
-                # opcionális: egyedi rendszám megjelenítés
                 display_reg = supa_vehicles[raw_reg].get("plate", raw_reg)
-            else:
-                display_reg = raw_reg
+
+            # ─────────────────────────────
+            # OBU / NOSZTALGIA (FELÜLÍRÁS SUPABASE UTÁN IS!)
+            # ─────────────────────────────
+            if is_obu(raw_reg):
+                vtype = "OBU teszt jármű"
 
             # ─────────────────────────────
             # JÁRMŰ TÍPUS DETEKTÁLÁS
