@@ -5367,10 +5367,14 @@ async def all(ctx, route_id: str):
             # 🔥 OBU PRIORITÁS (LEGELSŐ!)
             # ─────────────────────────────
             if is_obu(raw_reg):
-                if raw_reg in supa_vehicles and "vtype" in supa_vehicles[raw_reg]:
-                    vtype = supa_vehicles[raw_reg]["vtype"]
+                obu_data = supa_vehicles.get(raw_reg)
+
+                if obu_data:
+                    vtype = obu_data.get("vtype", "OBU teszt jármű")
+                    display_reg = obu_data.get("plate", raw_reg)
                 else:
                     vtype = "OBU teszt jármű"
+                    display_reg = raw_reg
 
             else:
 
