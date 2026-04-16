@@ -5345,23 +5345,21 @@ async def all(ctx, route_id: str):
             display_reg = raw_reg
 
             # ─────────────────────────────
-            # SUPABASE PRIORITÁS
+            # SUPABASE PRIORITÁS + OBU KEZELÉS
             # ─────────────────────────────
             if raw_reg in supa_vehicles:
                 vtype = supa_vehicles[raw_reg]["vtype"]
                 display_reg = supa_vehicles[raw_reg].get("plate", raw_reg)
 
-            # ─────────────────────────────
-            # OBU / NOSZTALGIA (FELÜLÍRÁS SUPABASE UTÁN IS!)
-            # ─────────────────────────────
-            if is_obu(raw_reg):
-                vtype = "OBU teszt jármű"
+                # OBU: rendszám felülírás
+                if is_obu(raw_reg):
+                    display_reg = supa_vehicles[raw_reg].get("plate", raw_reg)
+            else:
+                display_reg = raw_reg
 
-            # ─────────────────────────────
-            # JÁRMŰ TÍPUS DETEKTÁLÁS
-            # ─────────────────────────────
-
-            vtype = "Ismeretlen"
+                # OBU fallback
+                if is_obu(raw_reg):
+                    display_reg = f"{raw_reg} (OBU)"
 
             # ─────────────────────────────
             # 🔥 OBU PRIORITÁS (LEGELSŐ!)
