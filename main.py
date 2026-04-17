@@ -5536,6 +5536,55 @@ async def all(ctx, route_id: str):
                     vtype = "Volvo 7900A"
                 elif is_volcon(raw_reg):
                     vtype = "Mercedes-Benz Conecto III G"
+                    
+            # ─────────────────────────────
+            # SUPABASE (ELSŐDLEGES)
+            # ─────────────────────────────
+            supa = get_supabase_data(reg)
+
+            if supa:
+                display_reg = supa.get("plate", reg)
+                vtype = supa.get("vtype", "Ismeretlen")
+            else:
+                display_reg = reg
+                vtype = "Ismeretlen"
+
+            # ─────────────────────────────
+            # OBU (CSAK HA VALÓDI)
+            # ─────────────────────────────
+            if is_obu(reg):
+                supa = get_supabase_data(reg)
+                if supa:
+                    display_reg = supa.get("plate", reg)
+                    vtype = supa.get("vtype", "OBU teszt jármű")
+                else:
+                    vtype = "OBU teszt jármű"
+
+            # ─────────────────────────────
+            # NOSZTALGIA KIEGÉSZÍTÉS (CSAK HA NINCS SUPA)
+            # ─────────────────────────────
+            if not supa:
+
+                if reg in ["BPI007"]:
+                    vtype = "Ikarus 412.10A"
+                elif reg in ["BPI415"]:
+                    vtype = "Ikarus 415.14"
+                elif reg in ["BPI829", "BPO477"]:
+                    vtype = "Ikarus 280.49"
+                elif reg in ["BPI923"]:
+                    vtype = "Ikarus 435.06"
+                elif reg in ["BPO147", "BPO301"]:
+                    vtype = "Ikarus 260.46"
+                elif reg in ["BPO449"]:
+                    vtype = "Ikarus 280.40A"
+                elif reg in ["AAIK405"]:
+                    vtype = "Ikarus 405.06"
+                elif reg in ["4000", "4171", "4200", "4349"]:
+                    vtype = "Tatra T5C5"
+                elif reg in ["309"]:
+                    vtype = "Ikarus 435.81F"
+                elif reg in ["359"]:
+                    vtype = "Gräf & Stift J09 NGE152"
 
             # ─────────────────────────────
             # PÓTLÓBUSZ DETEKTÁLÁS
