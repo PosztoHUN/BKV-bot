@@ -4865,7 +4865,7 @@ async def on_ready():
 
 @bot.command()
 async def nosztalgia(ctx):
-    """Kiírja az összes bejelentkezett nosztalgia minősítésű járművet."""
+    """Kiírja az összes bejelentkezett nosztalgia járművet."""
     active = {}
 
     supa_vehicles = await fetch_supabase_vehicles_async()
@@ -4882,14 +4882,20 @@ async def nosztalgia(ctx):
             if not reg:
                 continue
 
-            # ───── RAW / NORMALIZÁLT ─────
             raw_reg = reg.strip().upper()
-            norm_reg = raw_reg.replace(" ", "").replace("-", "")
 
-            # ───── OBU DETEKTÁLÁS (NEM BONTJA A NOSZTALGIÁT) ─────
+            # ───── FIX: CSAK T és V ─────
+            norm_reg = raw_reg
+
+            if re.fullmatch(r"T\d{4}", raw_reg):
+                norm_reg = str(int(raw_reg[1:]))   # T0309 -> 309
+
+            elif re.fullmatch(r"V\d{4}", raw_reg):
+                norm_reg = str(int(raw_reg[1:]))   # V4000 -> 4000
+
             is_obu_vehicle = is_obu(norm_reg)
 
-            # ───── SZŰRÉS (EGYSÉGES LOGIKA) ─────
+            # ───── SZŰRÉS ─────
             if not (norm_reg in NOSZTALGIA or is_obu_vehicle):
                 continue
 
@@ -4902,20 +4908,19 @@ async def nosztalgia(ctx):
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
             lon = v.get("lon")
-            model = (v.get("vehicle_model") or "").lower()
 
             if lat is None or lon is None:
                 continue
+
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            # ───── SUPABASE KULCS (RAW ALAPON!) ─────
+            # ───── SUPABASE (RAW ALAPON!) ─────
             supa_data = supa_vehicles.get(raw_reg)
 
-            display_reg = raw_reg
+            display_reg = norm_reg
             vtype = "Ismeretlen"
 
-            # ───── SUPABASE PRIORITÁS ─────
             if supa_data:
                 vtype = supa_data.get("vtype", vtype)
 
@@ -4924,22 +4929,22 @@ async def nosztalgia(ctx):
                     display_reg = plate
 
             else:
-                # ───── FALLBACK NOSZTALGIA ─────
+                # ───── FALLBACK ─────
                 if norm_reg in NOSZTALGIA:
 
-                    if norm_reg in ["BPI007"]:
+                    if norm_reg in ["007"]:
                         vtype = "Ikarus 412.10A"
-                    elif norm_reg in ["BPI415"]:
+                    elif norm_reg in ["415"]:
                         vtype = "Ikarus 415.14"
-                    elif norm_reg in ["BPI829", "BPO477"]:
+                    elif norm_reg in ["829", "477"]:
                         vtype = "Ikarus 280.49"
-                    elif norm_reg in ["BPI923"]:
+                    elif norm_reg in ["923"]:
                         vtype = "Ikarus 435.06"
-                    elif norm_reg in ["BPO147", "BPO301"]:
+                    elif norm_reg in ["147", "301"]:
                         vtype = "Ikarus 260.46"
-                    elif norm_reg in ["BPO449"]:
+                    elif norm_reg in ["449"]:
                         vtype = "Ikarus 280.40A"
-                    elif norm_reg in ["AAIK405"]:
+                    elif norm_reg in ["405"]:
                         vtype = "Ikarus 405.06"
                     elif norm_reg in ["4000", "4171", "4200", "4349"]:
                         vtype = "Tatra T5C5"
@@ -4952,9 +4957,11 @@ async def nosztalgia(ctx):
 
                 elif is_obu_vehicle:
                     vtype = "Egyelőre ismeretlen OBU jármű"
-                    display_reg = f"{raw_reg} ({raw_reg})"
+                    display_reg = f"{norm_reg} ({norm_reg})"
 
-            # ───── TÁROLÁS ─────
+                else:
+                    vtype = "Ismeretlen"
+
             active[display_reg] = {
                 "line": line_name,
                 "dest": dest,
