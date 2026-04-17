@@ -5558,7 +5558,7 @@ async def all(ctx, route_id: str):
             # Check if this vehicle is from a replacement line
             is_from_replacement_line = public_id in {f"OP{route_id}", f"VP{route_id}"}
 
-            active[reg] = {
+            active[raw_reg] = {
                 "display_reg": display_reg,
                 "dest": dest,
                 "lat": lat,
