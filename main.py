@@ -4872,6 +4872,9 @@ async def nosztalgia(ctx):
 
     async with aiohttp.ClientSession() as session:
         data = await fetch_json(session, VEHICLES_API)
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_json(session, VEHICLES_API)
         if not data:
             return await ctx.send("❌ Nincs elérhető adat az API-ból.")
 
@@ -5360,8 +5363,10 @@ async def all(ctx, route_id: str):
             display_reg = reg
             vtype = "Ismeretlen"
 
+            supa = supa_vehicles.get(raw_reg)
+
             # =========================
-            # OBU KEZELÉS (ELSŐDLEGES)
+            # OBU KEZELÉS
             # =========================
             if is_obu(raw_reg):
 
@@ -5372,18 +5377,18 @@ async def all(ctx, route_id: str):
                     display_reg = reg
                     vtype = "OBU teszt jármű"
 
+            # =========================
+            # NEM OBU
+            # =========================
             else:
-                # =========================
-                # SUPABASE NORMÁL
-                # =========================
+
+                # SUPABASE PRIORITÁS
                 if supa:
                     display_reg = supa.get("plate", reg)
                     vtype = supa.get("vtype", "Ismeretlen")
 
-                # =========================
-                # NOSZTALGIA FALLBACK (CSAK HA NINCS SUPA)
-                # =========================
-                if not supa:
+                # NOSZTALGIA (CSAK HA NINCS SUPA)
+                elif not supa:
 
                     if reg == "BPI007":
                         vtype = "Ikarus 412.10A"
@@ -5406,7 +5411,6 @@ async def all(ctx, route_id: str):
                     elif reg == "359":
                         vtype = "Gräf & Stift J09 NGE152"
 
-            else:
 
                 # ─────────────────────────────
                 # NORMAL TÍPUS DETEKTÁLÁS
