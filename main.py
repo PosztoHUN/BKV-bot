@@ -4868,9 +4868,8 @@ async def nosztalgia(ctx):
     """Kiírja az összes bejelentkezett nosztalgia minősítésű járművet."""
     active = {}
 
-    # Supabase járművek lekérése aszinkron
     supa_vehicles = await fetch_supabase_vehicles_async()
-    
+
     async with aiohttp.ClientSession() as session:
         data = await fetch_json(session, VEHICLES_API)
         if not data:
@@ -4883,23 +4882,26 @@ async def nosztalgia(ctx):
             if not reg:
                 continue
 
-            reg = reg.strip().upper()
+            # ───── RAW / NORMALIZÁLT ─────
+            raw_reg = reg.strip().upper()
+            norm_reg = raw_reg.replace(" ", "").replace("-", "")
 
-            # ───── rendszám formázás ─────
-            if re.fullmatch(r"T\d{4}", reg):
-                if reg[1] == "0":
-                    reg = reg[2:]
-                else:
-                    reg = reg[1:]
-            elif re.fullmatch(r"V\d{4}", reg):
-                reg = reg[1:]
+            # ───── OBU DETEKTÁLÁS (NEM BONTJA A NOSZTALGIÁT) ─────
+            is_obu_vehicle = is_obu(norm_reg)
 
+            # ───── SZŰRÉS (EGYSÉGES LOGIKA) ─────
+            if not (norm_reg in NOSZTALGIA or is_obu_vehicle):
+                continue
+
+            if is_fogas(norm_reg) or is_ics(norm_reg):
+                continue
+
+            # ───── ALAP ADATOK ─────
             line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
             lon = v.get("lon")
-            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
             model = (v.get("vehicle_model") or "").lower()
 
             if lat is None or lon is None:
@@ -4907,60 +4909,56 @@ async def nosztalgia(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            # 🔥 Mercedes busz szűrés
-            if not (reg in NOSZTALGIA or is_obu(reg)):
-                continue
+            # ───── SUPABASE KULCS (RAW ALAPON!) ─────
+            supa_data = supa_vehicles.get(raw_reg)
 
-            if is_fogas(reg) or is_ics(reg):
-                continue
+            display_reg = raw_reg
+            vtype = "Ismeretlen"
 
-            # 🔥 típus és megjelenítendő rendszám Supabase alapján
-            if reg in supa_vehicles:
-                vtype = supa_vehicles[reg]["vtype"]
-                if is_obu(reg):
-                    if reg in ["JARMU1", "JARMU2", "JARMU3"]:
-                        display_reg = f"{supa_vehicles[reg]['plate']} ({reg})"  # plate + (JARMU)
-                    elif reg in ["JARMU4", "JARMU5", "JARMU6", "JARMU7", "JARMU8"]:
-                        continue  # kihagyjuk
-                else:
-                    display_reg = reg
+            # ───── SUPABASE PRIORITÁS ─────
+            if supa_data:
+                vtype = supa_data.get("vtype", vtype)
+
+                plate = supa_data.get("plate")
+                if plate:
+                    display_reg = plate
+
             else:
-                # fallback a régi logikára
-                if reg in NOSZTALGIA:
-                    if reg in ["BPI007"]:
+                # ───── FALLBACK NOSZTALGIA ─────
+                if norm_reg in NOSZTALGIA:
+
+                    if norm_reg in ["BPI007"]:
                         vtype = "Ikarus 412.10A"
-                    elif reg in ["BPI415"]:
+                    elif norm_reg in ["BPI415"]:
                         vtype = "Ikarus 415.14"
-                    elif reg in ["BPI829", "BPO477"]:
+                    elif norm_reg in ["BPI829", "BPO477"]:
                         vtype = "Ikarus 280.49"
-                    elif reg in ["BPI923"]:
+                    elif norm_reg in ["BPI923"]:
                         vtype = "Ikarus 435.06"
-                    elif reg in ["BPO147", "BPO301"]:
+                    elif norm_reg in ["BPO147", "BPO301"]:
                         vtype = "Ikarus 260.46"
-                    elif reg in ["BPO449"]:
+                    elif norm_reg in ["BPO449"]:
                         vtype = "Ikarus 280.40A"
-                    elif reg in ["AAIK405"]:
+                    elif norm_reg in ["AAIK405"]:
                         vtype = "Ikarus 405.06"
-                    elif reg in ["4000", "4171", "4200", "4349"]:
+                    elif norm_reg in ["4000", "4171", "4200", "4349"]:
                         vtype = "Tatra T5C5"
-                    elif reg in ["309"]:
+                    elif norm_reg in ["309"]:
                         vtype = "Ikarus 435.81F"
-                    elif reg in ["359"]:
+                    elif norm_reg in ["359"]:
                         vtype = "Gräf & Stift J09 NGE152"
                     else:
                         vtype = "Ismeretlen"
-                    display_reg = reg
-                elif is_obu(reg):
-                    vtype = "Egyenlőre ismeretlen OBU jármű"
-                    display_reg = f"{reg} ({reg})"  # ha nincs Supabase adat
-                else:
-                    vtype = "Ismeretlen"
-                    display_reg = reg
 
+                elif is_obu_vehicle:
+                    vtype = "Egyelőre ismeretlen OBU jármű"
+                    display_reg = f"{raw_reg} ({raw_reg})"
+
+            # ───── TÁROLÁS ─────
             active[display_reg] = {
                 "line": line_name,
                 "dest": dest,
-                "trip_id": trip_id,
+                "trip_id": str(v.get("trip_id") or v.get("vehicle_id") or ""),
                 "lat": lat,
                 "lon": lon,
                 "type": vtype
@@ -4969,11 +4967,10 @@ async def nosztalgia(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív nosztalgia jármű.")
 
-    # Embed küldés
+    # ───── EMBED ─────
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = "Aktív nosztalgia járművek"
-    embed = discord.Embed(title=embed_title_base, color=0xFF9913)
+    embed = discord.Embed(title="Aktív nosztalgia járművek", color=0xFF9913)
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
@@ -4986,13 +4983,14 @@ async def nosztalgia(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFF9913)
+            embed = discord.Embed(title="Aktív nosztalgia járművek (folytatás)", color=0xFF9913)
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
     embeds.append(embed)
+
     for e in embeds:
         await ctx.send(embed=e)
 
