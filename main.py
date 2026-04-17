@@ -2018,7 +2018,7 @@ def is_obu(reg):
         if digits and 1 <= int(digits) <= 8:
             return True
         
-    if reg == "V2211":
+    if reg == "STZ839":
         return True    
 
     return False
@@ -4685,8 +4685,7 @@ async def aggvolan(ctx):
             else:
                 vtype = "Ismeretlen"
 
-            active[reg] = {
-                "display_reg": display_reg,
+            active[display_reg] = {
                 "line": line_name,
                 "dest": dest,
                 "trip_id": trip_id,
@@ -4864,7 +4863,7 @@ async def on_ready():
 
 @bot.command()
 async def nosztalgia(ctx):
-    """Kiírja az összes bejelentkezett nosztalgia vagy retró járművet."""
+    """Kiírja az összes bejelentkezett nosztalgia minősítésű járművet."""
     active = {}
 
     # Supabase járművek lekérése aszinkron
@@ -4945,15 +4944,14 @@ async def nosztalgia(ctx):
                     vtype = "Ismeretlen"
                     display_reg = reg
 
-                active[reg] = {
-                    "display_reg": display_reg,
-                    "line": line_name,
-                    "dest": dest,
-                    "trip_id": trip_id,
-                    "lat": lat,
-                    "lon": lon,
-                    "type": vtype
-                }
+            active[display_reg] = {
+                "line": line_name,
+                "dest": dest,
+                "trip_id": trip_id,
+                "lat": lat,
+                "lon": lon,
+                "type": vtype
+            }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív nosztalgia jármű.")
@@ -4978,7 +4976,7 @@ async def nosztalgia(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFF9913)
             field_count = 0
 
-        embed.add_field(name=i["display_reg"], value=value, inline=False) 
+        embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
     embeds.append(embed)
@@ -5560,7 +5558,7 @@ async def all(ctx, route_id: str):
             # Check if this vehicle is from a replacement line
             is_from_replacement_line = public_id in {f"OP{route_id}", f"VP{route_id}"}
 
-            active[raw_reg] = {
+            active[reg] = {
                 "display_reg": display_reg,
                 "dest": dest,
                 "lat": lat,
