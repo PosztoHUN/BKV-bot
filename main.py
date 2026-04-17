@@ -4879,7 +4879,18 @@ async def nosztalgia(ctx):
         for v in vehicles:
             reg = v.get("license_plate")
             if not reg:
-                continue  # nincs rendszám
+                continue
+
+            reg = reg.strip().upper()
+
+            # ───── rendszám formázás ─────
+            if re.fullmatch(r"T\d{4}", reg):
+                if reg[1] == "0":
+                    reg = reg[2:]
+                else:
+                    reg = reg[1:]
+            elif re.fullmatch(r"V\d{4}", reg):
+                reg = reg[1:]
 
             line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
