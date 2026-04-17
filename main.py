@@ -4864,7 +4864,7 @@ async def on_ready():
 
 @bot.command()
 async def nosztalgia(ctx):
-    """Kiírja az összes bejelentkezett nosztalgia minősítésű járművet."""
+    """Kiírja az összes bejelentkezett nosztalgia vagy retró járművet."""
     active = {}
 
     # Supabase járművek lekérése aszinkron
@@ -4977,7 +4977,7 @@ async def nosztalgia(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFF9913)
             field_count = 0
 
-        embed.add_field(name=i["display_reg"], value=value, inline=False)
+        embed.add_field(name=i["display_reg"], value=value, inline=False) 
         field_count += 1
 
     embeds.append(embed)
