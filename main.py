@@ -4945,14 +4945,15 @@ async def nosztalgia(ctx):
                     vtype = "Ismeretlen"
                     display_reg = reg
 
-            active[display_reg] = {
-                "line": line_name,
-                "dest": dest,
-                "trip_id": trip_id,
-                "lat": lat,
-                "lon": lon,
-                "type": vtype
-            }
+                active[reg] = {
+                    "display_reg": display_reg,
+                    "line": line_name,
+                    "dest": dest,
+                    "trip_id": trip_id,
+                    "lat": lat,
+                    "lon": lon,
+                    "type": vtype
+                }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív nosztalgia jármű.")
