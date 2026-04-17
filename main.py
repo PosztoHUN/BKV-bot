@@ -4906,7 +4906,7 @@ async def nosztalgia(ctx):
                 continue
 
             # 🔥 Mercedes busz szűrés
-            if not (is_nosztalgia(reg) or is_obu(reg)):
+            if not (reg in NOSZTALGIA or is_obu(reg)):
                 continue
 
             if is_fogas(reg) or is_ics(reg):
@@ -4924,7 +4924,7 @@ async def nosztalgia(ctx):
                     display_reg = reg
             else:
                 # fallback a régi logikára
-                if is_nosztalgia(reg):
+                if reg in NOSZTALGIA:
                     if reg in ["BPI007"]:
                         vtype = "Ikarus 412.10A"
                     elif reg in ["BPI415"]:
