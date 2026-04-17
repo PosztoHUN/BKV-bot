@@ -5576,16 +5576,17 @@ async def all(ctx, route_id: str):
     # EMBED
     # ─────────────────────────────
     MAX_FIELDS = 20
+    MAX_VALUE_LENGTH = 1024
+
     embeds = []
-    
-    # Check if there are vehicles from replacement lines
+
     has_replacement_line_vehicles = any(v.get("is_from_replacement_line") for v in active.values())
-    
+
     if has_replacement_line_vehicles:
         embed_title_base = f"{title_prefix} {route_id} (+ OP{route_id}, VP{route_id})"
     else:
         embed_title_base = f"{title_prefix} {route_id}"
-    
+
     embed = discord.Embed(title=embed_title_base, color=color)
     field_count = 0
 
@@ -5597,17 +5598,24 @@ async def all(ctx, route_id: str):
             f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
         )
 
-        embed.add_field(
-            name=i["display_reg"],  # 🔥 EZ LESZ: BPI280
-            value=value,
-            inline=False
-        )
-
         if i["replacement"]:
             value += "\n🚧 Pótlóbusz"
 
         if i["is_from_replacement_line"]:
             value += f"\n🔄 Pótlóvonal: {i['public_id']}"
+
+        # 🔥 LIMITÁLÁS (EZ A KULCS)
+        if len(value) > MAX_VALUE_LENGTH:
+            value = value[:1020] + "..."
+
+        # ───── FIELD HOZZÁADÁS (CSAK EGYSZER!) ─────
+        embed.add_field(
+            name=i["display_reg"],
+            value=value,
+            inline=False
+        )
+
+        field_count += 1
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
@@ -5616,9 +5624,6 @@ async def all(ctx, route_id: str):
                 color=color
             )
             field_count = 0
-
-        embed.add_field(name=reg, value=value, inline=False)
-        field_count += 1
 
     embeds.append(embed)
 
