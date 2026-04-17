@@ -4685,7 +4685,8 @@ async def aggvolan(ctx):
             else:
                 vtype = "Ismeretlen"
 
-            active[display_reg] = {
+            active[reg] = {
+                "display_reg": display_reg,
                 "line": line_name,
                 "dest": dest,
                 "trip_id": trip_id,
@@ -4976,7 +4977,7 @@ async def nosztalgia(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFF9913)
             field_count = 0
 
-        embed.add_field(name=reg, value=value, inline=False)
+        embed.add_field(name=i["display_reg"], value=value, inline=False)
         field_count += 1
 
     embeds.append(embed)
