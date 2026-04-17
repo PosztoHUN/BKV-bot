@@ -4941,11 +4941,11 @@ async def nosztalgia(ctx):
                         vtype = "Ikarus 280.40A"
                     elif reg in ["AAIK405"]:
                         vtype = "Ikarus 405.06"
-                    elif reg in ["V4000", "V4171", "V4200", "V4349"]:
+                    elif reg in ["4000", "4171", "4200", "4349"]:
                         vtype = "Tatra T5C5"
-                    elif reg in ["T0309"]:
+                    elif reg in ["309"]:
                         vtype = "Ikarus 435.81F"
-                    elif reg in ["T0359"]:
+                    elif reg in ["359"]:
                         vtype = "Gräf & Stift J09 NGE152"
                     else:
                         vtype = "Ismeretlen"
