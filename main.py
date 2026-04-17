@@ -639,7 +639,7 @@ def ensure_dirs():
     os.makedirs("logs", exist_ok=True)
     os.makedirs("logs/veh", exist_ok=True)
 
-NOSZTALGIA = {"V4000", "V4171", "V4200", "V4349", "JARMU1", "JARMU2", "JARMU3", "T0309", "T0359", "BPI007", "BPI415", "BPI829", "BPI923", "BPO147", "BPO301", "BPO449", "BPO477", "AAIK405"}
+NOSZTALGIA = {"V4000", "V4171", "V4200", "V4349", "JARMU1", "JARMU2", "JARMU3", "T0309", "T0359", "BPI007", "BPI415", "BPI829", "BPI923", "BPO147", "BPO301", "BPO449", "BPO477", "AAIK405", "4000", "4171", "4200", "4349", "309", "359"}
 
 def is_nosztalgia(reg):
     if not is_t5c5k2(reg):
@@ -2019,6 +2019,8 @@ def is_obu(reg):
             return True
         
     if reg == "V2222":
+        return True            
+    if reg == "2222":
         return True    
 
     return False
