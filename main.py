@@ -5334,14 +5334,15 @@ async def all(ctx, route_id: str):
         vehicles = data.get("vehicles", [])
 
         for v in vehicles:
-            reg = v.get("license_plate")
-            if not reg:
+            raw_reg = v.get("license_plate")
+            if not raw_reg:
                 continue
 
-            raw_reg = reg.strip().upper()
+            raw_reg = raw_reg.strip().upper()
             reg = raw_reg
 
-            # ───── rendszám formázás ─────
+            # ❗ NEM VÁGJUK LE A BPI/BPO stb rendszámokat
+            # csak Txxxx / Vxxxx normalizálás marad
             if re.fullmatch(r"T\d{4}", reg):
                 if reg[1] == "0":
                     reg = reg[2:]
@@ -5350,61 +5351,60 @@ async def all(ctx, route_id: str):
             elif re.fullmatch(r"V\d{4}", reg):
                 reg = reg[1:]
 
-            public_id = str(v.get("public_route_id", "")).upper()
-            if public_id not in route_ids_to_search:
-                continue
+            # =========================
+            # SUPABASE BETÖLTÉS
+            # =========================
+            supa_vehicles = await fetch_supabase_vehicles_async()
+            supa = supa_vehicles.get(raw_reg)
 
-            lat = v.get("lat")
-            lon = v.get("lon")
-            if lat is None or lon is None:
-                continue
-
-            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
-                continue
-
-            dest = v.get("label", "Ismeretlen")
-            model = (v.get("vehicle_model") or "").lower()
-
-            # ─────────────────────────────
-            # villamos/troli/HÉV speciális szűrés
-            # ─────────────────────────────
-            if route_id in TRAM_LINES:
-                if is_fogas(raw_reg) or is_ganz_troli(raw_reg):
-                    continue
-                
-            vtype = None
-            display_reg = raw_reg
-
-            # ─────────────────────────────
-            # SUPABASE PRIORITÁS + OBU KEZELÉS
-            # ─────────────────────────────
             display_reg = reg
-            vtype = None
+            vtype = "Ismeretlen"
 
-            obu_data = supa_vehicles.get(raw_reg)
-
-            if obu_data:
-                vtype = obu_data.get("vtype", vtype)
-                
-                plate = obu_data.get("plate")
-                if plate:
-                    display_reg = plate  # 🔥 EZ CSERÉL: STZ839 -> BPI280
-            else:
-                if is_obu(raw_reg):
-                    display_reg = f"{raw_reg} (OBU)"
-
-            # ─────────────────────────────
-            # 🔥 OBU PRIORITÁS (LEGELSŐ!)
-            # ─────────────────────────────
+            # =========================
+            # OBU KEZELÉS (ELSŐDLEGES)
+            # =========================
             if is_obu(raw_reg):
-                obu_data = supa_vehicles.get(raw_reg)
 
-                if obu_data:
-                    vtype = obu_data.get("vtype", "OBU teszt jármű")
-                    display_reg = obu_data.get("plate", raw_reg)
+                if supa:
+                    display_reg = supa.get("plate", reg)
+                    vtype = supa.get("vtype", "OBU teszt jármű")
                 else:
-                    vtype = "OBU teszt jármű"
                     display_reg = reg
+                    vtype = "OBU teszt jármű"
+
+            else:
+                # =========================
+                # SUPABASE NORMÁL
+                # =========================
+                if supa:
+                    display_reg = supa.get("plate", reg)
+                    vtype = supa.get("vtype", "Ismeretlen")
+
+                # =========================
+                # NOSZTALGIA FALLBACK (CSAK HA NINCS SUPA)
+                # =========================
+                if not supa:
+
+                    if reg == "BPI007":
+                        vtype = "Ikarus 412.10A"
+                    elif reg == "BPI415":
+                        vtype = "Ikarus 415.14"
+                    elif reg in ["BPI829", "BPO477"]:
+                        vtype = "Ikarus 280.49"
+                    elif reg == "BPI923":
+                        vtype = "Ikarus 435.06"
+                    elif reg in ["BPO147", "BPO301"]:
+                        vtype = "Ikarus 260.46"
+                    elif reg == "BPO449":
+                        vtype = "Ikarus 280.40A"
+                    elif reg == "AAIK405":
+                        vtype = "Ikarus 405.06"
+                    elif reg in ["4000", "4171", "4200", "4349"]:
+                        vtype = "Tatra T5C5"
+                    elif reg == "309":
+                        vtype = "Ikarus 435.81F"
+                    elif reg == "359":
+                        vtype = "Gräf & Stift J09 NGE152"
 
             else:
 
@@ -5536,55 +5536,6 @@ async def all(ctx, route_id: str):
                     vtype = "Volvo 7900A"
                 elif is_volcon(raw_reg):
                     vtype = "Mercedes-Benz Conecto III G"
-                    
-            # ─────────────────────────────
-            # SUPABASE (ELSŐDLEGES)
-            # ─────────────────────────────
-            supa = get_supabase_data(reg)
-
-            if supa:
-                display_reg = supa.get("plate", reg)
-                vtype = supa.get("vtype", "Ismeretlen")
-            else:
-                display_reg = reg
-                vtype = "Ismeretlen"
-
-            # ─────────────────────────────
-            # OBU (CSAK HA VALÓDI)
-            # ─────────────────────────────
-            if is_obu(reg):
-                supa = get_supabase_data(reg)
-                if supa:
-                    display_reg = supa.get("plate", reg)
-                    vtype = supa.get("vtype", "OBU teszt jármű")
-                else:
-                    vtype = "OBU teszt jármű"
-
-            # ─────────────────────────────
-            # NOSZTALGIA KIEGÉSZÍTÉS (CSAK HA NINCS SUPA)
-            # ─────────────────────────────
-            if not supa:
-
-                if reg in ["BPI007"]:
-                    vtype = "Ikarus 412.10A"
-                elif reg in ["BPI415"]:
-                    vtype = "Ikarus 415.14"
-                elif reg in ["BPI829", "BPO477"]:
-                    vtype = "Ikarus 280.49"
-                elif reg in ["BPI923"]:
-                    vtype = "Ikarus 435.06"
-                elif reg in ["BPO147", "BPO301"]:
-                    vtype = "Ikarus 260.46"
-                elif reg in ["BPO449"]:
-                    vtype = "Ikarus 280.40A"
-                elif reg in ["AAIK405"]:
-                    vtype = "Ikarus 405.06"
-                elif reg in ["4000", "4171", "4200", "4349"]:
-                    vtype = "Tatra T5C5"
-                elif reg in ["309"]:
-                    vtype = "Ikarus 435.81F"
-                elif reg in ["359"]:
-                    vtype = "Gräf & Stift J09 NGE152"
 
             # ─────────────────────────────
             # PÓTLÓBUSZ DETEKTÁLÁS
