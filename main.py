@@ -5347,7 +5347,7 @@ async def all(ctx, route_id: str):
             # ─────────────────────────────
             # SUPABASE PRIORITÁS + OBU KEZELÉS
             # ─────────────────────────────
-            display_reg = raw_reg
+            display_reg = reg
             vtype = None
 
             obu_data = supa_vehicles.get(raw_reg)
@@ -5373,7 +5373,7 @@ async def all(ctx, route_id: str):
                     display_reg = obu_data.get("plate", raw_reg)
                 else:
                     vtype = "OBU teszt jármű"
-                    display_reg = raw_reg
+                    display_reg = reg
 
             else:
 
