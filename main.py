@@ -4884,25 +4884,31 @@ async def nosztalgia(ctx):
 
             raw_reg = reg.strip().upper()
 
-            # ───── FIX: CSAK T és V ─────
+            # ─────────────────────────────
+            # NORMALIZÁLÁS CSAK T/V-RE
+            # ─────────────────────────────
             norm_reg = raw_reg
 
             if re.fullmatch(r"T\d{4}", raw_reg):
-                norm_reg = str(int(raw_reg[1:]))   # T0309 -> 309
+                norm_reg = str(int(raw_reg[1:]))
 
             elif re.fullmatch(r"V\d{4}", raw_reg):
-                norm_reg = str(int(raw_reg[1:]))   # V4000 -> 4000
+                norm_reg = str(int(raw_reg[1:]))
 
+            # ─────────────────────────────
+            # OBU DETEKTÁLÁS
+            # ─────────────────────────────
             is_obu_vehicle = is_obu(norm_reg)
 
-            # ───── SZŰRÉS ─────
             if not (norm_reg in NOSZTALGIA or is_obu_vehicle):
                 continue
 
             if is_fogas(norm_reg) or is_ics(norm_reg):
                 continue
 
-            # ───── ALAP ADATOK ─────
+            # ─────────────────────────────
+            # ALAP ADATOK
+            # ─────────────────────────────
             line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
@@ -4915,53 +4921,57 @@ async def nosztalgia(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            # ───── SUPABASE (RAW ALAPON!) ─────
-            supa_data = supa_vehicles.get(raw_reg)
+            # ─────────────────────────────
+            # SUPABASE OBU/VEHICLE LOOKUP
+            # ─────────────────────────────
+            supa_data = supa_vehicles.get(norm_reg)
 
             display_reg = norm_reg
             vtype = "Ismeretlen"
 
-            if supa_data:
-                vtype = supa_data.get("vtype", vtype)
-
-                plate = supa_data.get("plate")
-                if plate:
-                    display_reg = plate
-
-            else:
-                # ───── FALLBACK ─────
-                if norm_reg in NOSZTALGIA:
-
-                    if norm_reg in ["007"]:
-                        vtype = "Ikarus 412.10A"
-                    elif norm_reg in ["415"]:
-                        vtype = "Ikarus 415.14"
-                    elif norm_reg in ["829", "477"]:
-                        vtype = "Ikarus 280.49"
-                    elif norm_reg in ["923"]:
-                        vtype = "Ikarus 435.06"
-                    elif norm_reg in ["147", "301"]:
-                        vtype = "Ikarus 260.46"
-                    elif norm_reg in ["449"]:
-                        vtype = "Ikarus 280.40A"
-                    elif norm_reg in ["405"]:
-                        vtype = "Ikarus 405.06"
-                    elif norm_reg in ["4000", "4171", "4200", "4349"]:
-                        vtype = "Tatra T5C5"
-                    elif norm_reg in ["309"]:
-                        vtype = "Ikarus 435.81F"
-                    elif norm_reg in ["359"]:
-                        vtype = "Gräf & Stift J09 NGE152"
-                    else:
-                        vtype = "Ismeretlen"
-
-                elif is_obu_vehicle:
-                    vtype = "Egyelőre ismeretlen OBU jármű"
-                    display_reg = f"{norm_reg} ({norm_reg})"
-
+            # ✔ OBU KEZELÉS
+            if is_obu_vehicle:
+                if supa_data:
+                    display_reg = supa_data.get("plate", norm_reg)
+                    vtype = supa_data.get("vtype", "Ismeretlen OBU jármű")
                 else:
-                    vtype = "Ismeretlen"
+                    display_reg = norm_reg
+                    vtype = "Ismeretlen OBU jármű"
 
+            # ✔ NORMÁL NOSZTALGIA
+            else:
+                if supa_data:
+                    display_reg = supa_data.get("plate", norm_reg)
+                    vtype = supa_data.get("vtype", "Ismeretlen")
+                else:
+                    if norm_reg in NOSZTALGIA:
+
+                        if norm_reg in ["007"]:
+                            vtype = "Ikarus 412.10A"
+                        elif norm_reg in ["415"]:
+                            vtype = "Ikarus 415.14"
+                        elif norm_reg in ["829", "477"]:
+                            vtype = "Ikarus 280.49"
+                        elif norm_reg in ["923"]:
+                            vtype = "Ikarus 435.06"
+                        elif norm_reg in ["147", "301"]:
+                            vtype = "Ikarus 260.46"
+                        elif norm_reg in ["449"]:
+                            vtype = "Ikarus 280.40A"
+                        elif norm_reg in ["405"]:
+                            vtype = "Ikarus 405.06"
+                        elif norm_reg in ["4000", "4171", "4200", "4349"]:
+                            vtype = "Tatra T5C5"
+                        elif norm_reg in ["309"]:
+                            vtype = "Ikarus 435.81F"
+                        elif norm_reg in ["359"]:
+                            vtype = "Gräf & Stift J09 NGE152"
+                        else:
+                            vtype = "Ismeretlen"
+
+            # ─────────────────────────────
+            # TÁROLÁS
+            # ─────────────────────────────
             active[display_reg] = {
                 "line": line_name,
                 "dest": dest,
@@ -4974,13 +4984,21 @@ async def nosztalgia(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív nosztalgia jármű.")
 
-    # ───── EMBED ─────
+    # ─────────────────────────────
+    # EMBED
+    # ─────────────────────────────
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="Aktív nosztalgia járművek", color=0xFF9913)
+
+    embed = discord.Embed(
+        title="Aktív nosztalgia járművek",
+        color=0xFF9913
+    )
+
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
+
         value = (
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
@@ -4990,7 +5008,10 @@ async def nosztalgia(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="Aktív nosztalgia járművek (folytatás)", color=0xFF9913)
+            embed = discord.Embed(
+                title="Aktív nosztalgia járművek (folytatás)",
+                color=0xFF9913
+            )
             field_count = 0
 
         embed.add_field(name=reg, value=value, inline=False)
