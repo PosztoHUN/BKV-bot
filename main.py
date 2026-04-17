@@ -4883,32 +4883,32 @@ async def nosztalgia(ctx):
                 continue
 
             raw_reg = reg.strip().upper()
-
-            # ─────────────────────────────
-            # NORMALIZÁLÁS CSAK T/V-RE
-            # ─────────────────────────────
             norm_reg = raw_reg
 
+            # ───── T/V NORMALIZÁLÁS ─────
             if re.fullmatch(r"T\d{4}", raw_reg):
                 norm_reg = str(int(raw_reg[1:]))
 
             elif re.fullmatch(r"V\d{4}", raw_reg):
                 norm_reg = str(int(raw_reg[1:]))
 
-            # ─────────────────────────────
-            # OBU DETEKTÁLÁS
-            # ─────────────────────────────
             is_obu_vehicle = is_obu(norm_reg)
 
+            # ───── OBU JARMU4-8 SZŰRÉS (csak itt!) ─────
+            if is_obu_vehicle:
+                if norm_reg.startswith("JARMU"):
+                    digits = ''.join(c for c in norm_reg[5:] if c.isdigit())
+                    if digits and 4 <= int(digits) <= 8:
+                        continue
+
+            # ───── ALAP SZŰRÉS ─────
             if not (norm_reg in NOSZTALGIA or is_obu_vehicle):
                 continue
 
             if is_fogas(norm_reg) or is_ics(norm_reg):
                 continue
 
-            # ─────────────────────────────
-            # ALAP ADATOK
-            # ─────────────────────────────
+            # ───── ADATOK ─────
             line_id = str(v.get("public_route_id", "—"))
             line_name = decode_line(line_id)
             dest = v.get("label", "Ismeretlen")
@@ -4921,15 +4921,12 @@ async def nosztalgia(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
-            # ─────────────────────────────
-            # SUPABASE OBU/VEHICLE LOOKUP
-            # ─────────────────────────────
+            # ───── SUPABASE ─────
             supa_data = supa_vehicles.get(norm_reg)
 
             display_reg = norm_reg
             vtype = "Ismeretlen"
 
-            # ✔ OBU KEZELÉS
             if is_obu_vehicle:
                 if supa_data:
                     display_reg = supa_data.get("plate", norm_reg)
@@ -4938,27 +4935,27 @@ async def nosztalgia(ctx):
                     display_reg = norm_reg
                     vtype = "Ismeretlen OBU jármű"
 
-            # ✔ NORMÁL NOSZTALGIA
             else:
                 if supa_data:
                     display_reg = supa_data.get("plate", norm_reg)
                     vtype = supa_data.get("vtype", "Ismeretlen")
+
                 else:
                     if norm_reg in NOSZTALGIA:
 
-                        if norm_reg in ["007"]:
+                        if norm_reg in ["BPI007"]:
                             vtype = "Ikarus 412.10A"
-                        elif norm_reg in ["415"]:
+                        elif norm_reg in ["BPI415"]:
                             vtype = "Ikarus 415.14"
-                        elif norm_reg in ["829", "477"]:
+                        elif norm_reg in ["BPI829", "BPO477"]:
                             vtype = "Ikarus 280.49"
-                        elif norm_reg in ["923"]:
+                        elif norm_reg in ["BPI923"]:
                             vtype = "Ikarus 435.06"
-                        elif norm_reg in ["147", "301"]:
+                        elif norm_reg in ["BPO147", "BPO301"]:
                             vtype = "Ikarus 260.46"
-                        elif norm_reg in ["449"]:
+                        elif norm_reg in ["BPO449"]:
                             vtype = "Ikarus 280.40A"
-                        elif norm_reg in ["405"]:
+                        elif norm_reg in ["AAIK405"]:
                             vtype = "Ikarus 405.06"
                         elif norm_reg in ["4000", "4171", "4200", "4349"]:
                             vtype = "Tatra T5C5"
@@ -4969,9 +4966,6 @@ async def nosztalgia(ctx):
                         else:
                             vtype = "Ismeretlen"
 
-            # ─────────────────────────────
-            # TÁROLÁS
-            # ─────────────────────────────
             active[display_reg] = {
                 "line": line_name,
                 "dest": dest,
@@ -4984,9 +4978,7 @@ async def nosztalgia(ctx):
     if not active:
         return await ctx.send("🚫 Nincs aktív nosztalgia jármű.")
 
-    # ─────────────────────────────
-    # EMBED
-    # ─────────────────────────────
+    # ───── EMBED ─────
     MAX_FIELDS = 20
     embeds = []
 
