@@ -5344,6 +5344,10 @@ async def all(ctx, route_id: str):
 
             if public_id not in route_ids_to_search:
                 continue
+            
+            dest = v.get("label")
+            lat = v.get("lat")
+            lon = v.get("lon")
     
             raw_reg = v.get("license_plate")
             if not raw_reg:
