@@ -5416,12 +5416,8 @@ async def all(ctx, route_id: str):
                 # NORMAL TÍPUS DETEKTÁLÁS
                 # ─────────────────────────────
 
-                if "ganz" in model and not is_tw6000(raw_reg):
-                    if is_kcsv7(raw_reg):
-                        vtype = "Ganz-Hunslet KCSV7"
-                    else:
-                        vtype = "Ganz ICS"
-
+                if is_ics(raw_reg):
+                    vtype = "Ganz ICS"
                 elif is_kcsv7(raw_reg):
                     vtype = "Ganz-Hunslet KCSV7"
                 elif is_tw6000(raw_reg):
@@ -5540,6 +5536,13 @@ async def all(ctx, route_id: str):
                     vtype = "Volvo 7900A"
                 elif is_volcon(raw_reg):
                     vtype = "Mercedes-Benz Conecto III G"
+                elif is_ganz_troli(raw_reg):
+                    if raw_reg in ["T0601", "T0602", "T0603", "T0604", "T0605, T0606"]:
+                        vtype = " Ganz-Solaris Trolino 12B"
+                    elif raw_reg in ["T0607", "T0608", "T0609", "T0610", "T0611", "T0612", "T0613", "T0614", "T0615", "T0616"]:
+                        vtype = " Ganz-Solaris Trolino 12B"
+                    elif raw_reg in {"T0620", "T0621", "T0622", "T0623", "T0624", "T0625", "T0626"}:
+                        vtype = "Ganz-Škoda-Solaris Trolino 12D"                
 
             # ─────────────────────────────
             # PÓTLÓBUSZ DETEKTÁLÁS
@@ -5563,7 +5566,7 @@ async def all(ctx, route_id: str):
             )
             
             is_tram_type = (
-                "ganz" in model or is_tw6000(raw_reg) or is_combino(raw_reg) or 
+                is_ics(raw_reg) or is_tw6000(raw_reg) or is_combino(raw_reg) or 
                 is_caf5(raw_reg) or is_caf9(raw_reg) or is_t5c5(raw_reg) or 
                 is_t5c5k2(raw_reg) or is_fogas(raw_reg)
             )
