@@ -5594,7 +5594,7 @@ async def all(ctx, route_id: str):
                     is_normal_bus_on_special_line = True
 
             # Check if this vehicle is from a replacement line
-            is_from_replacement_line = public_id in {f"OP{route_id}", f"VP{route_id}"}
+            is_from_replacement_line = public_route_id in {f"OP{route_id}", f"VP{route_id}"}
 
             active[reg] = {
                 "display_reg": display_reg,
@@ -5604,7 +5604,7 @@ async def all(ctx, route_id: str):
                 "type": vtype,
                 "replacement": is_replacement,
                 "bus_on_special": is_normal_bus_on_special_line,
-                "public_id": public_id,
+                "public_route_id": public_route_id,
                 "is_from_replacement_line": is_from_replacement_line
             }
     if not active:
@@ -5640,7 +5640,7 @@ async def all(ctx, route_id: str):
             value += "\n🚧 Pótlóbusz"
 
         if i["is_from_replacement_line"]:
-            value += f"\n🔄 Pótlóvonal: {i['public_id']}"
+            value += f"\n🔄 Pótlóvonal: {i['public_route_id']}"
 
         # 🔥 LIMITÁLÁS (EZ A KULCS)
         if len(value) > MAX_VALUE_LENGTH:
