@@ -5335,10 +5335,16 @@ async def all(ctx, route_id: str):
             return await ctx.send("❌ Nincs elérhető adat.")
 
         vehicles = data.get("vehicles", [])
-        
-        public_route_id = v.get("public_route_id")
 
         for v in vehicles:
+
+            public_id = v.get("public_route_id")  # ✅ HELYES HELYEN
+            if not public_id:
+                continue
+
+            if public_id not in route_ids_to_search:
+                continue
+    
             raw_reg = v.get("license_plate")
             if not raw_reg:
                 continue
@@ -5596,8 +5602,8 @@ async def all(ctx, route_id: str):
                     is_normal_bus_on_special_line = True
 
             # Check if this vehicle is from a replacement line
-            is_from_replacement_line = public_route_id in {f"OP{route_id}", f"VP{route_id}"}
-
+            is_from_replacement_line = public_id in {f"OP{route_id}", f"VP{route_id}"}
+            
             active[reg] = {
                 "display_reg": display_reg,
                 "dest": dest,
@@ -5606,7 +5612,7 @@ async def all(ctx, route_id: str):
                 "type": vtype,
                 "replacement": is_replacement,
                 "bus_on_special": is_normal_bus_on_special_line,
-                "public_route_id": public_route_id,
+                "public_route_id": public_id,
                 "is_from_replacement_line": is_from_replacement_line
             }
     if not active:
