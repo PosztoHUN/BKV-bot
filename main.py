@@ -5335,6 +5335,8 @@ async def all(ctx, route_id: str):
             return await ctx.send("❌ Nincs elérhető adat.")
 
         vehicles = data.get("vehicles", [])
+        
+        public_route_id = v.get("public_route_id")
 
         for v in vehicles:
             raw_reg = v.get("license_plate")
