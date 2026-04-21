@@ -32,7 +32,6 @@ TRIPS_META = {}
 tracked_potlases = {}
 tracked_other_ikarus = {}
 
-
 LINE_EXCEPTIONS = {
     "3600": "60 Fogaskerekű",
 
@@ -269,6 +268,51 @@ TRIP_START = {}
 TRIP_STOPS = defaultdict(list)
 SERVICE_DATES = defaultdict(dict)
 ROUTES = defaultdict(lambda: defaultdict(list))
+
+import zipfile
+import csv
+import math
+
+STOPS = []
+
+def load_stops():
+    global STOPS
+    with zipfile.ZipFile("budapest_gtfs.zip") as z:
+        with z.open("stops.txt") as f:
+            reader = csv.DictReader(line.decode("utf-8") for line in f)
+            for row in reader:
+                try:
+                    STOPS.append({
+                        "name": row["stop_name"],
+                        "lat": float(row["stop_lat"]),
+                        "lon": float(row["stop_lon"])
+                    })
+                except:
+                    continue
+
+load_stops()
+
+def distance(lat1, lon1, lat2, lon2):
+    R = 6371  # km
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+
+    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+    return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+def get_nearest_stop(lat, lon):
+    closest = None
+    min_dist = float("inf")
+
+    for stop in STOPS:
+        d = distance(lat, lon, stop["lat"], stop["lon"])
+        if d < min_dist:
+            min_dist = d
+            closest = stop
+
+    return closest["name"] if closest else "Ismeretlen megálló"
 
 # =======================
 # DISCORD INIT
@@ -5348,6 +5392,8 @@ async def all(ctx, route_id: str):
             dest = v.get("label")
             lat = v.get("lat")
             lon = v.get("lon")
+            
+            nearest_stop = get_nearest_stop(lat, lon)
     
             raw_reg = v.get("license_plate")
             if not raw_reg:
@@ -5611,8 +5657,7 @@ async def all(ctx, route_id: str):
             active[reg] = {
                 "display_reg": display_reg,
                 "dest": dest,
-                "lat": lat,
-                "lon": lon,
+                "stop": nearest_stop,
                 "type": vtype,
                 "replacement": is_replacement,
                 "bus_on_special": is_normal_bus_on_special_line,
@@ -5645,7 +5690,7 @@ async def all(ctx, route_id: str):
         value = (
             f"Típus: {i['type']}\n"
             f"Cél: {i['dest']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Környező megálló: {i['stop']}\n"
         )
 
         if i["replacement"]:
