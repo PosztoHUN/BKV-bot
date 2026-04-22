@@ -1877,6 +1877,12 @@ def is_arrivac2(reg):
             if (860 <= n <= 886):
                 return True
 
+    if reg == "MUT781":  # MUT781 (konkrét)
+        return True
+    
+    if reg == "MZC880":  # MUT782 (konkrét)
+        return True
+
     return False
 
 def is_arriva12c(reg):
@@ -2024,6 +2030,25 @@ def is_vol7900a(reg):
         if digits:
             n = int(digits)
             if (283 <= n <= 299):
+                return True
+
+    return False
+
+def is_volcitaro(reg):
+    """
+    Ellenőrzi, hogy a regisztráció a cél járművek közé tartozik:
+    - STZ835-874
+    """
+    if not isinstance(reg, str):
+        return False
+    reg = reg.upper().replace("", "").replace("", "")
+
+    # STZ835-874
+    if reg.startswith("STZ"):
+        digits = ''.join(c for c in reg[3:] if c.isdigit())
+        if digits:
+            n = int(digits)
+            if (835 <= n <= 874):
                 return True
 
     return False
@@ -4617,7 +4642,9 @@ async def arrivac2(ctx):
 
             # 🔥 típus meghatározása
             if is_arrivac2(reg):
-                vtype = "Mercedes-Benz Citaro C2"
+                vtype = "Mercedes-Benz Citaro C2G"
+                if reg == "MZC880":
+                    vtype = " Mercedes-Benz Citaro C2"
             else:
                 vtype = "Ismeretlen"
 
@@ -5582,6 +5609,8 @@ async def all(ctx, route_id: str):
                     vtype = "Mercedes-Benz Conecto II G"
                 elif is_arrivac2(raw_reg):
                     vtype = "Mercedes-Benz Citaro C2 G"
+                    if raw_reg in ["MZC880"]:
+                        vtype = "Mercedes-Benz Citaro C2"
                 elif is_arriva12c(raw_reg):
                     vtype = "MAN 12C Lion's City 12 NL280"
                 elif is_arriva18c(raw_reg):
@@ -5594,6 +5623,8 @@ async def all(ctx, route_id: str):
                     vtype = "Volvo 7900A"
                 elif is_volcon(raw_reg):
                     vtype = "Mercedes-Benz Conecto III G"
+                elif is_volcitaro(raw_reg):
+                    vtype = "Mercedes-Benz eCitaro"
                 elif is_ganz_troli(raw_reg):
                     if raw_reg in ["T0601", "T0602", "T0603", "T0604", "T0605, T0606"]:
                         vtype = " Ganz-Solaris Trolino 12B"
