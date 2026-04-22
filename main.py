@@ -4990,6 +4990,7 @@ async def nosztalgia(ctx):
             dest = v.get("label", "Ismeretlen")
             lat = v.get("lat")
             lon = v.get("lon")
+            vehicle_model = v.get("vehicle_model", "").lower()
 
             if lat is None or lon is None:
                 continue
@@ -5039,11 +5040,10 @@ async def nosztalgia(ctx):
                             vtype = "Ikarus 435.81F"
                         elif norm_reg in ["359"]:
                             vtype = "Gräf & Stift J09 NGE152"
-                        elif norm_reg in ["611"] and norm_reg not in is_ganz_troli(norm_reg):
+                        elif norm_reg in ["611"] and vehicle_model not in ["GANZ"]:
                             vtype = "BKVT S"
                         elif norm_reg in ["927", "929", "938"]:
-                            vtype = "ZIU-682UV"
-                        
+                            vtype = "ZIU-682UV"                        
                         else:
                             vtype = "Ismeretlen"
 
