@@ -5039,6 +5039,11 @@ async def nosztalgia(ctx):
                             vtype = "Ikarus 435.81F"
                         elif norm_reg in ["359"]:
                             vtype = "Gräf & Stift J09 NGE152"
+                        elif norm_reg in ["611"] and norm_reg not in is_ganz_troli(norm_reg):
+                            vtype = "BKVT S"
+                        elif norm_reg in ["927", "929", "938"]:
+                            vtype = "ZIU-682UV"
+                        
                         else:
                             vtype = "Ismeretlen"
 
