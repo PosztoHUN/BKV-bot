@@ -5040,7 +5040,7 @@ async def nosztalgia(ctx):
                             vtype = "Ikarus 435.81F"
                         elif norm_reg in ["359"]:
                             vtype = "Gräf & Stift J09 NGE152"
-                        elif norm_reg in ["611", "1820"] and "TROLI" not in (vehicle_model or "").upper():
+                        elif norm_reg in ["611", "1820"] and vehicle_model != "GANZ-SOLARIS Trollino 12 trolibusz":
                             vtype = "BKVT S"
                         elif norm_reg in ["436"]:
                             vtype = "BVVV L"
