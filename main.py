@@ -4743,6 +4743,8 @@ async def aggvolan(ctx):
                 vtype = "MAN 12C Lion's City 12 G NL320"
             elif is_vol7900a(reg):
                 vtype = "Volvo 7900A"
+            elif is_volcitaro(reg):
+                vtype = "Mercedes-Benz eCitaro"
             elif is_obu(reg):
                 if reg in ["JARMU1", "JARMU2", "JARMU3"]:
                     continue  # kihagyjuk
@@ -4755,8 +4757,6 @@ async def aggvolan(ctx):
                         display_reg = f"{reg} ({reg})"
                 else:
                     vtype = "Ismeretlen"
-            elif is_volcitaro(reg):
-                vtype = "Mercedes-Benz eCitaro"
             else:
                 vtype = "Ismeretlen"
 
