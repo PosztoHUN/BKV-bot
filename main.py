@@ -4978,7 +4978,7 @@ async def nosztalgia(ctx):
                         continue
 
             # ───── ALAP SZŰRÉS ─────
-            if not (norm_reg in NOSZTALGIA or is_obu_vehicle):
+            if (norm_reg not in NOSZTALGIA) and (not is_obu_vehicle):
                 continue
 
             if is_fogas(norm_reg) or is_ics(norm_reg):
@@ -5452,6 +5452,7 @@ async def all(ctx, route_id: str):
             dest = v.get("label")
             lat = v.get("lat")
             lon = v.get("lon")
+            vehicle_model = v.get("vehicle_model", "").lower()
             
             nearest_stop = get_nearest_stop(lat, lon)
     
@@ -5508,26 +5509,56 @@ async def all(ctx, route_id: str):
                 # NOSZTALGIA (CSAK HA NINCS SUPA)
                 elif not supa:
 
-                    if reg == "BPI007":
-                        vtype = "Ikarus 412.10A"
-                    elif reg == "BPI415":
-                        vtype = "Ikarus 415.14"
-                    elif reg in ["BPI829", "BPO477"]:
-                        vtype = "Ikarus 280.49"
-                    elif reg == "BPI923":
-                        vtype = "Ikarus 435.06"
-                    elif reg in ["BPO147", "BPO301"]:
-                        vtype = "Ikarus 260.46"
-                    elif reg == "BPO449":
-                        vtype = "Ikarus 280.40A"
-                    elif reg == "AAIK405":
-                        vtype = "Ikarus 405.06"
-                    elif reg in ["4000", "4171", "4200", "4349"]:
-                        vtype = "Tatra T5C5"
-                    elif reg == "309":
-                        vtype = "Ikarus 435.81F"
-                    elif reg == "359":
-                        vtype = "Gräf & Stift J09 NGE152"
+                        if reg in ["BPI007"]:
+                            vtype = "Ikarus 412.10A"
+                        elif reg in ["BPI415"]:
+                            vtype = "Ikarus 415.14"
+                        elif reg in ["BPI829", "BPO477"]:
+                            vtype = "Ikarus 280.49"
+                        elif reg in ["BPI923"]:
+                            vtype = "Ikarus 435.06"
+                        elif reg in ["BPO147", "BPO301"]:
+                            vtype = "Ikarus 260.46"
+                        elif reg in ["BPO449"]:
+                            vtype = "Ikarus 280.40A"
+                        elif reg in ["AAIK405"]:
+                            vtype = "Ikarus 405.06"
+                        elif reg in ["4000", "4171", "4200", "4349"]:
+                            vtype = "Tatra T5C5"
+                        elif reg in ["309"]:
+                            vtype = "Ikarus 435.81F"
+                        elif reg in ["359"]:
+                            vtype = "Gräf & Stift J09 NGE152"
+                        elif reg in ["611", "1820"] and vehicle_model != "GANZ-SOLARIS Trollino 12 trolibusz":
+                            vtype = "BKVT S"
+                        elif reg in ["436"]:
+                            vtype = "BVVV L"
+                        elif reg in ["1522", "1531"]:
+                            vtype = "BSzKRt. F1A"
+                        elif reg in ["1074"]:
+                            vtype = "BKVT V"
+                        elif reg in ["2576", "2577", "2576+2577"]:
+                            vtype = "BVVV F (iker)"
+                        elif reg in ["2624"]:
+                            vtype = "BVVV G"
+                        elif reg in ["2806"]:
+                            vtype = "BVVV K"
+                        elif reg in ["1233"]:
+                            vtype = "FVV CSM-4"
+                        elif reg in ["3720"]:
+                            vtype = "FVV CSM-1"
+                        elif reg in ["3430"]:
+                            vtype = "Ganz MUV"
+                        elif reg in ["3873", "3888", "3873+3888"]:
+                            vtype = "Ganz UV5"
+                        elif reg in ["927", "929", "938", "T0927", "T0929", "T0938"]:
+                            vtype = "ZIU-682UV"
+                        elif reg in ["156"]:
+                            vtype = "Ikarus-ZIU 280.91"
+                        elif reg in ["600"]:
+                            vtype = "Ikarus 260.T1"
+                        elif reg in ["T323"]:
+                            vtype = "Ikarus 60T"
 
 
                 # ─────────────────────────────
