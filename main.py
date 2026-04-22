@@ -1444,6 +1444,9 @@ def is_volvo7000(reg):
         digits = ''.join(c for c in reg[3:] if c.isdigit())
         if digits and 539 <= int(digits) <= 576:
             return True
+        
+    if reg == "AOOY976":
+        return True
 
     return False
 
@@ -5040,7 +5043,7 @@ async def nosztalgia(ctx):
                             vtype = "Ikarus 435.81F"
                         elif norm_reg in ["359"]:
                             vtype = "Gräf & Stift J09 NGE152"
-                        elif norm_reg in ["611", "1820"] and vehicle_model != "GANZ-SOLARIS Trollino 12 trolibusz":
+                        elif norm_reg in ["611", "1820"] and vehicle_model != "GANZ-SOLARIS Trollino 12 trolibusz" and raw_reg != "T0611":
                             vtype = "BKVT S"
                         elif norm_reg in ["436"]:
                             vtype = "BVVV L"
