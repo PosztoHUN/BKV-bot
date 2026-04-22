@@ -5040,12 +5040,28 @@ async def nosztalgia(ctx):
                             vtype = "Ikarus 435.81F"
                         elif norm_reg in ["359"]:
                             vtype = "Gräf & Stift J09 NGE152"
-                        elif norm_reg in ["611", "1820"] and "TROLIBUSZ" not in (vehicle_model or "").upper():
+                        elif norm_reg in ["611", "1820"] and "TROLI" not in (vehicle_model or "").upper():
                             vtype = "BKVT S"
                         elif norm_reg in ["436"]:
                             vtype = "BVVV L"
                         elif norm_reg in ["1522", "1531"]:
                             vtype = "BSzKRt. F1A"
+                        elif norm_reg in ["1074"]:
+                            vtype = "BKVT V"
+                        elif norm_reg in ["2576", "2577", "2576+2577"]:
+                            vtype = "BVVV F (iker)"
+                        elif norm_reg in ["2624"]:
+                            vtype = "BVVV G"
+                        elif norm_reg in ["2806"]:
+                            vtype = "BVVV K"
+                        elif norm_reg in ["1233"]:
+                            vtype = "FVV CSM-4"
+                        elif norm_reg in ["3720"]:
+                            vtype = "FVV CSM-1"
+                        elif norm_reg in ["3430"]:
+                            vtype = "Ganz MUV"
+                        elif norm_reg in ["3873", "3888", "3873+3888"]:
+                            vtype = "Ganz UV5"
                         elif norm_reg in ["927", "929", "938", "T0927", "T0929", "T0938"]:
                             vtype = "ZIU-682UV"
                         elif norm_reg in ["156"]:
