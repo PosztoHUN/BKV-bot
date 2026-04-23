@@ -4962,6 +4962,11 @@ async def nosztalgia(ctx):
                 continue
 
             raw_reg = reg.strip().upper()
+
+            # ❗ KIVÉTEL
+            if raw_reg == "T0611":
+                continue
+
             norm_reg = raw_reg
 
             # ───── T/V NORMALIZÁLÁS ─────
