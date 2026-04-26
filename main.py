@@ -15,6 +15,8 @@ from datetime import UTC, datetime, timedelta
 from collections import defaultdict
 from supabase import create_client
 from google.transit import gtfs_realtime_pb2
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # =======================
 # BEÁLLÍTÁSOK
@@ -2126,9 +2128,9 @@ def get_last_vehicle_reg(veh):
 def save_trip(trip_id, line, vehicle, dest):
     ensure_dirs()
 
-    now = datetime.now()
-    today = now.strftime("%Y-%m-%d")
+    now = datetime.now(ZoneInfo("Europe/Budapest"))
     ts = now.strftime("%Y-%m-%d %H:%M:%S")
+    today = now.strftime("%Y-%m-%d")
 
     trip_dir = f"logs/{today}"
     os.makedirs(trip_dir, exist_ok=True)
@@ -5213,6 +5215,7 @@ async def vehhist(ctx, vehicle: str, date: str = None):
             try:
                 ts, rest = l.strip().split(" - ", 1)
                 dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
+                dt = dt.replace(tzinfo=ZoneInfo("Europe/Budapest"))
                 trip_id = rest.split("ID ")[1].split(" ")[0]
                 line = rest.split("Vonal ")[1].split(" ")[0]
                 dest = rest.split(" - ")[-1]
