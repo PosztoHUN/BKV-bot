@@ -2398,7 +2398,7 @@ async def hev(ctx):
             f"Cél: {i['dest']}\n"
             # f"Forgalmi szám: {forgalmi}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -2512,7 +2512,7 @@ async def bkvvillamos(ctx):
             f"Cél: {i['dest']}\n"
             # f"Forgalmi szám: {forgalmi}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -2597,7 +2597,7 @@ async def bkvkcsv7(ctx):
 
         embed.add_field(
             name=reg,  # már a rövidített azonosító
-            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -2656,7 +2656,7 @@ async def bkvics(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -2743,7 +2743,7 @@ async def bkvtw6000(ctx):
                 f"{line_text}\n"
                 f"Cél: {i['dest']}\n"
                 f"{fix_text}" + ("" if not fix_text else "\n") +
-                f"Megálló: {i['stop']}"
+                f"Környező megálló: {i['stop']}"
             ),
             inline=False
         )
@@ -2800,7 +2800,7 @@ async def bkvcombino(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -2866,7 +2866,7 @@ async def bkvtanulo(ctx):
             value=(
                 f"Vonal: {i['line']}\n"
                 f"Cél: {i['dest']}\n"
-                f"Megálló: {i['stop']}"
+                f"Környező megálló: {i['stop']}"
             ),
             inline=False
         )
@@ -2924,7 +2924,7 @@ async def bkvcaf5(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -2981,7 +2981,7 @@ async def bkvcaf9(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -3038,7 +3038,7 @@ async def bkvt5c5(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -3095,7 +3095,7 @@ async def bkvt5c5k2(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -3156,7 +3156,7 @@ async def bkvfogas(ctx):
             value=(
                 f"{line_text}\n"
                 f"Cél: {i['dest']}\n"
-                f"Megálló: {i['stop']}"
+                f"Környező megálló: {i['stop']}"
             ),
             inline=False
         )
@@ -3280,7 +3280,7 @@ async def bkvtroli(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3377,7 +3377,7 @@ async def bkviktroli(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3469,7 +3469,7 @@ async def bkvgst(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3566,7 +3566,7 @@ async def bkvsst(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3671,7 +3671,7 @@ async def bkvvolvo(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3769,7 +3769,7 @@ async def bkvconecto(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3870,7 +3870,7 @@ async def bkvc1(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3965,7 +3965,7 @@ async def bkvc2(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4060,7 +4060,7 @@ async def bkvmodulo(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4159,7 +4159,7 @@ async def bkvvanhool(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4251,7 +4251,7 @@ async def bkvik(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4364,7 +4364,7 @@ async def bkvmidi(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4456,7 +4456,7 @@ async def arrivabyd(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4545,7 +4545,7 @@ async def arrivaconecto(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4640,7 +4640,7 @@ async def arrivaman(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4731,7 +4731,7 @@ async def arrivac2(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4842,7 +4842,7 @@ async def aggvolan(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -5166,7 +5166,7 @@ async def nosztalgia(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
