@@ -5008,6 +5008,8 @@ async def nosztalgia(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
+
             # ───── SUPABASE ─────
             supa_data = supa_vehicles.get(norm_reg)
 
@@ -5087,8 +5089,7 @@ async def nosztalgia(ctx):
                 "line": line_name,
                 "dest": dest,
                 "trip_id": str(v.get("trip_id") or v.get("vehicle_id") or ""),
-                "lat": lat,
-                "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -5112,7 +5113,7 @@ async def nosztalgia(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
