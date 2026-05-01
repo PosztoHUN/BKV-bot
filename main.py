@@ -2625,8 +2625,9 @@ async def bkvics(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
             reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Ganz ICS villamos.")
@@ -2646,7 +2647,7 @@ async def bkvics(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
             inline=False
         )
         field_count += 1
