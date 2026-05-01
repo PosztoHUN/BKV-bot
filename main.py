@@ -2371,12 +2371,14 @@ async def hev(ctx):
             if line_id not in HEV_LINES:
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
             active[reg or trip_id] = {
                 "line": line_name,
                 "dest": dest,
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": model  # 🔥 közvetlenül az API-ból
             }
 
@@ -2396,7 +2398,7 @@ async def hev(ctx):
             f"Cél: {i['dest']}\n"
             # f"Forgalmi szám: {forgalmi}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -2440,6 +2442,8 @@ async def bkvvillamos(ctx):
 
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 villamos szűrés
 
@@ -2488,6 +2492,7 @@ async def bkvvillamos(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -2507,7 +2512,7 @@ async def bkvvillamos(ctx):
             f"Cél: {i['dest']}\n"
             # f"Forgalmi szám: {forgalmi}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -2560,6 +2565,8 @@ async def bkvkcsv7(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
+
             # 🔹 rövidített azonosító
             reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
 
@@ -2567,7 +2574,8 @@ async def bkvkcsv7(ctx):
                 "line": line_name,
                 "dest": dest,
                 "lat": lat,
-                "lon": lon
+                "lon": lon,
+                "stop": nearest_stop or "Ismeretlen"
             }
 
     if not active:
@@ -2589,7 +2597,7 @@ async def bkvkcsv7(ctx):
 
         embed.add_field(
             name=reg,  # már a rövidített azonosító
-            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -2602,6 +2610,7 @@ async def bkvkcsv7(ctx):
 async def bkvics(ctx):
     """Kiírja az összes bejelentkezett Ganz ICS villamost."""
     active = {}
+
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_vehicles(session)
         if not isinstance(vehicles, list):
@@ -2695,6 +2704,8 @@ async def bkvtw6000(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
+
             # Rövidített reg szám: V1301 -> 1301
             reg_num = reg_raw[1:] if reg_raw.startswith("V") and len(reg_raw) == 5 else reg_raw
 
@@ -2703,6 +2714,7 @@ async def bkvtw6000(ctx):
                 "dest": dest,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "fixlepcsos": is_fixlepcsos(reg_num)  # True/False
             }
     
@@ -2731,7 +2743,7 @@ async def bkvtw6000(ctx):
                 f"{line_text}\n"
                 f"Cél: {i['dest']}\n"
                 f"{fix_text}" + ("" if not fix_text else "\n") +
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+                f"Megálló: {i['stop']}"
             ),
             inline=False
         )
@@ -2743,8 +2755,9 @@ async def bkvtw6000(ctx):
 
 @bot.command()
 async def bkvcombino(ctx):
-    """Kiírja az összes bejelentkezett Siemens Combino Supra NF12B villamost."""
+    """Kiírja az összes bejelentkezett Combino villamost."""
     active = {}
+
     async with aiohttp.ClientSession() as session:
         vehicles = await fetch_vehicles(session)
         if not isinstance(vehicles, list):
@@ -2765,8 +2778,9 @@ async def bkvcombino(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
             reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Combino villamos.")
@@ -2786,7 +2800,7 @@ async def bkvcombino(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -2823,11 +2837,13 @@ async def bkvtanulo(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
             active[reg] = {
                 "line": line_name,
                 "dest": dest,
                 "lat": lat,
-                "lon": lon
+                "lon": lon,
+                "stop": nearest_stop or "Ismeretlen"
             }
 
     if not active:
@@ -2850,7 +2866,7 @@ async def bkvtanulo(ctx):
             value=(
                 f"Vonal: {i['line']}\n"
                 f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+                f"Megálló: {i['stop']}"
             ),
             inline=False
         )
@@ -2885,8 +2901,9 @@ async def bkvcaf5(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
             reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF5 villamos.")
@@ -2907,7 +2924,7 @@ async def bkvcaf5(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -2941,8 +2958,9 @@ async def bkvcaf9(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
             reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF9 villamos.")
@@ -2963,7 +2981,7 @@ async def bkvcaf9(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -2997,8 +3015,9 @@ async def bkvt5c5(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
             reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív T5C5 villamos.")
@@ -3019,7 +3038,7 @@ async def bkvt5c5(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -3053,8 +3072,9 @@ async def bkvt5c5k2(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
             reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív T5C5K2 villamos.")
@@ -3075,7 +3095,7 @@ async def bkvt5c5k2(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nPozíció: {i['lat']:.5f}, {i['lon']:.5f}",
+            value=f"{line_text}\nCél: {i['dest']}\nMegálló: {i['stop']}",
             inline=False
         )
         field_count += 1
@@ -3109,10 +3129,11 @@ async def bkvfogas(ctx):
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
 
+            nearest_stop = get_nearest_stop(lat, lon)
             # F fogaskerekű azonosító rövidítése: F0051 -> 51
             reg_num = reg[-2:] if reg.startswith("F") and len(reg) == 5 else reg
 
-            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon}
+            active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Fogaskerekű.")
@@ -3135,7 +3156,7 @@ async def bkvfogas(ctx):
             value=(
                 f"{line_text}\n"
                 f"Cél: {i['dest']}\n"
-                f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+                f"Megálló: {i['stop']}"
             ),
             inline=False
         )
@@ -3144,12 +3165,9 @@ async def bkvfogas(ctx):
     embeds.append(embed)
     for e in embeds:
         await ctx.send(embed=e)
-        
-        
+
 # =======================
-# PARANCSOK - Trolibuszok
-# =======================
-        
+
 def normalize_troli_reg(reg):
     """
     Trolibusz regisztráció normalizálása:
@@ -3190,6 +3208,7 @@ async def bkvtroli(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 trolibusz szűrés
             if not (
@@ -3243,6 +3262,7 @@ async def bkvtroli(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -3260,7 +3280,7 @@ async def bkvtroli(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3304,6 +3324,7 @@ async def bkviktroli(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 trolibusz szűrés
             if not (
@@ -3338,6 +3359,7 @@ async def bkviktroli(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -3355,7 +3377,7 @@ async def bkviktroli(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3399,6 +3421,7 @@ async def bkvgst(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 trolibusz szűrés
             if not (
@@ -3428,6 +3451,7 @@ async def bkvgst(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -3445,7 +3469,7 @@ async def bkvgst(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3489,6 +3513,7 @@ async def bkvsst(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 trolibusz szűrés
             if not (
@@ -3523,6 +3548,7 @@ async def bkvsst(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -3540,7 +3566,7 @@ async def bkvsst(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3588,6 +3614,7 @@ async def bkvvolvo(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Volvo busz szűrés
             if not (
@@ -3625,6 +3652,7 @@ async def bkvvolvo(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -3643,7 +3671,7 @@ async def bkvvolvo(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3687,6 +3715,7 @@ async def bkvconecto(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -3721,6 +3750,7 @@ async def bkvconecto(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -3739,7 +3769,7 @@ async def bkvconecto(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3783,6 +3813,7 @@ async def bkvc1(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -3820,6 +3851,7 @@ async def bkvc1(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -3838,7 +3870,7 @@ async def bkvc1(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3882,6 +3914,7 @@ async def bkvc2(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -3913,6 +3946,7 @@ async def bkvc2(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -3931,7 +3965,7 @@ async def bkvc2(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -3975,6 +4009,7 @@ async def bkvmodulo(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -4006,6 +4041,7 @@ async def bkvmodulo(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -4024,7 +4060,7 @@ async def bkvmodulo(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4069,6 +4105,7 @@ async def bkvvanhool(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -4103,6 +4140,7 @@ async def bkvvanhool(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -4121,7 +4159,7 @@ async def bkvvanhool(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4165,6 +4203,7 @@ async def bkvik(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -4193,6 +4232,7 @@ async def bkvik(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -4211,7 +4251,7 @@ async def bkvik(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4255,6 +4295,7 @@ async def bkvmidi(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -4304,6 +4345,7 @@ async def bkvmidi(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -4322,7 +4364,7 @@ async def bkvmidi(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4366,6 +4408,7 @@ async def arrivabyd(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -4394,6 +4437,7 @@ async def arrivabyd(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -4412,7 +4456,7 @@ async def arrivabyd(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4456,6 +4500,7 @@ async def arrivaconecto(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -4481,6 +4526,7 @@ async def arrivaconecto(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -4499,7 +4545,7 @@ async def arrivaconecto(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4543,6 +4589,7 @@ async def arrivaman(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -4574,6 +4621,7 @@ async def arrivaman(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -4592,7 +4640,7 @@ async def arrivaman(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4636,6 +4684,7 @@ async def arrivac2(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -4663,6 +4712,7 @@ async def arrivac2(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -4681,7 +4731,7 @@ async def arrivac2(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4728,6 +4778,7 @@ async def aggvolan(ctx):
                 continue
             if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
                 continue
+            nearest_stop = get_nearest_stop(lat, lon)
 
             # 🔥 Mercedes busz szűrés
             if not (
@@ -4772,6 +4823,7 @@ async def aggvolan(ctx):
                 "trip_id": trip_id,
                 "lat": lat,
                 "lon": lon,
+                "stop": nearest_stop or "Ismeretlen",
                 "type": vtype
             }
 
@@ -4790,7 +4842,7 @@ async def aggvolan(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Pozíció: {i['lat']:.5f}, {i['lon']:.5f}"
+            f"Megálló: {i['stop']}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -5133,66 +5185,66 @@ async def nosztalgia(ctx):
     for e in embeds:
         await ctx.send(embed=e)
 
-@bot.command()
-async def bkvkt(ctx):
-    """Kiírja az összes bejelentkezett Központi Tartalékot."""
-    vehicles_list = []
+# @bot.command()
+# async def bkvkt(ctx):
+#     """Kiírja az összes bejelentkezett Központi Tartalékot."""
+#     vehicles_list = []
 
-    async with aiohttp.ClientSession() as session:
-        data = await fetch_json(session, VEHICLES_API)
-        if not data:
-            return await ctx.send("❌ Nincs elérhető adat az API-ból.")
+#     async with aiohttp.ClientSession() as session:
+#         data = await fetch_json(session, VEHICLES_API)
+#         if not data:
+#             return await ctx.send("❌ Nincs elérhető adat az API-ból.")
 
-        vehicles = data.get("vehicles", [])
-        for v in vehicles:
-            dest = v.get("label")
-            if dest != "Központi tartalék":
-                continue  # csak a Központi tartalék célállomás
-            reg = v.get("license_plate") or "Ismeretlen"
-            line_id = str(v.get("public_route_id", "—"))
-            line_name = decode_line(line_id)
-            lat = v.get("lat")
-            lon = v.get("lon")
-            model = (v.get("vehicle_model") or "Ismeretlen").lower()
+#         vehicles = data.get("vehicles", [])
+#         for v in vehicles:
+#             dest = v.get("label")
+#             if dest != "Központi tartalék":
+#                 continue  # csak a Központi tartalék célállomás
+#             reg = v.get("license_plate") or "Ismeretlen"
+#             line_id = str(v.get("public_route_id", "—"))
+#             line_name = decode_line(line_id)
+#             lat = v.get("lat")
+#             lon = v.get("lon")
+#             model = (v.get("vehicle_model") or "Ismeretlen").lower()
 
-            vehicles_list.append({
-                "reg": reg,
-                "line": line_name,
-                "dest": dest,
-                "lat": lat,
-                "lon": lon,
-                "type": model
-            })
+#             vehicles_list.append({
+#                 "reg": reg,
+#                 "line": line_name,
+#                 "dest": dest,
+#                 "lat": lat,
+#                 "lon": lon,
+#                 "type": model
+#             })
 
-    if not vehicles_list:
-        return await ctx.send("🚫 Nincs aktívan várakozó Központi Tartalék.")
+#     if not vehicles_list:
+#         return await ctx.send("🚫 Nincs aktívan várakozó Központi Tartalék.")
 
-    # Embed létrehozása
-    MAX_FIELDS = 20
-    embeds = []
-    embed_title_base = "🚍 Járművek - Központi tartalék"
-    embed = discord.Embed(title=embed_title_base, color=0x00ff00)
-    field_count = 0
+#     # Embed létrehozása
+#     MAX_FIELDS = 20
+#     embeds = []
+#     embed_title_base = "🚍 Járművek - Központi tartalék"
+#     embed = discord.Embed(title=embed_title_base, color=0x00ff00)
+#     field_count = 0
 
-    for v in vehicles_list:
-        value = (
-            f"Vonal: {v['line']}\n"
-            f"Cél: {v['dest']}\n"
-            f"Típus: {v['type']}\n"
-            f"Pozíció: {v['lat']}, {v['lon']}"
-        )
+#     for v in vehicles_list:
+#         value = (
+#             f"Vonal: {v['line']}\n"
+#             f"Cél: {v['dest']}\n"
+#             f"Típus: {v['type']}\n"
+#             f"Pozíció: {v['lat']}, {v['lon']}"
+#         )
 
-        if field_count >= MAX_FIELDS:
-            embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
-            field_count = 0
+#         if field_count >= MAX_FIELDS:
+#             embeds.append(embed)
+#             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
+#             field_count = 0
 
-        embed.add_field(name=v["reg"], value=value, inline=False)
-        field_count += 1
+#         embed.add_field(name=v["reg"], value=value, inline=False)
+#         field_count += 1
 
-    embeds.append(embed)
-    for e in embeds:
-        await ctx.send(embed=e)
+#     embeds.append(embed)
+#     for e in embeds:
+#         await ctx.send(embed=e)
 
 @bot.command()
 async def vehhist(ctx, vehicle: str, date: str = None):
@@ -5311,50 +5363,50 @@ async def vehicleinfo(ctx, vehicle: str):
     last = lines[-1]
     await ctx.send(f"🚊 **{vehicle} utolsó menete**\n```{last}```")
 
-@bot.command()
-async def david(ctx, date: str = None):
-    day = resolve_date(date)
-    if day is None:
-        return await ctx.send("❌ Hibás dátumformátum. Használd így: `YYYY-MM-DD`")
+# @bot.command()
+# async def david(ctx, date: str = None):
+#     day = resolve_date(date)
+#     if day is None:
+#         return await ctx.send("❌ Hibás dátumformátum. Használd így: `YYYY-MM-DD`")
 
-    day_str = day.strftime("%Y-%m-%d")
-    veh_dir = "logs/veh"
-    active = {}
+#     day_str = day.strftime("%Y-%m-%d")
+#     veh_dir = "logs/veh"
+#     active = {}
 
-    target_vehicles = ["V4202", "V4289"]
+#     target_vehicles = ["V4202", "V4289"]
 
-    if os.path.exists(veh_dir):
-        for fname in os.listdir(veh_dir):
-            if not fname.endswith(".txt"):
-                continue
-            reg = fname.replace(".txt", "")
-            if reg not in target_vehicles:
-                continue
+#     if os.path.exists(veh_dir):
+#         for fname in os.listdir(veh_dir):
+#             if not fname.endswith(".txt"):
+#                 continue
+#             reg = fname.replace(".txt", "")
+#             if reg not in target_vehicles:
+#                 continue
 
-            with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
-                for line in f:
-                    if line.startswith(day_str):
-                        try:
-                            ts = line.split(" - ")[0]
-                            trip_id = line.split("ID ")[1].split(" ")[0]
-                            line_no = line.split("Vonal ")[1].split(" ")[0]
-                            line_name = decode_line(line_no)  # új rendszerhez igazítva
-                            active.setdefault(reg, []).append((ts, line_name, trip_id))
-                        except Exception:
-                            continue
+#             with open(os.path.join(veh_dir, fname), "r", encoding="utf-8") as f:
+#                 for line in f:
+#                     if line.startswith(day_str):
+#                         try:
+#                             ts = line.split(" - ")[0]
+#                             trip_id = line.split("ID ")[1].split(" ")[0]
+#                             line_no = line.split("Vonal ")[1].split(" ")[0]
+#                             line_name = decode_line(line_no)  # új rendszerhez igazítva
+#                             active.setdefault(reg, []).append((ts, line_name, trip_id))
+#                         except Exception:
+#                             continue
 
-    if not active:
-        return await ctx.send(f"🚫 {day_str} napon a V4202 és V4289 nem közlekedett.")
+#     if not active:
+#         return await ctx.send(f"🚫 {day_str} napon a V4202 és V4289 nem közlekedett.")
 
-    out = [f"🚊 Járműfigyelés – David ({day_str})"]
-    for reg in sorted(active):
-        first = min(active[reg], key=lambda x: x[0])
-        last = max(active[reg], key=lambda x: x[0])
-        out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
+#     out = [f"🚊 Járműfigyelés – David ({day_str})"]
+#     for reg in sorted(active):
+#         first = min(active[reg], key=lambda x: x[0])
+#         last = max(active[reg], key=lambda x: x[0])
+#         out.append(f"{reg} — {first[0][11:16]} → {last[0][11:16]} (vonal {first[1]})")
 
-    msg = "\n".join(out)
-    for i in range(0, len(msg), 1900):
-        await ctx.send(msg[i:i + 1900])
+#     msg = "\n".join(out)
+#     for i in range(0, len(msg), 1900):
+#         await ctx.send(msg[i:i + 1900])
         
 @bot.command()
 async def all(ctx, route_id: str):
@@ -5837,7 +5889,7 @@ async def all(ctx, route_id: str):
 # AUTOMATIKUS FIGYELÉS
 # - pótlások
 # ─────────────────────────────────────────────
-IGNORED_ROUTES = ("9999", "9997")
+IGNORED_ROUTES = ("-")
 ALLOWED_GANZ_ROUTES = {"71", "80", "81", "82", "83"}
 ALERT_CHANNEL_ID = 123456789  # ide a csatorna ID
 #ALERT_ROLE_ID = 987654321     # opcionális ping
