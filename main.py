@@ -4500,399 +4500,181 @@ async def vehicleinfo(ctx, vehicle: str):
 
 @bot.command()
 async def all(ctx, route_id: str):
-    """Kiírja az adott vonalon közlekedő összes járművet."""
     raw_input = route_id.strip().upper()
-    
-    # 🟢 Feloldjuk a rövid nevet (pl. "74") a belső ID-re ("4740"), és fordítva is
     encoded_id = encode_line(raw_input)
     decoded_name = decode_line(raw_input)
-    
-    # A route_input mindig a tiszta, ember által olvasható vonalnév lesz (pl. 74) a kategóriákhoz és színezéshez
     route_input = decoded_name if decoded_name != "—" and decoded_name != raw_input else raw_input
 
-    # ─────────────────────────────
-    # SUPABASE ADATOK BETÖLTÉSE
-    # ─────────────────────────────
     supa_vehicles = await fetch_supabase_vehicles_async()
-
-    # ─────────────────────────────
-    # VONAL TÍPUS MEGHATÁROZÁS
-    # ─────────────────────────────
-    TRAM_LINES = {
-        "1","1A","2","2B","3","4","6","12","12A","14","17","19","23","24",
-        "28","28A","37","37A","41","42","47","48","49","50","51","51A","52",
-        "56","56A","59","59A","59B","60","61","62","62A","69"
-    }
-
-    TROLLEY_LINES = {
-        "70","72","73","74","75","76","77","78","79","80","81","82","83"
-    }
-
-    NIGHT_LINES = {
-        "907A","908A","909A","914A","922B","931A","950A","972B","973A","979A","994B","996A"
-    }
-
-    BUS_LINES = {
-        "5","7","7E","7G","8E","9","10","11","13","13A","15","16","16A","20E","21","21A","22","22A","25","26","27","29","30","30A","31","32","33","33A","34","35","36","38","38A","39","40","40B","40E","44","45","46","54","53","55","57","58","59","60B","63","64B","64","64A","65","65A","66","66B","66E","67","68","71","84E","85","85E","87","87A","88","88A","89E","91","92A","91","92","93","93A","94E","95","96","97E","98","98E","99","100E","101B","101E","102","104","104A","105","106","107","108E","110","111","112","113","113A","114","116","117","118","119","120","121","122E","123","123A","124","125","126","128","129","130","131","132E","133E","134","135","136","137","138","139","140","140A","140B","141","142E","144","146A","146","147","148","149","150","151","152","153","154","155","156","157A","157","158","159","160","161","161A","161E","162","164B","164","165","166","168E","169E","170","172","173","174","175","176E","178","179","181","182","182A","183","184","185","187","188","188E","191","193E","194","194B","195","196","196A","197","198","200E","202E","204","210","210B","212","212A","212B","213","214","216","217","217E","218","219","220","221","222","223E","224","224E","225","230","231B","231","236","236A","237","238","240","243","244","250B","250","251","251A","251E","254E","255E","257","260","261E","262","264","266","268","269","270","272","274","275","276E","277","278","279","279B","280","280B","281","282E","284E","287","291","294E","296","296A","297","298"
-    }
-
+    TRAM_LINES = {"1","1A","2","2B","3","4","6","12","12A","14","17","19","23","24","28","28A","37","37A","41","42","47","48","49","50","51","51A","52","56","56A","59","59A","59B","60","61","62","62A","69"}
+    TROLLEY_LINES = {"70","72","73","74","75","76","77","78","79","80","81","82","83"}
+    NIGHT_LINES = {"907A","908A","909A","914A","922B","931A","950A","972B","973A","979A","994B","996A"}
+    BUS_LINES = {"5","7","7E","7G","8E","9","10","11","13","13A","15","16","16A","20E","21","21A","22","22A","25","26","27","29","30","30A","31","32","33","33A","34","35","36","38","38A","39","40","40B","40E","44","45","46","54","53","55","57","58","59","60B","63","64B","64","64A","65","65A","66","66B","66E","67","68","71","84E","85","85E","87","87A","88","88A","89E","91","92A","91","92","93","93A","94E","95","96","97E","98","98E","99","100E","101B","101E","102","104","104A","105","106","107","108E","110","111","112","113","113A","114","116","117","118","119","120","121","122E","123","123A","124","125","126","128","129","130","131","132E","133E","134","135","136","137","138","139","140","140A","140B","141","142E","144","146A","146","147","148","149","150","151","152","153","154","155","156","157A","157","158","159","160","161","161A","161E","162","164B","164","165","166","168E","169E","170","172","173","174","175","176E","178","179","181","182","182A","183","184","185","187","188","188E","191","193E","194","194B","195","196","196A","197","198","200E","202E","204","210","210B","212","212A","212B","213","214","216","217","217E","218","219","220","221","222","223E","224","224E","225","230","231B","231","236","236A","237","238","240","243","244","250B","250","251","251A","251E","254E","255E","257","260","261E","262","264","266","268","269","270","272","274","275","276E","277","278","279","279B","280","280B","281","282E","284E","287","291","294E","296","296A","297","298"}
     HEV_LINES = {"H5", "H6", "H7", "H8", "H9"}
 
-    # ───── segédfüggvény: pótlóbusz rendszám ─────
-    def is_bus_replacement_plate(reg: str) -> bool:
-        return bool(
-            re.fullmatch(r"\d{3}[A-Z]{3}", reg) or
-            re.fullmatch(r"\d{4}[A-Z]{3}", reg)
-        )
+    def is_bus_replacement_plate(reg: str) -> bool: return bool(re.fullmatch(r"\d{3}[A-Z]{3}", reg) or re.fullmatch(r"\d{4}[A-Z]{3}", reg))
 
-    # 🟢 Keresési ID-k listája: benne lesz a "74" és a "4740" is, és GTFS ID-k is
     route_ids_to_search = {raw_input, encoded_id, route_input}
     for rid, name in ROUTE_NAMES.items():
         if name.upper() == route_input:
             route_ids_to_search.add(rid)
 
-    # ───── cím + szín ─────
     if route_input in NIGHT_LINES or (route_input.isdigit() and 900 <= int(route_input) <= 999):
-        color = 0x000000
-        title_prefix = "🚍 Aktív járművek –"
+        color = 0x000000; title_prefix = "🚍 Aktív járművek –"
+    elif route_input in TRAM_LINES: color = 0xFFD800; title_prefix = "🚊 Aktív járművek –"
+    elif route_input in TROLLEY_LINES: color = 0xE41F18; title_prefix = "🚎 Aktív járművek –"
+    elif route_input in BUS_LINES: color = 0x009EE3; title_prefix = "🚍 Aktív járművek –"
+    elif route_input in HEV_LINES: color = 0x003200; title_prefix = "🚆 Aktív járművek –"
+    elif route_input.startswith("N"): color = 0xFF9913; title_prefix = "Noszalgia járat -"
+    elif route_input.startswith("R"): color = 0xFF9913; title_prefix = "Retró járat -"
+    else: color = 0x00FF00; title_prefix = "Aktív járművek –"
 
-    elif route_input in TRAM_LINES:
-        color = 0xFFD800
-        title_prefix = "🚊 Aktív járművek –"
-
-    elif route_input in TROLLEY_LINES:
-        color = 0xE41F18
-        title_prefix = "🚎 Aktív járművek –"
-
-    elif route_input in BUS_LINES:
-        color = 0x009EE3
-        title_prefix = "🚍 Aktív járművek –"
-
-    elif route_input in HEV_LINES:
-        color = 0x003200
-        title_prefix = "🚆 Aktív járművek –"
-        
-    elif route_input.startswith("N"):
-        color = 0xFF9913
-        title_prefix = "Noszalgia járat -"
-        
-    elif route_input.startswith("R"):
-        color = 0xFF9913
-        title_prefix = "Retró járat -"
-
-    else:
-        color = 0x00FF00
-        title_prefix = "Aktív járművek –"
-
-    # ─────────────────────────────
-    # REPLACEMENT LINE HANDLING
-    # ─────────────────────────────
     if route_input in TRAM_LINES:
         base_ids = list(route_ids_to_search)
         for r in base_ids:
             route_ids_to_search.add(f"OP{r}")
             route_ids_to_search.add(f"VP{r}")
 
-    # ─────────────────────────────
-    # API LEKÉRÉS
-    # ─────────────────────────────
     active = {}
-
     vehicles_data = await fetch_vehicles()
-    if not vehicles_data:
-        return await ctx.send("❌ Nincs elérhető adat.")
+    if not vehicles_data: return await ctx.send("❌ Nincs elérhető adat.")
 
     for v in vehicles_data:
-
-        public_id = v.get("public_route_id")  # ✅ HELYES HELYEN
-        if not public_id:
-            continue
-
-        if public_id not in route_ids_to_search:
-            continue
+        public_id = v.get("public_route_id")
+        if not public_id or public_id not in route_ids_to_search: continue
         
         dest = v.get("label")
         lat = v.get("lat")
         lon = v.get("lon")
         vehicle_model = v.get("vehicle_model", "").lower()
+        f_num = v.get("forgalmi", "?")
         
         nearest_stop = get_nearest_stop(lat, lon)
-
         raw_reg = v.get("license_plate")
-        if not raw_reg:
-            continue
+        if not raw_reg: continue
 
         raw_reg = raw_reg.strip().upper()
         reg = raw_reg
 
-        # ❗ NEM VÁGJUK LE A BPI/BPO stb rendszámokat
-        # csak Txxxx / Vxxxx normalizálás marad
-        if re.fullmatch(r"T\d{4}", reg):
-            if reg[1] == "0":
-                reg = reg[2:]
-            else:
-                reg = reg[1:]
-        elif re.fullmatch(r"V\d{4}", reg):
-            reg = reg[1:]
+        if re.fullmatch(r"T\d{4}", reg): reg = reg[2:] if reg[1] == "0" else reg[1:]
+        elif re.fullmatch(r"V\d{4}", reg): reg = reg[1:]
 
-        # =========================
-        # SUPABASE BETÖLTÉS
-        # =========================
         supa = supa_vehicles.get(raw_reg)
-
         display_reg = reg
         vtype = "Ismeretlen"
 
-        # =========================
-        # OBU KEZELÉS
-        # =========================
         if is_obu(raw_reg):
-
             if supa:
                 display_reg = supa.get("plate", reg)
                 vtype = supa.get("vtype", "OBU teszt jármű")
-            else:
-                display_reg = reg
-                vtype = "OBU teszt jármű"
-
-        # =========================
-        # NEM OBU
-        # =========================
+            else: display_reg = reg; vtype = "OBU teszt jármű"
         else:
-
-            # SUPABASE PRIORITÁS
             if supa:
                 display_reg = supa.get("plate", reg)
                 vtype = supa.get("vtype", "Ismeretlen")
+            else:
+                if reg == "BPI007": vtype = "Ikarus 412.10A"
+                elif reg == "BPI415": vtype = "Ikarus 415.14"
+                elif reg in ["BPI829", "BPO477"]: vtype = "Ikarus 280.49"
+                elif reg == "BPI923": vtype = "Ikarus 435.06"
+                elif reg in ["BPO147", "BPO301"]: vtype = "Ikarus 260.46"
+                elif reg == "BPO449": vtype = "Ikarus 280.40A"
+                elif reg == "AAIK405": vtype = "Ikarus 405.06"
+                elif reg in ["4000", "4171", "4200", "4349"]: vtype = "Tatra T5C5"
+                elif reg == "309": vtype = "Ikarus 435.81F"
+                elif reg == "359": vtype = "Gräf & Stift J09 NGE152"
+                elif reg in ["611", "1820"] and vehicle_model != "ganz-solaris trollino 12 trolibusz": vtype = "BKVT S"
+                elif reg == "436": vtype = "BVVV L"
+                elif reg in ["1522", "1531"]: vtype = "BSzKRt. F1A"
+                elif reg == "1074": vtype = "BKVT V"
+                elif reg in ["2576", "2577", "2576+2577"]: vtype = "BVVV F (iker)"
+                elif reg == "2624": vtype = "BVVV G"
+                elif reg == "2806": vtype = "BVVV K"
+                elif reg == "1233": vtype = "FVV CSM-4"
+                elif reg == "3720": vtype = "FVV CSM-1"
+                elif reg == "3430": vtype = "Ganz MUV"
+                elif reg in ["3873", "3888", "3873+3888"]: vtype = "Ganz UV5"
+                elif reg in ["927", "929", "938", "T0927", "T0929", "T0938"]: vtype = "ZIU-682UV"
+                elif reg == "156": vtype = "Ikarus-ZIU 280.91"
+                elif reg == "600": vtype = "Ikarus 260.T1"
+                elif reg == "T323": vtype = "Ikarus 60T"
 
-            # NOSZTALGIA (CSAK HA NINCS SUPA)
-            elif not supa:
+                if is_ics(raw_reg): vtype = "Ganz ICS"
+                elif is_kcsv7(raw_reg): vtype = "Ganz-Hunslet KCSV7"
+                elif is_tw6000(raw_reg): vtype = "Düwag TW6000"
+                elif is_combino(raw_reg): vtype = "Siemens Combino Supra NF12B"
+                elif is_caf5(raw_reg): vtype = "CAF Urbos 3 (5 modulos)"
+                elif is_caf9(raw_reg): vtype = "CAF Urbos 3 (9 modulos)"
+                elif is_t5c5(raw_reg): vtype = "Tatra T5C5"
+                elif is_t5c5k2(raw_reg): vtype = "Tatra-BKV T5C5K2"
+                elif is_ik280t(raw_reg): vtype = "Ikarus-GVM 280.94"
+                elif is_ik412t(raw_reg): vtype = "Ikarus-Kiepe 412.81"
+                elif is_ik412gt(raw_reg): vtype = "Ikarus-BKV (GVM) 412.81GT"
+                elif is_ik411t(raw_reg): vtype = "Ikarus-Obus-Kiepe 411 T"
+                elif is_sst12iii(raw_reg): vtype = "Škoda-Solaris Trollino 12 gen III"
+                elif is_sst18iii(raw_reg): vtype = "Škoda-Solaris Trollino 18 gen III"
+                elif is_sst12iv(raw_reg): vtype = "Škoda-Solaris Trollino 12 gen IV"
+                elif is_sst18iv(raw_reg): vtype = "Škoda-Solaris Trollino 18 gen IV"
+                elif is_mbconiii(raw_reg): vtype = "Mercedes-Benz Conecto III"
+                elif is_mbconiiig(raw_reg): vtype = "Mercedes-Benz Conecto III G"
+                elif is_volvo7700a(raw_reg): vtype = "Volvo 7700A"
+                elif is_mbconii(raw_reg): vtype = "Mercedes-Benz Conecto II"
+                elif is_mbc2k(raw_reg): vtype = "Mercedes-Benz C2K"
+                elif is_mbconiig(raw_reg): vtype = "Mercedes-Benz Conecto II G"
+                elif is_modulo108D(raw_reg): vtype = "MABI Modulo 108D"
+                elif is_vhnew330cng(raw_reg): vtype = "VanHool newA330 CNG"
+                elif is_vhnewag300(raw_reg): vtype = "VanHool newAG300"
+                elif is_mbO530(raw_reg): vtype = "Mercedes-Benz O530 Citaro"
+                elif is_volvo7700H(raw_reg): vtype = "Volvo 7700H"
+                elif is_volvo7700(raw_reg): vtype = "Volvo 7700"
+                elif is_modulo168D(raw_reg): vtype = "MABI Modulo 168D"
+                elif is_mbO530fG(raw_reg): vtype = "Mercedes-Benz O530G Citaro facelift G"
+                elif is_ik127(raw_reg): vtype = "Ikarus V127"
+                elif is_karsan(raw_reg): vtype = "Karsan Atak"
+                elif is_mbc2(raw_reg): vtype = "Mercedes-Benz C2"
+                elif is_volvo7000(raw_reg): vtype = "Volvo 7000"
+                elif is_mbc2g(raw_reg): vtype = "Mercedes-Benz C2G"
+                elif is_vhag318(raw_reg): vtype = "VanHool AG318"
+                elif is_volvo7900H(raw_reg): vtype = "Volvo 7900H"
+                elif is_mbO530f(raw_reg): vtype = "Mercedes-Benz O530 facelift"
+                elif is_moduloC68E(raw_reg): vtype = "MABI Modulo C68E"
+                elif is_urbIII10(raw_reg): vtype = "Solaris Urbino III 10"
+                elif is_vehixel(raw_reg): vtype = "Vehixel Cytios 3/23"
+                elif is_mbO530K(raw_reg): vtype = "Mercedes-Benz O530K Citaro K"
+                elif is_eurosprinter(raw_reg): vtype = "Euro Limbus Sprinter"
+                elif is_mbO530G(raw_reg): vtype = "Mercedes-Benz O530G Citaro G"
+                elif is_urbIII8(raw_reg): vtype = "Solaris Urbino III 8.9 LE"
+                elif is_vhnewa330(raw_reg): vtype = "VanHool newA330"
+                elif is_ik187(raw_reg): vtype = "Ikarus V187"
+                elif is_itkreform(raw_reg): vtype = "ITK Reform-S City Max"
+                elif is_sprinter65(raw_reg): vtype = "Mercedes-Benz Sprinter City 65"
+                elif is_citymax(raw_reg): vtype = "TS City Max"
+                elif is_bydb12(raw_reg): vtype = "BYD B12E03 (B12.b)"
+                elif is_bydb19(raw_reg): vtype = "BYD B19E01"
+                elif is_arrivacon(raw_reg): vtype = "Mercedes-Benz Conecto II G"
+                elif is_arrivac2(raw_reg):
+                    vtype = "Mercedes-Benz Citaro C2 G"
+                    if raw_reg in ["MZC880"]: vtype = "Mercedes-Benz Citaro C2"
+                elif is_arriva12c(raw_reg): vtype = "MAN 12C Lion's City 12 NL280"
+                elif is_arriva18c(raw_reg): vtype = "MAN 18C Lion's City 18 NG330"
+                elif is_arrivaa21(raw_reg): vtype = "MAN A21 Lion's City NL283"
+                elif is_vol12c(raw_reg): vtype = "MAN 12C Lion's City 12 G NL320"
+                elif is_vol7900a(raw_reg): vtype = "Volvo 7900A"
+                elif is_volcon(raw_reg): vtype = "Mercedes-Benz Conecto III G"
+                elif is_volcitaro(raw_reg): vtype = "Mercedes-Benz eCitaro"
+                elif is_ganz_troli(raw_reg):
+                    if raw_reg in ["T0601","T0602","T0603","T0604","T0605","T0606"]: vtype = " Ganz-Solaris Trolino 12B"
+                    elif raw_reg in ["T0607","T0608","T0609","T0610","T0611","T0612","T0613","T0614","T0615","T0616"]: vtype = " Ganz-Škoda-Solaris Trolino 12B"
+                    elif raw_reg in {"T0620","T0621","T0622","T0623","T0624","T0625","T0626"}: vtype = "Ganz-Škoda-Solaris Trolino 12D"                
 
-                    if reg in ["BPI007"]:
-                        vtype = "Ikarus 412.10A"
-                    elif reg in ["BPI415"]:
-                        vtype = "Ikarus 415.14"
-                    elif reg in ["BPI829", "BPO477"]:
-                        vtype = "Ikarus 280.49"
-                    elif reg in ["BPI923"]:
-                        vtype = "Ikarus 435.06"
-                    elif reg in ["BPO147", "BPO301"]:
-                        vtype = "Ikarus 260.46"
-                    elif reg in ["BPO449"]:
-                        vtype = "Ikarus 280.40A"
-                    elif reg in ["AAIK405"]:
-                        vtype = "Ikarus 405.06"
-                    elif reg in ["4000", "4171", "4200", "4349"]:
-                        vtype = "Tatra T5C5"
-                    elif reg in ["309"]:
-                        vtype = "Ikarus 435.81F"
-                    elif reg in ["359"]:
-                        vtype = "Gräf & Stift J09 NGE152"
-                    elif reg in ["611", "1820"] and vehicle_model != "GANZ-SOLARIS Trollino 12 trolibusz":
-                        vtype = "BKVT S"
-                    elif reg in ["436"]:
-                        vtype = "BVVV L"
-                    elif reg in ["1522", "1531"]:
-                        vtype = "BSzKRt. F1A"
-                    elif reg in ["1074"]:
-                        vtype = "BKVT V"
-                    elif reg in ["2576", "2577", "2576+2577"]:
-                        vtype = "BVVV F (iker)"
-                    elif reg in ["2624"]:
-                        vtype = "BVVV G"
-                    elif reg in ["2806"]:
-                        vtype = "BVVV K"
-                    elif reg in ["1233"]:
-                        vtype = "FVV CSM-4"
-                    elif reg in ["3720"]:
-                        vtype = "FVV CSM-1"
-                    elif reg in ["3430"]:
-                        vtype = "Ganz MUV"
-                    elif reg in ["3873", "3888", "3873+3888"]:
-                        vtype = "Ganz UV5"
-                    elif reg in ["927", "929", "938", "T0927", "T0929", "T0938"]:
-                        vtype = "ZIU-682UV"
-                    elif reg in ["156"]:
-                        vtype = "Ikarus-ZIU 280.91"
-                    elif reg in ["600"]:
-                        vtype = "Ikarus 260.T1"
-                    elif reg in ["T323"]:
-                        vtype = "Ikarus 60T"
-
-
-            # ─────────────────────────────
-            # NORMAL TÍPUS DETEKTÁLÁS
-            # ─────────────────────────────
-
-            if is_ics(raw_reg):
-                vtype = "Ganz ICS"
-            elif is_kcsv7(raw_reg):
-                vtype = "Ganz-Hunslet KCSV7"
-            elif is_tw6000(raw_reg):
-                vtype = "Düwag TW6000"
-            elif is_combino(raw_reg):
-                vtype = "Siemens Combino Supra NF12B"
-            elif is_caf5(raw_reg):
-                vtype = "CAF Urbos 3 (5 modulos)"
-            elif is_caf9(raw_reg):
-                vtype = "CAF Urbos 3 (9 modulos)"
-            elif is_t5c5(raw_reg):
-                vtype = "Tatra T5C5"
-            elif is_t5c5k2(raw_reg):
-                vtype = "Tatra-BKV T5C5K2"
-            elif is_ik280t(raw_reg):
-                vtype = "Ikarus-GVM 280.94"
-            elif is_ik412t(raw_reg):
-                vtype = "Ikarus-Kiepe 412.81"
-            elif is_ik412gt(raw_reg):
-                vtype = "Ikarus-BKV (GVM) 412.81GT"
-            elif is_ik411t(raw_reg):
-                vtype = "Ikarus-Obus-Kiepe 411 T"
-            elif is_sst12iii(raw_reg):
-                vtype = "Škoda-Solaris Trollino 12 gen III"
-            elif is_sst18iii(raw_reg):
-                vtype = "Škoda-Solaris Trollino 18 gen III"
-            elif is_sst12iv(raw_reg):
-                vtype = "Škoda-Solaris Trollino 12 gen IV"
-            elif is_sst18iv(raw_reg):
-                vtype = "Škoda-Solaris Trollino 18 gen IV"
-            elif is_mbconiii(raw_reg):
-                vtype = "Mercedes-Benz Conecto III"
-            elif is_mbconiiig(raw_reg):
-                vtype = "Mercedes-Benz Conecto III G"
-            elif is_volvo7700a(raw_reg):
-                vtype = "Volvo 7700A"
-            elif is_mbconii(raw_reg):
-                vtype = "Mercedes-Benz Conecto II"
-            elif is_mbc2k(raw_reg):
-                vtype = "Mercedes-Benz C2K"
-            elif is_mbconiig(raw_reg):
-                vtype = "Mercedes-Benz Conecto II G"
-            elif is_modulo108D(raw_reg):
-                vtype = "MABI Modulo 108D"
-            elif is_vhnew330cng(raw_reg):
-                vtype = "VanHool newA330 CNG"
-            elif is_vhnewag300(raw_reg):
-                vtype = "VanHool newAG300"
-            elif is_mbO530(raw_reg):
-                vtype = "Mercedes-Benz O530 Citaro"
-            elif is_volvo7700H(raw_reg):
-                vtype = "Volvo 7700H"
-            elif is_volvo7700(raw_reg):
-                vtype = "Volvo 7700"
-            elif is_modulo168D(raw_reg):
-                vtype = "MABI Modulo 168D"
-            elif is_mbO530fG(raw_reg):
-                vtype = "Mercedes-Benz O530G Citaro facelift G"
-            elif is_ik127(raw_reg):
-                vtype = "Ikarus V127"
-            elif is_karsan(raw_reg):
-                vtype = "Karsan Atak"
-            elif is_mbc2(raw_reg):
-                vtype = "Mercedes-Benz C2"
-            elif is_volvo7000(raw_reg):
-                vtype = "Volvo 7000"
-            elif is_mbc2g(raw_reg):
-                vtype = "Mercedes-Benz C2G"
-            elif is_vhag318(raw_reg):
-                vtype = "VanHool AG318"
-            elif is_volvo7900H(raw_reg):
-                vtype = "Volvo 7900H"
-            elif is_mbO530f(raw_reg):
-                vtype = "Mercedes-Benz O530 facelift"
-            elif is_moduloC68E(raw_reg):
-                vtype = "MABI Modulo C68E"
-            elif is_urbIII10(raw_reg):
-                vtype = "Solaris Urbino III 10"
-            elif is_vehixel(raw_reg):
-                vtype = "Vehixel Cytios 3/23"
-            elif is_mbO530K(raw_reg):
-                vtype = "Mercedes-Benz O530K Citaro K"
-            elif is_eurosprinter(raw_reg):
-                vtype = "Euro Limbus Sprinter"
-            elif is_mbO530G(raw_reg):
-                vtype = "Mercedes-Benz O530G Citaro G"
-            elif is_urbIII8(raw_reg):
-                vtype = "Solaris Urbino III 8.9 LE"
-            elif is_vhnewa330(raw_reg):
-                vtype = "VanHool newA330"
-            elif is_ik187(raw_reg):
-                vtype = "Ikarus V187"
-            elif is_itkreform(raw_reg):
-                vtype = "ITK Reform-S City Max"
-            elif is_sprinter65(raw_reg):
-                vtype = "Mercedes-Benz Sprinter City 65"
-            elif is_citymax(raw_reg):
-                vtype = "TS City Max"
-            elif is_bydb12(raw_reg):
-                vtype = "BYD B12E03 (B12.b)"
-            elif is_bydb19(raw_reg):
-                vtype = "BYD B19E01"
-            elif is_arrivacon(raw_reg):
-                vtype = "Mercedes-Benz Conecto II G"
-            elif is_arrivac2(raw_reg):
-                vtype = "Mercedes-Benz Citaro C2 G"
-                if raw_reg in ["MZC880"]:
-                    vtype = "Mercedes-Benz Citaro C2"
-            elif is_arriva12c(raw_reg):
-                vtype = "MAN 12C Lion's City 12 NL280"
-            elif is_arriva18c(raw_reg):
-                vtype = "MAN 18C Lion's City 18 NG330"
-            elif is_arrivaa21(raw_reg):
-                vtype = "MAN A21 Lion's City NL283"
-            elif is_vol12c(raw_reg):
-                vtype = "MAN 12C Lion's City 12 G NL320"
-            elif is_vol7900a(raw_reg):
-                vtype = "Volvo 7900A"
-            elif is_volcon(raw_reg):
-                vtype = "Mercedes-Benz Conecto III G"
-            elif is_volcitaro(raw_reg):
-                vtype = "Mercedes-Benz eCitaro"
-            elif is_ganz_troli(raw_reg):
-                if raw_reg in ["T0601", "T0602", "T0603", "T0604", "T0605", "T0606"]:
-                    vtype = " Ganz-Solaris Trolino 12B"
-                elif raw_reg in ["T0607", "T0608", "T0609", "T0610", "T0611", "T0612", "T0613", "T0614", "T0615", "T0616"]:
-                    vtype = " Ganz-Škoda-Solaris Trolino 12B"
-                elif raw_reg in {"T0620", "T0621", "T0622", "T0623", "T0624", "T0625", "T0626"}:
-                    vtype = "Ganz-Škoda-Solaris Trolino 12D"                
-
-        # ─────────────────────────────
-        # PÓTLÓBUSZ DETEKTÁLÁS
-        # ─────────────────────────────
-        is_replacement = (
-            route_input in TRAM_LINES or
-            route_input in TROLLEY_LINES or
-            route_input in HEV_LINES
-        ) and is_bus_replacement_plate(reg)
-
-        # ─────────────────────────────
-        # NORMÁL BUSZ DETEKTÁLÁS VILLAMOS/TROLI VONALON
-        # ─────────────────────────────
+        is_replacement = (route_input in TRAM_LINES or route_input in TROLLEY_LINES or route_input in HEV_LINES) and is_bus_replacement_plate(reg)
         is_normal_bus_on_special_line = False
-        
-        is_normal_bus = (
-            is_mbconiii(raw_reg) or is_mbconiiig(raw_reg) or is_volvo7700a(raw_reg) or
-            is_mbconii(raw_reg) or is_mbc2k(raw_reg) or is_mbconiig(raw_reg) or
-            is_modulo108D(raw_reg) or is_vhnew330cng(raw_reg) or is_vhnewag300(raw_reg) or
-            is_mbO530(raw_reg) or is_volvo7700H(raw_reg) or is_volvo7700(raw_reg) or
-            is_modulo168D(raw_reg) or is_mbO530fG(raw_reg) or is_ik127(raw_reg) or
-            is_karsan(raw_reg) or is_mbc2(raw_reg) or is_volvo7000(raw_reg) or
-            is_mbc2g(raw_reg) or is_vhag318(raw_reg) or is_volvo7900H(raw_reg) or
-            is_mbO530f(raw_reg) or is_moduloC68E(raw_reg) or is_urbIII10(raw_reg) or
-            is_vehixel(raw_reg) or is_mbO530K(raw_reg) or is_eurosprinter(raw_reg) or
-            is_mbO530G(raw_reg) or is_urbIII8(raw_reg) or is_vhnewa330(raw_reg) or
-            is_ik187(raw_reg) or is_itkreform(raw_reg) or is_sprinter65(raw_reg) or
-            is_citymax(raw_reg) or is_bydb12(raw_reg) or is_bydb19(raw_reg) or
-            is_arrivacon(raw_reg) or is_arrivac2(raw_reg) or is_arriva12c(raw_reg) or
-            is_arriva18c(raw_reg) or is_arrivaa21(raw_reg) or is_vol12c(raw_reg) or
-            is_vol7900a(raw_reg) or is_volcon(raw_reg)
-        )
+        is_normal_bus = (is_mbconiii(raw_reg) or is_mbconiiig(raw_reg) or is_volvo7700a(raw_reg) or is_mbconii(raw_reg) or is_mbc2k(raw_reg) or is_mbconiig(raw_reg) or is_modulo108D(raw_reg) or is_vhnew330cng(raw_reg) or is_vhnewag300(raw_reg) or is_mbO530(raw_reg) or is_volvo7700H(raw_reg) or is_volvo7700(raw_reg) or is_modulo168D(raw_reg) or is_mbO530fG(raw_reg) or is_ik127(raw_reg) or is_karsan(raw_reg) or is_mbc2(raw_reg) or is_volvo7000(raw_reg) or is_mbc2g(raw_reg) or is_vhag318(raw_reg) or is_volvo7900H(raw_reg) or is_mbO530f(raw_reg) or is_moduloC68E(raw_reg) or is_urbIII10(raw_reg) or is_vehixel(raw_reg) or is_mbO530K(raw_reg) or is_eurosprinter(raw_reg) or is_mbO530G(raw_reg) or is_urbIII8(raw_reg) or is_vhnewa330(raw_reg) or is_ik187(raw_reg) or is_itkreform(raw_reg) or is_sprinter65(raw_reg) or is_citymax(raw_reg) or is_bydb12(raw_reg) or is_bydb19(raw_reg) or is_arrivacon(raw_reg) or is_arrivac2(raw_reg) or is_arriva12c(raw_reg) or is_arriva18c(raw_reg) or is_arrivaa21(raw_reg) or is_vol12c(raw_reg) or is_vol7900a(raw_reg) or is_volcon(raw_reg))
         
         if is_normal_bus and not is_replacement:
             if route_input in TRAM_LINES or route_input in TROLLEY_LINES:
                 is_normal_bus_on_special_line = True
 
-        # Check if this vehicle is from a replacement line
         is_from_replacement_line = public_id in {f"OP{route_input}", f"VP{route_input}"}
         
         active[reg] = {
@@ -4903,23 +4685,16 @@ async def all(ctx, route_id: str):
             "replacement": is_replacement,
             "bus_on_special": is_normal_bus_on_special_line,
             "public_route_id": public_id,
-            "is_from_replacement_line": is_from_replacement_line
+            "is_from_replacement_line": is_from_replacement_line,
+            "forgalmi": f_num
         }
         
     if not active:
         return await ctx.send(f"❗ Nincs aktív jármű a *{route_input}* vonalon.")
 
-    # ─────────────────────────────
-    # EMBED
-    # ─────────────────────────────
     MAX_FIELDS = 20
-    MAX_VALUE_LENGTH = 1024
-
     embeds = []
-
-    has_replacement_line_vehicles = any(v.get("is_from_replacement_line") for v in active.values())
-
-    if has_replacement_line_vehicles:
+    if any(v.get("is_from_replacement_line") for v in active.values()):
         embed_title_base = f"{title_prefix} {route_input} (+ OP{route_input}, VP{route_input})"
     else:
         embed_title_base = f"{title_prefix} {route_input}"
@@ -4928,44 +4703,106 @@ async def all(ctx, route_id: str):
     field_count = 0
 
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
-
         value = (
             f"Típus: {i['type']}\n"
             f"Cél: {i['dest']}\n"
+            f"📌 Forgalmi: {i['forgalmi']}\n"
             f"Környező megálló: {i['stop']}\n"
         )
+        if i["replacement"]: value += "\n🚧 Pótlóbusz"
+        if i["is_from_replacement_line"]: value += f"\n🔄 Pótlóvonal: {i['public_route_id']}"
+        if len(value) > 1024: value = value[:1020] + "..."
 
-        if i["replacement"]:
-            value += "\n🚧 Pótlóbusz"
-
-        if i["is_from_replacement_line"]:
-            value += f"\n🔄 Pótlóvonal: {i['public_route_id']}"
-
-        # 🔥 LIMITÁLÁS (EZ A KULCS)
-        if len(value) > MAX_VALUE_LENGTH:
-            value = value[:1020] + "..."
-
-        # ───── FIELD HOZZÁADÁS (CSAK EGYSZER!) ─────
-        embed.add_field(
-            name=i["display_reg"],
-            value=value,
-            inline=False
-        )
-
+        embed.add_field(name=i["display_reg"], value=value, inline=False)
         field_count += 1
-
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(
-                title=f"{embed_title_base} (folytatás)",
-                color=color
-            )
+            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=color)
             field_count = 0
-
     embeds.append(embed)
+    for e in embeds: await ctx.send(embed=e)
 
-    for e in embeds:
-        await ctx.send(embed=e)        
+@bot.command()
+async def forgalmi(ctx, route_input: str, date_input: str = None):
+    """Kiírja az adott vonal fordáit. Opcionálisan nap is megadható."""
+    if "/" in route_input:
+        route_name_str, forgalmi_str = route_input.split("/", 1)
+        try:
+            target_forgalmi = int(forgalmi_str)
+        except ValueError:
+            await ctx.send("❌ Hibás forgalmi szám.")
+            return
+    else:
+        route_name_str = route_input
+        target_forgalmi = None
+
+    raw_input = route_name_str.strip().upper()
+    encoded_id = encode_line(raw_input)
+
+    matching_rids = {encoded_id, raw_input}
+    for rid, name in ROUTE_NAMES.items():
+        if name.upper() == raw_input:
+            matching_rids.add(rid)
+
+    if date_input:
+        if date_input.endswith("d"):
+            days = int(date_input[:-1])
+            date = datetime.now().date() + timedelta(days=days)
+        else:
+            date = datetime.strptime(date_input, "%Y-%m-%d").date()
+    else:
+        date = datetime.now().date()
+
+    result = []
+    for rid in matching_rids:
+        for dfid, trips in ROUTES.get(rid, {}).items():
+            if target_forgalmi is not None:
+                if forgalmi_from_dfid(dfid) != target_forgalmi:
+                    continue
+
+            active = [t for t in trips if service_active(t["service_id"], date)]
+            if active:
+                result.append({
+                    "dfid": dfid,
+                    "forgalmi": forgalmi_from_dfid(dfid),
+                    "trips": active
+                })
+
+    if not result:
+        return await ctx.send("❗ Nincs aktív forda ezen a vonalon/napon.")
+
+    result.sort(key=lambda r: tsec(r["trips"][0]["first_time"]))
+
+    decoded_name = decode_line(raw_input)
+    display_title = decoded_name if decoded_name != "—" and decoded_name != raw_input else raw_input
+
+    embed = discord.Embed(
+        title=f"📋 {display_title}{'/' + str(target_forgalmi) if target_forgalmi else ''} – fordák ({date})",
+        color=discord.Color.green()
+    )
+
+    MAX = 950
+    ZERO_WIDTH = "\u200b"
+
+    for r in result:
+        header = f"🚌 {r['dfid']} (Forgalmi: {r['forgalmi']})"
+        buffer = ""
+        first = True
+
+        for t in r["trips"]:
+            line = f"• **{t['first_time']}** {t['first_stop']} → **{t['last_time']}** {t['last_stop']}\n"
+            if len(buffer) + len(line) > MAX:
+                embed.add_field(name=header if first else ZERO_WIDTH, value=buffer.rstrip(), inline=False)
+                buffer = line
+                first = False
+            else:
+                buffer += line
+
+        if buffer.strip():
+            embed.add_field(name=header if first else ZERO_WIDTH, value=buffer.rstrip(), inline=False)
+
+    await ctx.send(embed=embed)
+        
 # ─────────────────────────────────────────────
 # AUTOMATIKUS FIGYELÉS
 # - pótlások
