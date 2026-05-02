@@ -301,6 +301,45 @@ def fetch_txt_raw() -> str:
     r = _http_get(TXT_URL)
     return r.text or ""
 
+def _extract_first_proto_block(raw: str) -> str:
+    lines = raw.splitlines()
+    start_index = None
+
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("entity {"):
+            start_index = i
+            break
+
+    if start_index is None:
+        for i, line in enumerate(lines):
+            if line.strip():
+                start_index = i
+                break
+
+    if start_index is None:
+        return ""
+
+    block_lines = []
+    depth = 0
+    started = False
+
+    for line in lines[start_index:]:
+        block_lines.append(line)
+        opened = line.count("{")
+        closed = line.count("}")
+
+        if not started and opened > 0:
+            started = True
+
+        if started:
+            depth += opened - closed
+            if depth == 0:
+                break
+
+    return "\n".join(block_lines).strip()
+
+
 def print_first_api_block() -> None:
     try:
         raw = fetch_txt_raw()
@@ -308,13 +347,13 @@ def print_first_api_block() -> None:
         print(f"Hiba az API első blokk lekérésekor: {e}")
         return
 
-    blocks = [block for block in raw.split("\n\n") if block.strip()]
-    if not blocks:
+    first_block = _extract_first_proto_block(raw)
+    if not first_block:
         print("Nem találtam első blokkot az API válaszában.")
         return
 
     print("API első blokk:")
-    print(blocks[0].strip())
+    print(first_block)
 
 # ─────────────────────────────────────────────
 # GTFS SEGÉD
