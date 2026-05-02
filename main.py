@@ -4477,7 +4477,7 @@ async def nosztalgia(ctx):
     embeds = []
 
     embed = discord.Embed(
-        title="Aktív nosztalgia járművek",
+        title=":uv: Aktív nosztalgia járművek",
         color=0xFF9913
     )
     field_count = 0
