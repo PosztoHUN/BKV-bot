@@ -1878,9 +1878,7 @@ async def update_active_today():
 @tasks.loop(seconds=30)
 async def logger_loop():
     vehicles_data = await fetch_vehicles()
-
-    if not vehicles_data:
-        return
+    if not vehicles_data: return
 
     for v in vehicles_data:
         try:
@@ -1891,17 +1889,11 @@ async def logger_loop():
             dest = v.get("label", "Ismeretlen")
             trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
 
-            if not reg or lat is None or lon is None:
-                continue
-
-            if not in_bbox(lat, lon):
-                continue
-
-            if not trip_id:
-                continue
+            if not reg or lat is None or lon is None: continue
+            if not in_bbox(lat, lon): continue
+            if not trip_id: continue
 
             save_trip(trip_id, line, reg, dest)
-
         except Exception:
             continue
 
@@ -5016,6 +5008,87 @@ async def vehicle_alert_task():
                 embed.add_field(name="📌 Menetrendi forgalmi", value=f or "?", inline=False)
 
                 await ch.send(embed=embed)
+                
+@bot.command()
+async def forgalmi(ctx, route_input: str, date_input: str = None):
+    """Kiírja az adott vonal fordáit. Opcionálisan nap is megadható."""
+    if "/" in route_input:
+        route_name_str, forgalmi_str = route_input.split("/", 1)
+        try:
+            target_forgalmi = int(forgalmi_str)
+        except ValueError:
+            await ctx.send("❌ Hibás forgalmi szám.")
+            return
+    else:
+        route_name_str = route_input
+        target_forgalmi = None
+
+    raw_input = route_name_str.strip().upper()
+    encoded_id = encode_line(raw_input)
+
+    matching_rids = {encoded_id, raw_input}
+    for rid, name in ROUTE_NAMES.items():
+        if name.upper() == raw_input:
+            matching_rids.add(rid)
+
+    if date_input:
+        if date_input.endswith("d"):
+            days = int(date_input[:-1])
+            date = datetime.now().date() + timedelta(days=days)
+        else:
+            date = datetime.strptime(date_input, "%Y-%m-%d").date()
+    else:
+        date = datetime.now().date()
+
+    result = []
+    for rid in matching_rids:
+        for dfid, trips in ROUTES.get(rid, {}).items():
+            if target_forgalmi is not None:
+                if forgalmi_from_dfid(dfid) != target_forgalmi:
+                    continue
+
+            active = [t for t in trips if service_active(t["service_id"], date)]
+            if active:
+                result.append({
+                    "dfid": dfid,
+                    "forgalmi": forgalmi_from_dfid(dfid),
+                    "trips": active
+                })
+
+    if not result:
+        return await ctx.send("❗ Nincs aktív forda ezen a vonalon/napon.")
+
+    result.sort(key=lambda r: tsec(r["trips"][0]["first_time"]))
+
+    decoded_name = decode_line(raw_input)
+    display_title = decoded_name if decoded_name != "—" and decoded_name != raw_input else raw_input
+
+    embed = discord.Embed(
+        title=f"📋 {display_title}{'/' + str(target_forgalmi) if target_forgalmi else ''} – fordák ({date})",
+        color=discord.Color.green()
+    )
+
+    MAX = 950
+    ZERO_WIDTH = "\u200b"
+
+    for r in result:
+        header = f"🚌 {r['dfid']} (Forgalmi: {r['forgalmi']})"
+        buffer = ""
+        first = True
+
+        for t in r["trips"]:
+            line = f"• **{t['first_time']}** {t['first_stop']} → **{t['last_time']}** {t['last_stop']}\n"
+            if len(buffer) + len(line) > MAX:
+                embed.add_field(name=header if first else ZERO_WIDTH, value=buffer.rstrip(), inline=False)
+                buffer = line
+                first = False
+            else:
+                buffer += line
+
+        if buffer.strip():
+            embed.add_field(name=header if first else ZERO_WIDTH, value=buffer.rstrip(), inline=False)
+
+    await ctx.send(embed=embed)
 
 # =======================
 # START
