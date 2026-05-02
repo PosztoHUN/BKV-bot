@@ -301,6 +301,21 @@ def fetch_txt_raw() -> str:
     r = _http_get(TXT_URL)
     return r.text or ""
 
+def print_first_api_block() -> None:
+    try:
+        raw = fetch_txt_raw()
+    except Exception as e:
+        print(f"Hiba az API első blokk lekérésekor: {e}")
+        return
+
+    blocks = [block for block in raw.split("\n\n") if block.strip()]
+    if not blocks:
+        print("Nem találtam első blokkot az API válaszában.")
+        return
+
+    print("API első blokk:")
+    print(blocks[0].strip())
+
 # ─────────────────────────────────────────────
 # GTFS SEGÉD
 # ─────────────────────────────────────────────
@@ -5063,6 +5078,8 @@ async def on_ready():
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
     sys.exit(1)
+
+print_first_api_block()
 
 try:
     bot.run(TOKEN)
