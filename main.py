@@ -18,6 +18,7 @@ from google.transit import gtfs_realtime_pb2
 from zoneinfo import ZoneInfo
 import httpx
 import math
+import gc
 
 # =======================
 # BEÁLLÍTÁSOK
@@ -2887,6 +2888,15 @@ async def send_op_vehicles():
             field_count += 1
         embeds.append(embed)
 
+        # Clean up old embed messages and keep only the current ones
+        if len(embeds) < len(embed_messages):
+            for i in range(len(embeds), len(embed_messages)):
+                try:
+                    await embed_messages[i].delete()
+                except:
+                    pass
+        embed_messages = embed_messages[:len(embeds)]
+
         if not embed_messages:
             embed_messages = []
             for e in embeds:
@@ -2895,7 +2905,8 @@ async def send_op_vehicles():
         else:
             for i, e in enumerate(embeds):
                 if i < len(embed_messages):
-                    try: await embed_messages[i].edit(embed=e)
+                    try: 
+                        await embed_messages[i].edit(embed=e)
                     except discord.NotFound:
                         msg = await channel.send(embed=e)
                         embed_messages[i] = msg
@@ -3445,6 +3456,12 @@ async def vehicle_alert_task():
                     embed.add_field(name="🎯 Cél", value=dest, inline=True)
                     embed.add_field(name="📌 Menetrendi forgalmi", value=f_num, inline=False)
                     await ch.send(embed=embed)
+        
+        # Clean up tracked vehicles that are no longer problematic
+        tracked_potlases_copy = list(tracked_potlases.keys())
+        for vid in tracked_potlases_copy:
+            if vid not in current_potlas_ids:
+                del tracked_potlases[vid]
     except Exception as e:
         print(f"[ERROR] vehicle_alert_task crashed: {e}")
 
@@ -3495,6 +3512,13 @@ async def ganz_monitor():
 # START
 # =======================
 
+@tasks.loop(minutes=5)
+async def memory_cleanup():
+    try:
+        gc.collect()
+    except Exception as e:
+        print(f"[ERROR] memory_cleanup crashed: {e}")
+
 @bot.event
 async def on_ready():
     if getattr(bot, "ready_done", False):
@@ -3511,6 +3535,12 @@ async def on_ready():
             update_active_today.start()
         if not ganz_monitor.is_running():
             ganz_monitor.start()
+        if not send_op_vehicles.is_running():
+            send_op_vehicles.start()
+        if not vehicle_alert_task.is_running():
+            vehicle_alert_task.start()
+        if not memory_cleanup.is_running():
+            memory_cleanup.start()
     except Exception as e:
         print(f"[ERROR] on_ready crashed: {e}")
         import traceback
