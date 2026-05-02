@@ -2849,59 +2849,59 @@ async def send_op_vehicles():
 
         for v in vehicles_data:
             line_id = str(v.get("public_route_id", "—"))
-        if not is_op_line(line_id): continue
+            if not is_op_line(line_id): continue
 
-        reg = v.get("license_plate") or "Ismeretlen"
-        dest = v.get("label") or "Ismeretlen"
-        lat = v.get("lat")
-        lon = v.get("lon")
-        trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
-        vtype = v.get("vehicle_model") or "Ismeretlen"
-        f_num = v.get("forgalmi", "?")
+            reg = v.get("license_plate") or "Ismeretlen"
+            dest = v.get("label") or "Ismeretlen"
+            lat = v.get("lat")
+            lon = v.get("lon")
+            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+            vtype = v.get("vehicle_model") or "Ismeretlen"
+            f_num = v.get("forgalmi", "?")
 
-        if lat is None or lon is None: continue
+            if lat is None or lon is None: continue
 
-        active[reg] = {"line": line_id, "dest": dest, "trip_id": trip_id, "lat": lat, "lon": lon, "type": vtype, "forgalmi": f_num}
+            active[reg] = {"line": line_id, "dest": dest, "trip_id": trip_id, "lat": lat, "lon": lon, "type": vtype, "forgalmi": f_num}
 
-    if not active:
-        if last_active != active:
-            await channel.send("🚫 Nincs aktív OP vonalon járó jármű.")
-            last_active = {}
-        return
+        if not active:
+            if last_active != active:
+                await channel.send("🚫 Nincs aktív OP vonalon járó jármű.")
+                last_active = {}
+            return
 
-    if active == last_active: return
-    last_active = active
+        if active == last_active: return
+        last_active = active
 
-    embeds = []
-    embed_title_base = "🚌 Aktív OP vonalon járó járművek"
-    embed = discord.Embed(title=embed_title_base, color=0x00ff00)
-    field_count = 0
+        embeds = []
+        embed_title_base = "🚌 Aktív OP vonalon járó járművek"
+        embed = discord.Embed(title=embed_title_base, color=0x00ff00)
+        field_count = 0
 
-    for reg, info in sorted(active.items()):
-        value = (f"Vonal: {info['line']}\nCél: {info['dest']}\nTípus: {info['type']}\n📌 Forgalmi: {info['forgalmi']}\nPozíció: {info['lat']:.5f}, {info['lon']:.5f}")
-        if field_count >= MAX_FIELDS:
-            embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
-            field_count = 0
-        embed.add_field(name=reg, value=value, inline=False)
-        field_count += 1
-    embeds.append(embed)
+        for reg, info in sorted(active.items()):
+            value = (f"Vonal: {info['line']}\nCél: {info['dest']}\nTípus: {info['type']}\n📌 Forgalmi: {info['forgalmi']}\nPozíció: {info['lat']:.5f}, {info['lon']:.5f}")
+            if field_count >= MAX_FIELDS:
+                embeds.append(embed)
+                embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
+                field_count = 0
+            embed.add_field(name=reg, value=value, inline=False)
+            field_count += 1
+        embeds.append(embed)
 
-    if not embed_messages:
-        embed_messages = []
-        for e in embeds:
-            msg = await channel.send(embed=e)
-            embed_messages.append(msg)
-    else:
-        for i, e in enumerate(embeds):
-            if i < len(embed_messages):
-                try: await embed_messages[i].edit(embed=e)
-                except discord.NotFound:
-                    msg = await channel.send(embed=e)
-                    embed_messages[i] = msg
-            else:
+        if not embed_messages:
+            embed_messages = []
+            for e in embeds:
                 msg = await channel.send(embed=e)
                 embed_messages.append(msg)
+        else:
+            for i, e in enumerate(embeds):
+                if i < len(embed_messages):
+                    try: await embed_messages[i].edit(embed=e)
+                    except discord.NotFound:
+                        msg = await channel.send(embed=e)
+                        embed_messages[i] = msg
+                else:
+                    msg = await channel.send(embed=e)
+                    embed_messages.append(msg)
     except Exception as e:
         print(f"[ERROR] send_op_vehicles crashed: {e}")
 
