@@ -5283,17 +5283,24 @@ async def on_ready():
     if getattr(bot, "ready_done", False):
         return
     bot.ready_done = True
+
     ensure_dirs()
-    load_gtfs()
     print(f"Bejelentkezve mint {bot.user}")
 
-    if not logger_loop.is_running(): logger_loop.start()
-    if not update_active_today.is_running(): update_active_today.start()
-    if not ganz_monitor.is_running(): ganz_monitor.start()
+    if not logger_loop.is_running():
+        logger_loop.start()
+
+    if not update_active_today.is_running():
+        update_active_today.start()
+
+    if not ganz_monitor.is_running():
+        ganz_monitor.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
     sys.exit(1)
+
+print_first_api_block()
 
 try:
     bot.run(TOKEN)
