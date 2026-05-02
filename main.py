@@ -4794,7 +4794,7 @@ async def all(ctx, route_id: str):
         value = (
             f"Típus: {i['type']}\n"
             f"Cél: {i['dest']}\n"
-            f"📌 Forgalmi: {i['forgalmi']}\n"
+            f"Forgalmi: {i['forgalmi']}\n"
             f"Környező megálló: {i['stop']}\n"
         )
         if i["replacement"]: value += "\n🚧 Pótlóbusz"
