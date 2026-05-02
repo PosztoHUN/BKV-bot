@@ -1240,86 +1240,89 @@ def save_trip(trip_id, line, vehicle, dest):
 
 @tasks.loop(minutes=3)
 async def update_active_today():
-    vehicles_data = await fetch_vehicles()
+    try:
+        vehicles_data = await fetch_vehicles()
 
-    if not vehicles_data:
-        return
+        if not vehicles_data:
+            return
 
-    active_today_villamos.clear()
-    active_today_combino.clear()
-    active_today_caf5.clear()
-    active_today_caf9.clear()
-    active_today_tatra.clear()
+        active_today_villamos.clear()
+        active_today_combino.clear()
+        active_today_caf5.clear()
+        active_today_caf9.clear()
+        active_today_tatra.clear()
 
-    for v in vehicles_data:
-        reg = v.get("license_plate")
-        line_id = str(v.get("public_route_id", "—"))
-        line_name = decode_line(line_id)
-        dest = v.get("label", "Ismeretlen")
-        lat = v.get("lat")
-        lon = v.get("lon")
-        model = (v.get("vehicle_model") or "").lower()
+        for v in vehicles_data:
+            reg = v.get("license_plate")
+            line_id = str(v.get("public_route_id", "—"))
+            line_name = decode_line(line_id)
+            dest = v.get("label", "Ismeretlen")
+            lat = v.get("lat")
+            lon = v.get("lon")
+            model = (v.get("vehicle_model") or "").lower()
 
-        if not reg or lat is None or lon is None:
-            continue
-
-        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
-            continue
-
-        if (
-            "ganz" in model
-            or is_tw6000(reg)
-            or is_combino(reg)
-            or is_caf5(reg)
-            or is_caf9(reg)
-            or is_t5c5(reg)
-            or is_oktato(reg)
-        ):
-            if is_ganz_troli(reg):
+            if not reg or lat is None or lon is None:
                 continue
 
-            now = datetime.now(UTC)
+            if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+                continue
 
-            entry = active_today_villamos.setdefault(
-                reg,
-                {"line": line_name, "dest": dest, "first": None, "last": None}
-            )
+            if (
+                "ganz" in model
+                or is_tw6000(reg)
+                or is_combino(reg)
+                or is_caf5(reg)
+                or is_caf9(reg)
+                or is_t5c5(reg)
+                or is_oktato(reg)
+            ):
+                if is_ganz_troli(reg):
+                    continue
 
-            if not entry["first"]:
-                entry["first"] = now
-            entry["last"] = now
+                now = datetime.now(UTC)
 
-            if is_combino(reg):
-                entry_c = active_today_combino.setdefault(
-                    reg, {"line": line_name, "dest": dest, "first": None, "last": None}
+                entry = active_today_villamos.setdefault(
+                    reg,
+                    {"line": line_name, "dest": dest, "first": None, "last": None}
                 )
-                if not entry_c["first"]:
-                    entry_c["first"] = now
-                entry_c["last"] = now
 
-            if is_caf5(reg):
-                entry_c = active_today_caf5.setdefault(
-                    reg, {"line": line_name, "dest": dest, "first": None, "last": None}
-                )
-                if not entry_c["first"]:
-                    entry_c["first"] = now
-                entry_c["last"] = now
+                if not entry["first"]:
+                    entry["first"] = now
+                entry["last"] = now
 
-            if is_caf9(reg):
-                entry_c = active_today_caf9.setdefault(
-                    reg, {"line": line_name, "dest": dest, "first": None, "last": None}
-                )
-                if not entry_c["first"]:
-                    entry_c["first"] = now
-                entry_c["last"] = now
+                if is_combino(reg):
+                    entry_c = active_today_combino.setdefault(
+                        reg, {"line": line_name, "dest": dest, "first": None, "last": None}
+                    )
+                    if not entry_c["first"]:
+                        entry_c["first"] = now
+                    entry_c["last"] = now
 
-            if is_t5c5(reg):
-                entry_c = active_today_tatra.setdefault(
-                    reg, {"line": line_name, "dest": dest, "first": None, "last": None}
-                )
-                if not entry_c["first"]:
-                    entry_c["first"] = now
-                entry_c["last"] = now
+                if is_caf5(reg):
+                    entry_c = active_today_caf5.setdefault(
+                        reg, {"line": line_name, "dest": dest, "first": None, "last": None}
+                    )
+                    if not entry_c["first"]:
+                        entry_c["first"] = now
+                    entry_c["last"] = now
+
+                if is_caf9(reg):
+                    entry_c = active_today_caf9.setdefault(
+                        reg, {"line": line_name, "dest": dest, "first": None, "last": None}
+                    )
+                    if not entry_c["first"]:
+                        entry_c["first"] = now
+                    entry_c["last"] = now
+
+                if is_t5c5(reg):
+                    entry_c = active_today_tatra.setdefault(
+                        reg, {"line": line_name, "dest": dest, "first": None, "last": None}
+                    )
+                    if not entry_c["first"]:
+                        entry_c["first"] = now
+                    entry_c["last"] = now
+    except Exception as e:
+        print(f"[ERROR] update_active_today crashed: {e}")
 
 # =======================
 # PARANCSOK
@@ -2833,18 +2836,19 @@ embed_messages = []
 
 @tasks.loop(minutes=1)
 async def send_op_vehicles():
-    global last_active, embed_messages
-    channel = bot.get_channel(BOT_CHANNEL_ID)
-    if not channel: return
+    try:
+        global last_active, embed_messages
+        channel = bot.get_channel(BOT_CHANNEL_ID)
+        if not channel: return
 
-    active = {}
-    vehicles_data = await fetch_vehicles()
-    if not vehicles_data:
-        await channel.send("❌ Nem sikerült lekérni az adatokat az API-ból.")
-        return
+        active = {}
+        vehicles_data = await fetch_vehicles()
+        if not vehicles_data:
+            await channel.send("❌ Nem sikerült lekérni az adatokat az API-ból.")
+            return
 
-    for v in vehicles_data:
-        line_id = str(v.get("public_route_id", "—"))
+        for v in vehicles_data:
+            line_id = str(v.get("public_route_id", "—"))
         if not is_op_line(line_id): continue
 
         reg = v.get("license_plate") or "Ismeretlen"
@@ -2898,6 +2902,8 @@ async def send_op_vehicles():
             else:
                 msg = await channel.send(embed=e)
                 embed_messages.append(msg)
+    except Exception as e:
+        print(f"[ERROR] send_op_vehicles crashed: {e}")
 
 @bot.command()
 async def nosztalgia(ctx):
@@ -3375,47 +3381,51 @@ import time
 
 @tasks.loop(seconds=30)
 async def logger_loop():
-    vehicles_data = await fetch_vehicles()
-    if not vehicles_data: return
+    try:
+        vehicles_data = await fetch_vehicles()
+        if not vehicles_data: return
 
-    for v in vehicles_data:
-        try:
-            reg = v.get("license_plate")
-            lat = v.get("lat")
-            lon = v.get("lon")
-            line = str(v.get("public_route_id", "—"))
-            dest = v.get("label", "Ismeretlen")
-            trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
+        for v in vehicles_data:
+            try:
+                reg = v.get("license_plate")
+                lat = v.get("lat")
+                lon = v.get("lon")
+                line = str(v.get("public_route_id", "—"))
+                dest = v.get("label", "Ismeretlen")
+                trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
 
-            if not reg or lat is None or lon is None: continue
+                if not reg or lat is None or lon is None: continue
             if not in_bbox(lat, lon): continue
             if not trip_id: continue
 
             save_trip(trip_id, line, reg, dest)
         except Exception:
             continue
+    except Exception as e:
+        print(f"[ERROR] logger_loop crashed: {e}")
 
 @tasks.loop(minutes=1)
 async def vehicle_alert_task():
-    ch = bot.get_channel(1489320701532963040)
-    if not ch: return
+    try:
+        ch = bot.get_channel(1489320701532963040)
+        if not ch: return
 
-    vehicles_data = await fetch_vehicles()
-    if not vehicles_data: return
+        vehicles_data = await fetch_vehicles()
+        if not vehicles_data: return
 
-    current_potlas_ids = set()
+        current_potlas_ids = set()
 
-    for v in vehicles_data:
-        vid_raw = v.get("vehicle_id", "")
-        vid = normalize_vid(vid_raw)
-        route_raw = v.get("public_route_id", "")
-        route = normalize_route(route_raw)
-        dest = v.get("label", "-")
-        model = (v.get("vehicle_model") or "").lower()
-        plate = v.get("license_plate", "N/A")
-        f_num = v.get("forgalmi", "?")
+        for v in vehicles_data:
+            vid_raw = v.get("vehicle_id", "")
+            vid = normalize_vid(vid_raw)
+            route_raw = v.get("public_route_id", "")
+            route = normalize_route(route_raw)
+            dest = v.get("label", "-")
+            model = (v.get("vehicle_model") or "").lower()
+            plate = v.get("license_plate", "N/A")
+            f_num = v.get("forgalmi", "?")
 
-        potlas_type = None
+            potlas_type = None
 
         if route not in IGNORED_ROUTES:
             if "ganz" in model or "solaris" in model:
@@ -3435,6 +3445,8 @@ async def vehicle_alert_task():
                 embed.add_field(name="🎯 Cél", value=dest, inline=True)
                 embed.add_field(name="📌 Menetrendi forgalmi", value=f_num, inline=False)
                 await ch.send(embed=embed)
+    except Exception as e:
+        print(f"[ERROR] vehicle_alert_task crashed: {e}")
 
 # =======================
 # AUTOMATIKUS FIGYELÉS (GANZ MONITOR)
@@ -3449,11 +3461,12 @@ import time
 
 @tasks.loop(seconds=30)
 async def ganz_monitor():
-    global last_alert_time
-    ch = bot.get_channel(ALERT_CHANNEL_ID)
-    if not ch: return
+    try:
+        global last_alert_time
+        ch = bot.get_channel(ALERT_CHANNEL_ID)
+        if not ch: return
 
-    ganz_wrong = []
+        ganz_wrong = []
     vehicles_data = await fetch_vehicles()
     if not vehicles_data: return
 
@@ -3475,6 +3488,8 @@ async def ganz_monitor():
         for reg, line, model in ganz_wrong[:10]:
             msg += f"• {reg} → {line} ({model})\n"
         await ch.send(msg)
+    except Exception as e:
+        print(f"[ERROR] ganz_monitor crashed: {e}")
 
 # =======================
 # START
@@ -3485,13 +3500,21 @@ async def on_ready():
     if getattr(bot, "ready_done", False):
         return
     bot.ready_done = True
-    ensure_dirs()
-    load_gtfs()
-    print(f"Bejelentkezve mint {bot.user}")
+    try:
+        ensure_dirs()
+        load_gtfs()
+        print(f"Bejelentkezve mint {bot.user}")
 
-    if not logger_loop.is_running(): logger_loop.start()
-    if not update_active_today.is_running(): update_active_today.start()
-    if not ganz_monitor.is_running(): ganz_monitor.start()
+        if not logger_loop.is_running():
+            logger_loop.start()
+        if not update_active_today.is_running():
+            update_active_today.start()
+        if not ganz_monitor.is_running():
+            ganz_monitor.start()
+    except Exception as e:
+        print(f"[ERROR] on_ready crashed: {e}")
+        import traceback
+        traceback.print_exc()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
