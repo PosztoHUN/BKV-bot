@@ -1952,7 +1952,7 @@ async def hev(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title="🚆 Aktív HÉVek", color=0x003200)
+    embed = discord.Embed(title="<:mx:1500148914819698718> Aktív HÉVek", color=0x003200)
     field_count = 0
 
     for reg, i in sorted(active.items()):
@@ -1965,7 +1965,7 @@ async def hev(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="🚆 Aktív HÉVek (folytatás)", color=0x003200)
+            embed = discord.Embed(title="<:mx:1500148914819698718> Aktív HÉVek (folytatás)", color=0x003200)
             field_count = 0
 
         embed.add_field(name=str(reg), value=value, inline=False)
@@ -2131,13 +2131,13 @@ async def bkvkcsv7(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title=":ics: Aktív Ganz KCSV7 villamosok", color=0xFFD800)
+    embed = discord.Embed(title="<:ics:1500148218250399804> Aktív Ganz KCSV7 villamosok", color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=":ics: Aktív Ganz KCSV7 villamosok (folytatás)", color=0xFFD800)
+            embed = discord.Embed(title="<:ics:1500148218250399804> Aktív Ganz KCSV7 villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
         line = i["line"]
@@ -2189,13 +2189,13 @@ async def bkvics(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title=":ics: Aktív Ganz ICS villamosok", color=0xFFD800)
+    embed = discord.Embed(title="<:ics:1500148218250399804> Aktív Ganz ICS villamosok", color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=":ics: Aktív Ganz ICS villamosok (folytatás)", color=0xFFD800)
+            embed = discord.Embed(title="<:ics:1500148218250399804> Aktív Ganz ICS villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_ICS else f"Vonal: {i['line']}"
@@ -2266,13 +2266,13 @@ async def bkvtw6000(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title=":tw6000: Aktív TW6000-es villamosok", color=0xFFD800)
+    embed = discord.Embed(title="<:tw6000:1500148564024627421> Aktív TW6000-es villamosok", color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=":tw6000: Aktív TW6000-es villamosok (folytatás)", color=0xFFD800)
+            embed = discord.Embed(title="<:tw6000:1500148564024627421> Aktív TW6000-es villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_TW else f"Vonal: {i['line']}"
@@ -2326,13 +2326,13 @@ async def bkvcombino(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed = discord.Embed(title=":combino: Aktív Combino villamosok", color=0xFFD800)
+    embed = discord.Embed(title="<:combino:1500148629921464511> Aktív Combino villamosok", color=0xFFD800)
     field_count = 0
 
     for reg, i in sorted(active.items()):
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title=":combino: Aktív Combino villamosok (folytatás)", color=0xFFD800)
+            embed = discord.Embed(title="<:combino:1500148629921464511> Aktív Combino villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
         line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_COMBINO else f"Vonal: {i['line']}"
@@ -2442,7 +2442,7 @@ async def bkvcaf5(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = ":caf: Aktív CAF Urbos 3 (5 modulos) villamosok"
+    embed_title_base = "<:caf:1500148723068567622> Aktív CAF Urbos 3 (5 modulos) villamosok"
     embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
@@ -2497,7 +2497,7 @@ async def bkvcaf9(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = ":caf: Aktív CAF Urbos 3 (9 modulos) villamosok"
+    embed_title_base = "<:caf:1500148723068567622> Aktív CAF Urbos 3 (9 modulos) villamosok"
     embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
@@ -2552,7 +2552,7 @@ async def bkvt5c5(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = ":t5c5: Aktív T5C5 villamosok"
+    embed_title_base = "<:t5c5:1500147879346438325> Aktív T5C5 villamosok"
     embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
@@ -2607,7 +2607,7 @@ async def bkvt5c5k2(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = ":t5c5: Aktív T5C5K2 villamosok"
+    embed_title_base = "<:t5c5:1500147879346438325> Aktív T5C5K2 villamosok"
     embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
@@ -2662,7 +2662,7 @@ async def bkvfogas(ctx):
 
     MAX_FIELDS = 20
     embeds = []
-    embed_title_base = ":fogas: Aktív Fogaskerekűek"
+    embed_title_base = "<:fogas:1500148790395408665> Aktív Fogaskerekűek"
     embed = discord.Embed(title=embed_title_base, color=0xFFD800)
     field_count = 0
 
@@ -4477,7 +4477,7 @@ async def nosztalgia(ctx):
     embeds = []
 
     embed = discord.Embed(
-        title=":uv: Aktív nosztalgia járművek",
+        title="<:uv:1500148272075903167> Aktív nosztalgia járművek",
         color=0xFF9913
     )
     field_count = 0
