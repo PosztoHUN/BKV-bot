@@ -3395,12 +3395,12 @@ async def logger_loop():
                 trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
 
                 if not reg or lat is None or lon is None: continue
-            if not in_bbox(lat, lon): continue
-            if not trip_id: continue
+                if not in_bbox(lat, lon): continue
+                if not trip_id: continue
 
-            save_trip(trip_id, line, reg, dest)
-        except Exception:
-            continue
+                save_trip(trip_id, line, reg, dest)
+            except Exception:
+                continue
     except Exception as e:
         print(f"[ERROR] logger_loop crashed: {e}")
 
@@ -3427,24 +3427,24 @@ async def vehicle_alert_task():
 
             potlas_type = None
 
-        if route not in IGNORED_ROUTES:
-            if "ganz" in model or "solaris" in model:
-                if route not in ALLOWED_GANZ_ROUTES:
-                    potlas_type = "GST / Ganz-Solaris Trollino 12"
+            if route not in IGNORED_ROUTES:
+                if "ganz" in model or "solaris" in model:
+                    if route not in ALLOWED_GANZ_ROUTES:
+                        potlas_type = "GST / Ganz-Solaris Trollino 12"
 
-            if "412" in model and route not in ALLOWED_412_ROUTES and f_num != "?":
-                potlas_type = "Ikarus 412T"
+                if "412" in model and route not in ALLOWED_412_ROUTES and f_num != "?":
+                    potlas_type = "Ikarus 412T"
 
-        if potlas_type:
-            current_potlas_ids.add(vid)
-            if vid not in tracked_potlases or tracked_potlases[vid] != dest:
-                tracked_potlases[vid] = dest
-                embed = discord.Embed(title=f"🚨 {potlas_type} – pótlás", color=discord.Color.red())
-                embed.add_field(name="🚌 Jármű", value=f"**{plate}**", inline=False)
-                embed.add_field(name="➡ Vonal", value=route, inline=True)
-                embed.add_field(name="🎯 Cél", value=dest, inline=True)
-                embed.add_field(name="📌 Menetrendi forgalmi", value=f_num, inline=False)
-                await ch.send(embed=embed)
+            if potlas_type:
+                current_potlas_ids.add(vid)
+                if vid not in tracked_potlases or tracked_potlases[vid] != dest:
+                    tracked_potlases[vid] = dest
+                    embed = discord.Embed(title=f"🚨 {potlas_type} – pótlás", color=discord.Color.red())
+                    embed.add_field(name="🚌 Jármű", value=f"**{plate}**", inline=False)
+                    embed.add_field(name="➡ Vonal", value=route, inline=True)
+                    embed.add_field(name="🎯 Cél", value=dest, inline=True)
+                    embed.add_field(name="📌 Menetrendi forgalmi", value=f_num, inline=False)
+                    await ch.send(embed=embed)
     except Exception as e:
         print(f"[ERROR] vehicle_alert_task crashed: {e}")
 
@@ -3467,27 +3467,27 @@ async def ganz_monitor():
         if not ch: return
 
         ganz_wrong = []
-    vehicles_data = await fetch_vehicles()
-    if not vehicles_data: return
+        vehicles_data = await fetch_vehicles()
+        if not vehicles_data: return
 
-    for v in vehicles_data:
-        line = str(v.get("public_route_id", ""))
-        model = (v.get("vehicle_model") or "").lower()
-        reg = v.get("license_plate") or "Ismeretlen"
+        for v in vehicles_data:
+            line = str(v.get("public_route_id", ""))
+            model = (v.get("vehicle_model") or "").lower()
+            reg = v.get("license_plate") or "Ismeretlen"
 
-        if "ganz" in model or "trollino" in model or "solaris" in model:
-            if line not in ALLOWED_GANZ_ROUTES:
-                ganz_wrong.append((reg, line, model))
+            if "ganz" in model or "trollino" in model or "solaris" in model:
+                if line not in ALLOWED_GANZ_ROUTES:
+                    ganz_wrong.append((reg, line, model))
 
-    if ganz_wrong:
-        now = time.time()
-        if now - last_alert_time < ALERT_COOLDOWN: return
-        last_alert_time = now
+        if ganz_wrong:
+            now = time.time()
+            if now - last_alert_time < ALERT_COOLDOWN: return
+            last_alert_time = now
 
-        msg = "🚨 **Ganz/Solaris troli rossz vonalon!**\n\n"
-        for reg, line, model in ganz_wrong[:10]:
-            msg += f"• {reg} → {line} ({model})\n"
-        await ch.send(msg)
+            msg = "🚨 **Ganz/Solaris troli rossz vonalon!**\n\n"
+            for reg, line, model in ganz_wrong[:10]:
+                msg += f"• {reg} → {line} ({model})\n"
+            await ch.send(msg)
     except Exception as e:
         print(f"[ERROR] ganz_monitor crashed: {e}")
 
