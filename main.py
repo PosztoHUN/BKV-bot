@@ -678,6 +678,94 @@ async def send_paginated_embed_description(ctx, title: str, color: discord.Color
             footer += f" • Oldal {idx}/{len(pages)}"
         embed.set_footer(text=footer)
         await ctx.send(embed=embed)
+        
+def menetrendi_forgalmi(block_id):
+    if not block_id:
+        return "?"
+    p = block_id.split("_")
+    return p[2] if len(p) >= 4 and p[2].isdigit() else "?"
+
+def get_forgalmi(trip_id, route_id, rt_start):
+    """Kiszámolja a menetrendi forgalmit a trip_id vagy start_time alapján."""
+    if trip_id:
+        bid = TRIPS_META.get(trip_id, {}).get("block_id")
+        f = menetrendi_forgalmi(bid)
+        if f != "?":
+            return f
+
+    if not route_id or not rt_start:
+        return "?"
+
+    rt_sec = _tsec_mod(rt_start)
+    if rt_sec is None:
+        return "?"
+
+    candidates = []
+    for tid, gtfs_start in TRIP_START.items():
+        meta = TRIPS_META.get(tid)
+        if not meta or meta.get("route_id") != route_id:
+            continue
+
+        gtfs_sec = _tsec_mod(gtfs_start)
+        if gtfs_sec is None:
+            continue
+
+        if gtfs_sec == rt_sec:
+            candidates.append(tid)
+
+    if not candidates:
+        return "?"
+
+    bid = TRIPS_META.get(candidates[0], {}).get("block_id")
+    return menetrendi_forgalmi(bid)
+
+async def fetch_vehicles(session=None):
+    loop = asyncio.get_event_loop()
+    try:
+        feed = await loop.run_in_executor(None, fetch_pb_feed)
+        txt_map = await loop.run_in_executor(None, parse_txt_feed)
+    except Exception as e:
+        print(f"Hiba az adatok lekérésekor: {e}")
+        return []
+
+    vehicles_list = []
+    for e in feed.entity:
+        if not e.HasField("vehicle") or not e.vehicle.HasField("position"):
+            continue
+            
+        v = e.vehicle
+        vid_raw = v.vehicle.id if v.HasField("vehicle") else ""
+        vid = normalize_vid(vid_raw)
+        txt_data = txt_map.get(vid) or txt_map.get(vid_raw) or {}
+        
+        route_id = v.trip.route_id if v.HasField("trip") else ""
+        trip_id = v.trip.trip_id if v.HasField("trip") else ""
+        start_time = v.trip.start_time if v.HasField("trip") else ""
+        label = v.vehicle.label if v.HasField("vehicle") else ""
+        lat = v.position.latitude if v.HasField("position") else None
+        lon = v.position.longitude if v.HasField("position") else None
+
+        forgalmi_szam = get_forgalmi(trip_id, route_id, start_time)
+
+        vehicles_list.append({
+            "license_plate": txt_data.get("license_plate"),
+            "public_route_id": route_id,
+            "label": label,
+            "lat": lat,
+            "lon": lon,
+            "trip_id": trip_id,
+            "vehicle_model": txt_data.get("vehicle_model"),
+            "vehicle_id": vid_raw,
+            "forgalmi": forgalmi_szam
+        })
+        
+    return vehicles_list
+        
+def forgalmi_from_vehicle(v) -> str:
+    trip_id = getattr(v.trip, "trip_id", None)
+    route_id = getattr(v.trip, "route_id", None)
+    start_time = getattr(v.trip, "start_time", None)
+    return get_forgalmi(trip_id, route_id, start_time)
 
 # =======================
 # SEGÉDFÜGGVÉNYEK
