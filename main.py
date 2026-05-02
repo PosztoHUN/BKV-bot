@@ -276,8 +276,6 @@ bot = commands.Bot(command_prefix=".", intents=intents)
 # HTTP / FEED SEGÉD
 # ─────────────────────────────────────────────
 
-
-
 UA_HEADERS = {
     "User-Agent": "BKK-DiscordBot/1.0 (+https://discord.com)"
 }
@@ -1880,7 +1878,9 @@ async def update_active_today():
 @tasks.loop(seconds=30)
 async def logger_loop():
     vehicles_data = await fetch_vehicles()
-    if not vehicles_data: return
+
+    if not vehicles_data:
+        return
 
     for v in vehicles_data:
         try:
@@ -1891,11 +1891,17 @@ async def logger_loop():
             dest = v.get("label", "Ismeretlen")
             trip_id = str(v.get("trip_id") or v.get("vehicle_id") or "")
 
-            if not reg or lat is None or lon is None: continue
-            if not in_bbox(lat, lon): continue
-            if not trip_id: continue
+            if not reg or lat is None or lon is None:
+                continue
+
+            if not in_bbox(lat, lon):
+                continue
+
+            if not trip_id:
+                continue
 
             save_trip(trip_id, line, reg, dest)
+
         except Exception:
             continue
 
@@ -1959,7 +1965,7 @@ async def hev(ctx):
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
-            embed = discord.Embed(title="<:mx:1500148914819698718> Aktív HÉVek (folytatás)", color=0x003200)
+            embed = discord.Embed(title="🚆 Aktív HÉVek (folytatás)", color=0x003200)
             field_count = 0
 
         embed.add_field(name=str(reg), value=value, inline=False)
@@ -5009,7 +5015,7 @@ async def vehicle_alert_task():
                 embed.add_field(name="🎯 Cél", value=dest, inline=True)
                 embed.add_field(name="📌 Menetrendi forgalmi", value=f or "?", inline=False)
 
-                await ch.send(embed=embed)                
+                await ch.send(embed=embed)
 
 # =======================
 # START
