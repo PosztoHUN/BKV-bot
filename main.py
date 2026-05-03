@@ -5080,11 +5080,16 @@ async def test_embed_loop():
         return
 
     for reg, i in sorted(active.items()):
-        embed = discord.Embed(title="PÓTLÁS (ICS)", color=0xFFD800)
-        embed.add_field(name="Pályaszám", value=reg, inline=False)
-        embed.add_field(name="Vonal", value=i["line"], inline=False)
-        embed.add_field(name="Cél", value=i["dest"], inline=False)
-        embed.add_field(name="Környező megálló", value=i["stop"], inline=False)
+        embed = discord.Embed(
+            title="PÓTLÁS (ICS)",
+            color=discord.Color.red(),
+            description=(
+                f"Pályaszám: {reg}\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
 
         try:
             await channel.send(embed=embed)
