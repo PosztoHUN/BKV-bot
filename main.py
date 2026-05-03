@@ -136,8 +136,27 @@ def decode_line(line_id: str) -> str:
     return line_id
 
 # 🔹 Kódoló függvény
+def is_likely_encoded_format(test_input: str) -> bool:
+    """Detects if input is already in encoded format (e.g. 3420 for line 42)"""
+    if not test_input.isdigit() or len(test_input) != 4:
+        return False
+    
+    first = test_input[0]
+    # Encoded formats: 3xxx (tram), 4xxx (trolley), 0/1/2/9xxx (bus)
+    return first in {'0', '1', '2', '3', '4', '9'}
+
 def encode_line(user_input: str) -> str:
     user_input = user_input.upper().strip()
+
+    # 0️⃣ Check if already encoded - if so, try to decode and re-encode to validate
+    if is_likely_encoded_format(user_input):
+        decoded = decode_line(user_input)
+        if decoded != user_input and decoded != "—":
+            # It's an encoded format, validate by re-encoding the decoded version
+            re_encoded = encode_line(decoded)
+            if re_encoded == user_input:
+                # Valid encoded format, return as-is
+                return user_input
 
     # 1️⃣ Kivételek ellenőrzése
     for k, v in LINE_EXCEPTIONS.items():
