@@ -5079,31 +5079,17 @@ async def test_embed_loop():
     if not active:
         return
 
-    MAX_FIELDS = 20
-    embeds = []
-    embed = discord.Embed(title="<:ics:1500148218250399804> Aktív Ganz ICS villamosok", color=0xFFD800)
-    field_count = 0
-
     for reg, i in sorted(active.items()):
-        if field_count >= MAX_FIELDS:
-            embeds.append(embed)
-            embed = discord.Embed(title="<:ics:1500148218250399804> Aktív Ganz ICS villamosok (folytatás)", color=0xFFD800)
-            field_count = 0
+        embed = discord.Embed(title="PÓTLÁS (ICS)", color=0xFFD800)
+        embed.add_field(name="Pályaszám", value=reg, inline=False)
+        embed.add_field(name="Vonal", value=i["line"], inline=False)
+        embed.add_field(name="Cél", value=i["dest"], inline=False)
+        embed.add_field(name="Környező megálló", value=i["stop"], inline=False)
 
-        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_ICS else f"Vonal: {i['line']}"
-        embed.add_field(
-            name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
-            inline=False
-        )
-        field_count += 1
-
-    embeds.append(embed)
-    for e in embeds:
         try:
-            await channel.send(embed=e)
+            await channel.send(embed=embed)
         except Exception as e:
-            print(f"Failed to send bkvics embed to channel {channel_id}: {e}")
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
 # =======================
 # START
