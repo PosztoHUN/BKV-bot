@@ -2099,14 +2099,28 @@ async def bkvvillamos(ctx):
         await ctx.send(embed=e)
 
 
-KIEMELT_VONALAK_TW = {"24", "28", "28A", "37", "37A", "51", "51A", "52", "62", "62A", "69", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_ICS = {"2", "47", "48", "49", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_KCSV7 = {"2", "2B", "23", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_COMBINO = {"1", "4", "6", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_CAF9 = {"1", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_CAF5 = {"3", "14", "17", "19", "42", "50", "51A", "56", "56A", "61", "69", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_T5C5 = {"9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_T5C5K2 = {"1", "1A", "12", "14", "17", "19", "28", "28A", "37", "37A", "41", "56", "56A", "59", "59A", "59B", "61", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_TW_WEEKDAY = {"24", "28", "28A", "37", "37A", "51", "51A", "52", "62", "62A", "69", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_TW_WEEKEND = {"24", "51A", "52", "69", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_ICS_WEEKDAY = {"2", "47", "49", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_ICS_WEEKEND = {"47", "48", "49", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_KCSV7_WEEKDAY = {"2", "2B", "23", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_KCSV7_WEEKEND = {"2", "2B", "23", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_COMBINO_WEEKDAY = {"4", "6", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_COMBINO_WEEKEND = {"1", "4", "6", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_CAF9_WEEKDAY = {"1", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_CAF9_WEEKEND = {"1", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_CAF5_WEEKDAY = {"3", "14", "17", "19", "42", "50", "51A", "56", "56A", "61", "69", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_CAF5_WEEKEND = {"3", "14", "17", "19", "42", "50", "51A", "56A", "61", "69", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_T5C5_WEEKDAY = {"9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_T5C5_WEEKEND = {"9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_T5C5K2_WEEKDAY = {"1", "1A", "12", "12A", "14", "17", "19", "28", "28A", "37", "37A", "41", "56", "56A", "59", "59A", "59B", "61", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_T5C5K2_WEEKEND = {"12A", "14", "19", "28", "28A", "37A", "41", "59", "59A", "9997", "9999", " ", "", "—"}
+
+def get_kiemelt_lines(tram_type):
+    today = datetime.now().weekday()  # 0=Monday, 6=Sunday
+    is_weekend = today >= 5  # Saturday=5, Sunday=6
+    suffix = "_WEEKEND" if is_weekend else "_WEEKDAY"
+    return globals()[f"KIEMELT_VONALAK_{tram_type}{suffix}"]
 
 @bot.command()
 async def bkvkcsv7(ctx):
@@ -2160,7 +2174,7 @@ async def bkvkcsv7(ctx):
             field_count = 0
 
         line = i["line"]
-        line_text = f"🔴 *Vonal: {line}*" if line not in KIEMELT_VONALAK_KCSV7 else f"Vonal: {line}"
+        line_text = f"🔴 *Vonal: {line}*" if line not in get_kiemelt_lines("KCSV7") else f"Vonal: {line}"
 
         embed.add_field(
             name=reg,
@@ -2217,7 +2231,7 @@ async def bkvics(ctx):
             embed = discord.Embed(title="<:ics:1500148218250399804> Aktív Ganz ICS villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
-        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_ICS else f"Vonal: {i['line']}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in get_kiemelt_lines("ICS") else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
@@ -2294,7 +2308,7 @@ async def bkvtw6000(ctx):
             embed = discord.Embed(title="<:tw6000:1500148564024627421> Aktív TW6000-es villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
-        line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_TW else f"Vonal: {i['line']}"
+        line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in get_kiemelt_lines("TW") else f"Vonal: {i['line']}"
         fix_text = "Fixlépcsős" if i["fixlepcsos"] else ""
 
         embed.add_field(
@@ -2354,7 +2368,7 @@ async def bkvcombino(ctx):
             embed = discord.Embed(title="<:combino:1500148629921464511> Aktív Combino villamosok (folytatás)", color=0xFFD800)
             field_count = 0
 
-        line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in KIEMELT_VONALAK_COMBINO else f"Vonal: {i['line']}"
+        line_text = f"🔴 Vonal: *{i['line']}*" if i['line'] not in get_kiemelt_lines("COMBINO") else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
@@ -2471,7 +2485,7 @@ async def bkvcaf5(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
-        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_CAF5 else f"Vonal: {i['line']}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in get_kiemelt_lines("CAF5") else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
@@ -2526,7 +2540,7 @@ async def bkvcaf9(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
-        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_CAF9 else f"Vonal: {i['line']}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in get_kiemelt_lines("CAF9") else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
@@ -2581,7 +2595,7 @@ async def bkvt5c5(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
-        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_T5C5 else f"Vonal: {i['line']}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in get_kiemelt_lines("T5C5") else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
@@ -2636,7 +2650,7 @@ async def bkvt5c5k2(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xFFD800)
             field_count = 0
 
-        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_T5C5K2 else f"Vonal: {i['line']}"
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in get_kiemelt_lines("T5C5K2") else f"Vonal: {i['line']}"
 
         embed.add_field(
             name=reg,
@@ -4971,70 +4985,70 @@ def normalize_route(route_raw: str) -> str:
     route = route_raw[:-1]
     return route.lstrip("0")
 
-@tasks.loop(minutes=1)
-async def vehicle_alert_task():
-    ch = bot.get_channel(1489320701532963040)
-    if not ch:
-        return
+# @tasks.loop(minutes=1)
+# async def vehicle_alert_task():
+#     ch = bot.get_channel(1489320701532963040)
+#     if not ch:
+#         return
 
-    try:
-        txt = parse_txt_feed()
-    except Exception as e:
-        print(f"[TXT ERROR] {e}")
-        txt = {}
+#     try:
+#         txt = parse_txt_feed()
+#     except Exception as e:
+#         print(f"[TXT ERROR] {e}")
+#         txt = {}
 
-    try:
-        feed = fetch_pb_feed()
-    except Exception as e:
-        print(f"[PB ERROR] {e}")
-        return
+#     try:
+#         feed = fetch_pb_feed()
+#     except Exception as e:
+#         print(f"[PB ERROR] {e}")
+#         return
 
-    current_potlas_ids = set()
+#     current_potlas_ids = set()
 
-    for e in feed.entity:
-        if not e.HasField("vehicle") or not e.vehicle.HasField("position"):
-            continue
+#     for e in feed.entity:
+#         if not e.HasField("vehicle") or not e.vehicle.HasField("position"):
+#             continue
 
-        v = e.vehicle
-        vid_raw = v.vehicle.id
-        vid = normalize_vid(vid_raw)
-        route_raw = v.trip.route_id
-        route = normalize_route(route_raw)
-        dest = v.vehicle.label or "-"
-        data = txt.get(vid) or txt.get(vid_raw) or {}
+#         v = e.vehicle
+#         vid_raw = v.vehicle.id
+#         vid = normalize_vid(vid_raw)
+#         route_raw = v.trip.route_id
+#         route = normalize_route(route_raw)
+#         dest = v.vehicle.label or "-"
+#         data = txt.get(vid) or txt.get(vid_raw) or {}
 
-        model_raw = data.get("vehicle_model", "N/A")
-        model = (model_raw or "").lower()
-        plate = data.get("license_plate", "N/A")
-        trip_id = v.trip.trip_id
-        f = forgalmi_from_vehicle(v)
+#         model_raw = data.get("vehicle_model", "N/A")
+#         model = (model_raw or "").lower()
+#         plate = data.get("license_plate", "N/A")
+#         trip_id = v.trip.trip_id
+#         f = forgalmi_from_vehicle(v)
 
-        potlas_type = None
+#         potlas_type = None
 
-        if route not in IGNORED_ROUTES:
-            if "ganz" in model or "solaris" in model:
-                if route not in ALLOWED_GANZ_ROUTES:
-                    potlas_type = "GST / Ganz-Solaris Trollino 12"
+#         if route not in IGNORED_ROUTES:
+#             if "ganz" in model or "solaris" in model:
+#                 if route not in ALLOWED_GANZ_ROUTES:
+#                     potlas_type = "GST / Ganz-Solaris Trollino 12"
 
-            if "412" in model and route not in ALLOWED_412_ROUTES and f != "?":
-                potlas_type = "Ikarus 412T"
+#             if "412" in model and route not in ALLOWED_412_ROUTES and f != "?":
+#                 potlas_type = "Ikarus 412T"
 
-        if potlas_type:
-            current_potlas_ids.add(vid)
+#         if potlas_type:
+#             current_potlas_ids.add(vid)
 
-            if vid not in tracked_potlases or tracked_potlases[vid] != dest:
-                tracked_potlases[vid] = dest
+#             if vid not in tracked_potlases or tracked_potlases[vid] != dest:
+#                 tracked_potlases[vid] = dest
 
-                embed = discord.Embed(
-                    title=f"🚨 {potlas_type} – pótlás",
-                    color=discord.Color.red()
-                )
-                embed.add_field(name="🚌 Jármű", value=f"**{plate}**", inline=False)
-                embed.add_field(name="➡ Vonal", value=route, inline=True)
-                embed.add_field(name="🎯 Cél", value=dest, inline=True)
-                embed.add_field(name="📌 Menetrendi forgalmi", value=f or "?", inline=False)
+#                 embed = discord.Embed(
+#                     title=f"🚨 {potlas_type} – pótlás",
+#                     color=discord.Color.red()
+#                 )
+#                 embed.add_field(name="🚌 Jármű", value=f"**{plate}**", inline=False)
+#                 embed.add_field(name="➡ Vonal", value=route, inline=True)
+#                 embed.add_field(name="🎯 Cél", value=dest, inline=True)
+#                 embed.add_field(name="📌 Menetrendi forgalmi", value=f or "?", inline=False)
 
-                await ch.send(embed=embed)
+#                 await ch.send(embed=embed)
 
 @tasks.loop(minutes=1)
 async def potlas_loop():
@@ -5061,7 +5075,7 @@ async def potlas_loop():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in KIEMELT_VONALAK_ICS:
+        if line_name in get_kiemelt_lines("ICS"):
             continue
         if is_ganz_troli(reg) or is_kcsv7(reg):
             continue
@@ -5121,7 +5135,7 @@ async def potlas_loop_kcsv7():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in KIEMELT_VONALAK_KCSV7:
+        if line_name in get_kiemelt_lines("KCSV7"):
             continue
         if is_ganz_troli(reg) or is_ics(reg):
             continue
@@ -5180,7 +5194,7 @@ async def potlas_loop_caf5():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in KIEMELT_VONALAK_CAF5:
+        if line_name in get_kiemelt_lines("CAF5"):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5237,7 +5251,7 @@ async def potlas_loop_caf9():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in KIEMELT_VONALAK_CAF9:
+        if line_name in get_kiemelt_lines("CAF9"):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5294,7 +5308,7 @@ async def potlas_loop_combino():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in KIEMELT_VONALAK_COMBINO:
+        if line_name in get_kiemelt_lines("COMBINO"):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5351,7 +5365,7 @@ async def potlas_loop_t5c5():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in KIEMELT_VONALAK_T5C5:
+        if line_name in get_kiemelt_lines("T5C5"):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5408,7 +5422,7 @@ async def potlas_loop_t5c5k2():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in KIEMELT_VONALAK_T5C5K2:
+        if line_name in get_kiemelt_lines("T5C5K2"):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5434,6 +5448,69 @@ async def potlas_loop_t5c5k2():
                 f"Cél: {i['dest']}\n"
                 f"Környező megálló: {i['stop']}"
             )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+@tasks.loop(minutes=1)
+async def potlas_loop_tw6000():
+    channel_id = 1490792694975430676
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("TW"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_tw6000(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        reg_num = reg_raw[1:] if reg_raw.startswith("V") and len(reg_raw) == 5 else reg_raw
+        fixlepcsos = is_fixlepcsos(reg_num)
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen", "fixlepcsos": fixlepcsos}
+
+    if not active:
+        return
+
+    for reg, i in sorted(active.items()):
+        fix_text = "Fixlépcsős" if i["fixlepcsos"] else ""
+        description = (
+            f"**{reg}**\n"
+            f"Vonal: {i['line']}\n"
+            f"Cél: {i['dest']}\n"
+        )
+        if fix_text:
+            description += f"{fix_text}\n"
+        description += f"Környező megálló: {i['stop']}"
+
+        embed = discord.Embed(
+            title="PÓTLÁS (TW6000)",
+            color=discord.Color.red(),
+            description=description
         )
 
         try:
@@ -5483,6 +5560,9 @@ async def on_ready():
 
     if not potlas_loop_t5c5k2.is_running():
         potlas_loop_t5c5k2.start()
+
+    if not potlas_loop_tw6000.is_running():
+        potlas_loop_tw6000.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
