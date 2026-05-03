@@ -5070,7 +5070,7 @@ def normalize_route(route_raw: str) -> str:
 
 @tasks.loop(minutes=5)
 async def potlas_loop():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5136,7 +5136,7 @@ async def potlas_loop():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_kcsv7():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5202,7 +5202,7 @@ async def potlas_loop_kcsv7():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_caf5():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5265,7 +5265,7 @@ async def potlas_loop_caf5():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_caf9():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5328,7 +5328,7 @@ async def potlas_loop_caf9():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_combino():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5391,7 +5391,7 @@ async def potlas_loop_combino():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_t5c5():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5454,7 +5454,7 @@ async def potlas_loop_t5c5():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_t5c5k2():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5517,7 +5517,7 @@ async def potlas_loop_t5c5k2():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_tw6000():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5586,7 +5586,7 @@ async def potlas_loop_tw6000():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_gst12():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5650,7 +5650,7 @@ async def potlas_loop_gst12():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_280t():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5714,7 +5714,7 @@ async def potlas_loop_280t():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_411t():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5778,7 +5778,7 @@ async def potlas_loop_411t():
 
 @tasks.loop(minutes=5)
 async def potlas_loop_412t():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
