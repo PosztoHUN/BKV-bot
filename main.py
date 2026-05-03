@@ -5036,6 +5036,23 @@ async def vehicle_alert_task():
 
                 await ch.send(embed=embed)
 
+@tasks.loop(minutes=1)
+async def test_embed_loop():
+    channel_id = 1490792694975430676
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    embed = discord.Embed(description="TESZT", color=discord.Color.blue())
+    try:
+        await channel.send(embed=embed)
+    except Exception as e:
+        print(f"Failed to send test embed to channel {channel_id}: {e}")
+
 # =======================
 # START
 # =======================
@@ -5057,6 +5074,9 @@ async def on_ready():
 
     if not ganz_monitor.is_running():
         ganz_monitor.start()
+
+    if not test_embed_loop.is_running():
+        test_embed_loop.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
