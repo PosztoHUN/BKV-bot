@@ -4834,10 +4834,11 @@ async def all(ctx, route_id: str):
 # =======================
 
 # Line groups configuration - add manually as needed
-# Format: base_number: {all line variations in the group}
-# Example: if you add "2": {"N2", "2", "2B", "23"}, then !group 2 will show all these lines combined
+# Format: base_number: {optional additional line numbers}
+# The command will automatically include the base line plus prefixes and suffixes.
+# Example: if you add "2": {"23"}, then !vonalcsalad 2 will search for 2, N2, 2A, 2B, 2E, 2G, N2A, N2B, ..., and also 23.
 LINE_GROUPS = {
-    "2": {"N2", "2", "2B", "23"},
+    "2": {"23"},
     # Add more groups here as needed
 }
 
@@ -4855,26 +4856,40 @@ def extract_base_number(line_input: str) -> str:
     
     return line_input
 
+def generate_group_variants(base_number: str) -> set:
+    """Generate all prefix/suffix variants for a base line number."""
+    base_number = base_number.upper().strip()
+    prefixes = ["", "N", "R"]
+    suffixes = ["", "A", "B", "E", "G"]
+    variants = set()
+    for prefix in prefixes:
+        for suffix in suffixes:
+            variants.add(f"{prefix}{base_number}{suffix}")
+    return variants
+
 def expand_group(base_or_any_line: str) -> set:
-    """Expand a line input to all lines in its group"""
+    """Expand a line input to all lines in its group."""
     base_number = extract_base_number(base_or_any_line)
     
-    # Look for the base number in groups
+    if not base_number:
+        return set()
+
+    # If the base number is defined as a group, include generated variants + extras.
     if base_number in LINE_GROUPS:
-        return LINE_GROUPS[base_number]
-    
-    # If not found as a base, check if it's part of any group
-    for group_lines in LINE_GROUPS.values():
-        # Check if the base matches any line in any group
-        for line in group_lines:
-            if extract_base_number(line) == base_number:
-                return group_lines
-    
-    # Not found in any group, return empty set
+        return generate_group_variants(base_number) | set(LINE_GROUPS[base_number])
+
+    # Otherwise, try to find the group by matching any extra line value.
+    for group_base, extra_lines in LINE_GROUPS.items():
+        if extract_base_number(group_base) == base_number:
+            return generate_group_variants(group_base) | set(extra_lines)
+        for extra in extra_lines:
+            if extract_base_number(extra) == base_number:
+                return generate_group_variants(group_base) | set(extra_lines)
+
     return set()
 
 @bot.command()
-async def vonalcsalád(ctx, line_input: str):
+async def vonalcsalad(ctx, line_input: str):
     """Kiírja a járműveket egy vonalcsaládhoz tartozó összes vonalon."""
     raw_input = line_input.strip().upper()
     base_number = extract_base_number(raw_input)
@@ -4956,6 +4971,10 @@ async def vonalcsalád(ctx, line_input: str):
 
         if re.fullmatch(r"T\d{4}", reg): reg = reg[2:] if reg[1] == "0" else reg[1:]
         elif re.fullmatch(r"V\d{4}", reg): reg = reg[1:]
+
+        line_name = decode_line(public_id)
+        if line_name == "—":
+            line_name = public_id
 
         supa = supa_vehicles.get(raw_reg)
         display_reg = reg
@@ -5069,6 +5088,7 @@ async def vonalcsalád(ctx, line_input: str):
         
         active[reg] = {
             "display_reg": display_reg,
+            "line": line_name,
             "dest": dest,
             "stop": nearest_stop,
             "type": vtype,
@@ -5091,6 +5111,7 @@ async def vonalcsalád(ctx, line_input: str):
 
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
         value = (
+            f"Vonal: {i['line']}\n"
             f"Típus: {i['type']}\n"
             f"Cél: {i['dest']}\n"
             f"Környező megálló: {i['stop']}\n"
