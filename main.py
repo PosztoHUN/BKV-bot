@@ -2125,12 +2125,12 @@ KIEMELT_VONALAK_T5C5_WEEKDAY = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_T5C5_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_T5C5K2_WEEKDAY = {"1", "1A", "12", "12A", "14", "17", "19", "28", "28A", "37", "37A", "41", "56", "56A", "59", "59A", "59B", "61", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_T5C5K2_WEEKEND = {"12A", "14", "19", "28", "28A", "37A", "41", "59", "59A", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_GST12_WEEKDAY = {"9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_GST12_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_280T_WEEKDAY = {"75", "80", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_280T_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_411T_WEEKDAY = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_411T_WEEKEND = {"9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_412GT_WEEKDAY = {"9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_412GT_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412T_WEEKDAY = {"70", "78","9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412T_WEEKEND = {"9997", "9999", " ", "", "—"}
 
