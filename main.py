@@ -2100,7 +2100,7 @@ async def bkvvillamos(ctx):
 
 
 KIEMELT_VONALAK_TW = {"24", "28", "28A", "37", "37A", "51", "51A", "52", "62", "62A", "69", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_ICS = {"2", "47", "48", "49", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_ICS = {"2", "48", "49", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_KCSV7 = {"2", "2B", "23", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_COMBINO = {"4", "6", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_CAF9 = {"1", "9997", "9999", " ", "", "—"}
@@ -5061,6 +5061,8 @@ async def test_embed_loop():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
+        if line_name in KIEMELT_VONALAK_ICS:
+            continue
         if is_ganz_troli(reg) or is_kcsv7(reg):
             continue
         if not reg or lat is None or lon is None:
