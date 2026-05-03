@@ -4838,7 +4838,8 @@ async def all(ctx, route_id: str):
 # The command will automatically include the base line plus prefixes and suffixes.
 # Example: if you add "2": {"23"}, then !vonalcsalad 2 will search for 2, N2, 2A, 2B, 2E, 2G, N2A, N2B, ..., and also 23.
 LINE_GROUPS = {
-    "2": {"1","2","23"},
+    "2": {"2","23"},
+    "23": {"2","23"},
     # Add more groups here as needed
 }
 
