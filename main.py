@@ -2101,11 +2101,11 @@ async def bkvvillamos(ctx):
 
 KIEMELT_VONALAK_TW = {"24", "28", "28A", "37", "37A", "51", "51A", "52", "62", "62A", "69", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_ICS = {"2", "47", "48", "49", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_KCSV7 = {"2", "23", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_KCSV7 = {"2", "2B", "23", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_COMBINO = {"4", "6", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_CAF9 = {"1", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_CAF5 = {"3", "14", "17", "19", "42", "50", "56", "56A", "61", "69", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_T5C5 = {"1", "1A", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_CAF9 = { "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_CAF5 = { "14", "17", "19", "42", "50", "56", "56A", "61", "69", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_T5C5 = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_T5C5K2 = {"1", "1A", "12", "14", "17", "19", "28", "28A", "37", "37A", "41", "56", "56A", "59", "59A", "59B", "61", "9997", "9999", " ", "", "—"}
 
 @bot.command()
@@ -5156,6 +5156,120 @@ async def test_embed_loop_kcsv7():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
+@tasks.loop(minutes=1)
+async def test_embed_loop_caf5():
+    channel_id = 1490792694975430676
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in KIEMELT_VONALAK_CAF5:
+            continue
+        if not reg or lat is None or lon is None:
+            continue
+        if not is_caf5(reg):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        return
+
+    for reg, i in sorted(active.items()):
+        embed = discord.Embed(
+            title="PÓTLÁS (CAF5)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+@tasks.loop(minutes=1)
+async def test_embed_loop_caf9():
+    channel_id = 1490792694975430676
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in KIEMELT_VONALAK_CAF9:
+            continue
+        if not reg or lat is None or lon is None:
+            continue
+        if not is_caf9(reg):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        return
+
+    for reg, i in sorted(active.items()):
+        embed = discord.Embed(
+            title="PÓTLÁS (CAF9)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
 # =======================
 # START
 # =======================
@@ -5183,6 +5297,12 @@ async def on_ready():
 
     if not test_embed_loop_kcsv7.is_running():
         test_embed_loop_kcsv7.start()
+
+    if not test_embed_loop_caf5.is_running():
+        test_embed_loop_caf5.start()
+
+    if not test_embed_loop_caf9.is_running():
+        test_embed_loop_caf9.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
