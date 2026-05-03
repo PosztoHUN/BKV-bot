@@ -5047,11 +5047,61 @@ async def test_embed_loop():
             print(f"Unable to fetch channel {channel_id}: {e}")
             return
 
-    embed = discord.Embed(description="TESZT", color=discord.Color.blue())
-    try:
-        await channel.send(embed=embed)
-    except Exception as e:
-        print(f"Failed to send test embed to channel {channel_id}: {e}")
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg = v.get("license_plate")
+        model = (v.get("vehicle_model") or "").lower()
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if is_ganz_troli(reg) or is_kcsv7(reg):
+            continue
+        if not reg or lat is None or lon is None:
+            continue
+        if "ganz" not in model:
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        return
+
+    MAX_FIELDS = 20
+    embeds = []
+    embed = discord.Embed(title="<:ics:1500148218250399804> Aktív Ganz ICS villamosok", color=0xFFD800)
+    field_count = 0
+
+    for reg, i in sorted(active.items()):
+        if field_count >= MAX_FIELDS:
+            embeds.append(embed)
+            embed = discord.Embed(title="<:ics:1500148218250399804> Aktív Ganz ICS villamosok (folytatás)", color=0xFFD800)
+            field_count = 0
+
+        line_text = f"🔴 *Vonal: {i['line']}*" if i['line'] not in KIEMELT_VONALAK_ICS else f"Vonal: {i['line']}"
+        embed.add_field(
+            name=reg,
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
+            inline=False
+        )
+        field_count += 1
+
+    embeds.append(embed)
+    for e in embeds:
+        try:
+            await channel.send(embed=e)
+        except Exception as e:
+            print(f"Failed to send bkvics embed to channel {channel_id}: {e}")
 
 # =======================
 # START
