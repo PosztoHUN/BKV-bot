@@ -4838,7 +4838,7 @@ async def all(ctx, route_id: str):
 # The command will automatically include the base line plus prefixes and suffixes.
 # Example: if you add "2": {"23"}, then !vonalcsalad 2 will search for 2, N2, 2A, 2B, 2E, 2G, N2A, N2B, ..., and also 23.
 LINE_GROUPS = {
-    "2": {"23"},
+    "2": {"1","2","23"},
     # Add more groups here as needed
 }
 
@@ -4929,19 +4929,33 @@ async def vonalcsalad(ctx, line_input: str):
     def is_bus_replacement_plate(reg: str) -> bool: return bool(re.fullmatch(r"\d{3}[A-Z]{3}", reg) or re.fullmatch(r"\d{4}[A-Z]{3}", reg))
 
     # Build route_ids_to_search for all lines in the group
+    # Only search for meaningful variants (base + extra lines), not all N/R/A/B/E/G combinations
     route_ids_to_search = set()
+    
+    # Add base line variants (with and without prefix/suffix)
     for line_variant in group_lines:
-        # Encode each variant
-        encoded = encode_line(line_variant)
-        decoded = decode_line(line_variant)
-        route_ids_to_search.add(encoded)
-        route_ids_to_search.add(line_variant)
-        route_ids_to_search.add(decoded)
+        # Skip generated prefixes (N, R) and suffixes (A, B, E, G) for now
+        is_generated = False
+        if len(line_variant) > 0 and line_variant[0] in ("N", "R"):
+            # This is a generated prefix variant, skip it
+            is_generated = True
+        elif len(line_variant) > 0 and line_variant[-1] in ("A", "B", "E", "G"):
+            # This is a generated suffix variant, skip it
+            is_generated = True
         
-        # Check ROUTE_NAMES
-        for rid, name in ROUTE_NAMES.items():
-            if name.upper() == line_variant.upper():
-                route_ids_to_search.add(rid)
+        if not is_generated:
+            # This is a base line or an explicitly defined extra
+            encoded = encode_line(line_variant)
+            decoded = decode_line(line_variant)
+            route_ids_to_search.add(encoded)
+            route_ids_to_search.add(line_variant)
+            if decoded != "—":
+                route_ids_to_search.add(decoded)
+            
+            # Check ROUTE_NAMES
+            for rid, name in ROUTE_NAMES.items():
+                if name.upper() == line_variant.upper():
+                    route_ids_to_search.add(rid)
     
     # Remove "—" if it ended up in there
     route_ids_to_search.discard("—")
