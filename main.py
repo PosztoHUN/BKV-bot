@@ -2100,8 +2100,8 @@ async def bkvvillamos(ctx):
 
 
 KIEMELT_VONALAK_TW = {"24", "28", "28A", "37", "37A", "51", "51A", "52", "62", "62A", "69", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_ICS = {"2", "48", "49", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_KCSV7 = {"2", "2B", "23", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_ICS = {"2", "47", "48", "49", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_KCSV7 = {"2", "23", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_COMBINO = {"4", "6", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_CAF9 = {"1", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_CAF5 = {"3", "14", "17", "19", "42", "50", "56", "56A", "61", "69", "9997", "9999", " ", "", "—"}
@@ -5084,7 +5084,67 @@ async def test_embed_loop():
             title="PÓTLÁS (ICS)",
             color=discord.Color.red(),
             description=(
-                f"Pályaszám: {reg}\n"
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+@tasks.loop(minutes=1)
+async def test_embed_loop_kcsv7():
+    channel_id = 1490792694975430676
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg = v.get("license_plate")
+        model = (v.get("vehicle_model") or "").lower()
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in KIEMELT_VONALAK_KCSV7:
+            continue
+        if is_ganz_troli(reg) or is_ics(reg):
+            continue
+        if not reg or lat is None or lon is None:
+            continue
+        if "ganz" not in model:
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        return
+
+    for reg, i in sorted(active.items()):
+        embed = discord.Embed(
+            title="PÓTLÁS (KCSV7)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
                 f"Vonal: {i['line']}\n"
                 f"Cél: {i['dest']}\n"
                 f"Környező megálló: {i['stop']}"
@@ -5120,6 +5180,9 @@ async def on_ready():
 
     if not test_embed_loop.is_running():
         test_embed_loop.start()
+
+    if not test_embed_loop_kcsv7.is_running():
+        test_embed_loop_kcsv7.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
