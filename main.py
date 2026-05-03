@@ -4867,6 +4867,25 @@ def generate_group_variants(base_number: str) -> set:
             variants.add(f"{prefix}{base_number}{suffix}")
     return variants
 
+def find_group_base(base_or_any_line: str) -> str:
+    """Find the actual base number for a group input."""
+    base_number = extract_base_number(base_or_any_line)
+    if not base_number:
+        return ""
+
+    if base_number in LINE_GROUPS:
+        return base_number
+
+    for group_base, extra_lines in LINE_GROUPS.items():
+        if extract_base_number(group_base) == base_number:
+            return group_base
+        for extra in extra_lines:
+            if extract_base_number(extra) == base_number:
+                return group_base
+
+    return base_number
+
+
 def expand_group(base_or_any_line: str) -> set:
     """Expand a line input to all lines in its group."""
     base_number = extract_base_number(base_or_any_line)
@@ -5103,7 +5122,12 @@ async def vonalcsalad(ctx, line_input: str):
 
     MAX_FIELDS = 20
     embeds = []
-    group_display = ", ".join(sorted(group_lines))
+    group_base = find_group_base(raw_input)
+    extra_lines = sorted({l for l in group_lines if extract_base_number(l) != group_base})
+    if extra_lines:
+        group_display = f"{group_base} (+{', '.join(extra_lines)})"
+    else:
+        group_display = group_base
     embed_title_base = f"{title_prefix} Vonalcsoport: {group_display}"
 
     embed = discord.Embed(title=embed_title_base, color=color)
