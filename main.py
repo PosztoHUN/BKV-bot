@@ -5132,7 +5132,14 @@ async def vonalcsalad(ctx, line_input: str):
 
     embed = discord.Embed(title=embed_title_base, color=color)
     field_count = 0
+    current_embed_chars = len(embed_title_base) + 100
+    EMBED_CHAR_LIMIT = 5900
 
+    def create_new_embed(suffix: int) -> discord.Embed:
+        title = f"{embed_title_base} (folytatás {suffix})" if suffix > 1 else f"{embed_title_base} (folytatás)"
+        return discord.Embed(title=title, color=color)
+
+    continuation_index = 1
     for reg, i in sorted(active.items(), key=lambda x: x[0]):
         value = (
             f"Vonal: {i['line']}\n"
@@ -5140,17 +5147,26 @@ async def vonalcsalad(ctx, line_input: str):
             f"Cél: {i['dest']}\n"
             f"Környező megálló: {i['stop']}\n"
         )
-        if i["replacement"]: value += "\n🚧 Pótlóbusz"
-        if len(value) > 1024: value = value[:1020] + "..."
+        if i["replacement"]:
+            value += "\n🚧 Pótlóbusz"
+        if len(value) > 1024:
+            value = value[:1020] + "..."
+
+        next_field_size = len(i["display_reg"]) + len(value)
+        if field_count >= MAX_FIELDS or current_embed_chars + next_field_size > EMBED_CHAR_LIMIT:
+            embeds.append(embed)
+            continuation_index += 1
+            embed = create_new_embed(continuation_index)
+            field_count = 0
+            current_embed_chars = len(embed.title) + 100
 
         embed.add_field(name=i["display_reg"], value=value, inline=False)
         field_count += 1
-        if field_count >= MAX_FIELDS:
-            embeds.append(embed)
-            embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=color)
-            field_count = 0
+        current_embed_chars += next_field_size
+
     embeds.append(embed)
-    for e in embeds: await ctx.send(embed=e)
+    for e in embeds:
+        await ctx.send(embed=e)
 
 @bot.command()
 async def forgalmi(ctx, route_input: str, date_input: str = None):
