@@ -5469,20 +5469,20 @@ async def on_ready():
     if not potlas_loop_kcsv7.is_running():
         potlas_loop_kcsv7.start()
 
-    if not test_embed_loop_caf5.is_running():
-        test_embed_loop_caf5.start()
+    if not potlas_loop_caf5.is_running():
+        potlas_loop_caf5.start()
 
-    if not test_embed_loop_caf9.is_running():
-        test_embed_loop_caf9.start()
+    if not potlas_loop_caf9.is_running():
+        potlas_loop_caf9.start()
 
-    if not test_embed_loop_combino.is_running():
-        test_embed_loop_combino.start()
+    if not potlas_loop_combino.is_running():
+        potlas_loop_combino.start()
 
-    if not test_embed_loop_t5c5.is_running():
-        test_embed_loop_t5c5.start()
+    if not potlas_loop_t5c5.is_running():
+        potlas_loop_t5c5.start()
 
-    if not test_embed_loop_t5c5k2.is_running():
-        test_embed_loop_t5c5k2.start()
+    if not potlas_loop_t5c5k2.is_running():
+        potlas_loop_t5c5k2.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
