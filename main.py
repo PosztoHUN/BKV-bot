@@ -5189,10 +5189,6 @@ async def potlas_loop_kcsv7():
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("KCSV7", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("KCSV7", reg, i["dest"]):
             continue
