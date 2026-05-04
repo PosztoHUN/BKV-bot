@@ -2137,6 +2137,17 @@ KIEMELT_VONALAK_BYDB12_WEEKDAY = {"53", "105", "153", "154", "210", "212", "212A
 KIEMELT_VONALAK_BYDB12_WEEKEND = {"53", "105", "153", "154", "210B", "212", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_BYDB19_WEEKDAY = {"8E", "110", "112", "133E", "139", "908", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_BYDB19_WEEKEND = {"8E", "110", "112", "139", "908", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_AG318_WEEKDAY = {"136", "142E", "224", "224E", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_AG318_WEEKEND = {"9997", "9999", " ", "", "—"}
+KIEMELT_VONAlAK_GST12_WEEKDAY = {"70","74", "78", "9997", "9999", " ", "", "—"}
+KIEMELT_VONAlAK_GST12_WEEKEND = {"70","74", "77", "78", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_SST12_WEEKDAY = {"70", "73", "74", "78", "79", "81", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_SST12_SATURDAY = {"73", "74", "77", "78", "81", "83", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_SST12_SUNDAY = {"73", "74", "76", "77", "78", "81", "82", "83", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_SST18_WEEKDAY = {"72", "75", "77", "79", "80", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_SST18_SATURDAY = {"70", "72", "76", "75", "72", "79", "80", "82", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_SST18_SUNDAY = {"70", "72", "75", "72", "79", "803", "9997", "9999", " ", "", "—"}
+
 
 def get_kiemelt_lines(tram_type):
     today = datetime.now().weekday()  # 0=Monday, 6=Sunday
@@ -5872,7 +5883,7 @@ async def potlas_loop_412gt():
             continue
         if not reg_raw or lat is None or lon is None:
             continue
-        if not is_ik412t(reg_raw):
+        if not is_ik412gt(reg_raw):
             continue
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
@@ -5883,11 +5894,11 @@ async def potlas_loop_412gt():
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
     if not active:
-        update_potlas_dest("412T", active)
+        update_potlas_dest("412GT", active)
         return
 
     for reg, i in sorted(active.items()):
-        if not should_send_potlas_embed("412T", reg, i["dest"]):
+        if not should_send_potlas_embed("412GT", reg, i["dest"]):
             continue
 
         embed = discord.Embed(
@@ -5907,6 +5918,390 @@ async def potlas_loop_412gt():
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
     update_potlas_dest("412GT", active)
+    
+@tasks.loop(minutes=5)
+async def potlas_loop_vhag318():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("AG318"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_vhag318(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        update_potlas_dest("AG318", active)
+        return
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("AG318", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (AG318)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+    update_potlas_dest("AG318", active)
+    
+@tasks.loop(minutes=5)
+async def potlas_loop_b12():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("BYDB12"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_bydb12(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        update_potlas_dest("BYD B12", active)
+        return
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("BYD B12", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (BYD B12)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+    update_potlas_dest("BYDB12", active)
+    
+@tasks.loop(minutes=5)
+async def potlas_loop_b19():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("BYDB19"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_bydb19(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        update_potlas_dest("BYD B19", active)
+        return
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("BYD B19", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (BYD B19)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+    update_potlas_dest("BYDB19", active)
+    
+@tasks.loop(minutes=5)
+async def potlas_loop_sst12():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("SST12"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_sst12iii(reg_raw) and is_sst12iv(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        update_potlas_dest("SST12", active)
+        return
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("SST12", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (SST 12)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+    update_potlas_dest("SST12", active)
+    
+@tasks.loop(minutes=5)
+async def potlas_loop_sst18():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("SST18"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_sst18iii(reg_raw) and is_sst18iv(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        update_potlas_dest("SST18", active)
+        return
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("SST18", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (SST 18)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+    update_potlas_dest("SST18", active)
+    
+@tasks.loop(minutes=5)
+async def potlas_loop_gst():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("GST12"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_ganz_troli(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        update_potlas_dest("GST", active)
+        return
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("GST", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (GST)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+    update_potlas_dest("GST", active)
 
 # =======================
 # START
