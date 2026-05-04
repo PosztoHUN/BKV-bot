@@ -42,10 +42,6 @@ def should_send_potlas_embed(loop_name, reg, dest):
     last_dest = POTLAS_LAST_DEST.get(loop_name, {})
     return last_dest.get(reg) != dest
 
-
-def update_potlas_dest(loop_name, active):
-    POTLAS_LAST_DEST[loop_name] = {reg: value["dest"] for reg, value in active.items()}
-
 LINE_EXCEPTIONS = {
     "3600": "60 Fogaskerekű",
 
@@ -5123,10 +5119,6 @@ async def potlas_loop():
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("ICS", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("ICS", reg, i["dest"]):
             continue
@@ -5147,7 +5139,6 @@ async def potlas_loop():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-    update_potlas_dest("ICS", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_kcsv7():
@@ -5209,8 +5200,6 @@ async def potlas_loop_kcsv7():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-    update_potlas_dest("KCSV7", active)
-
 @tasks.loop(minutes=5)
 async def potlas_loop_caf5():
     channel_id = 1500570931389530233
@@ -5248,10 +5237,6 @@ async def potlas_loop_caf5():
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("CAF5", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("CAF5", reg, i["dest"]):
             continue
@@ -5271,8 +5256,6 @@ async def potlas_loop_caf5():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("CAF5", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_caf9():
@@ -5310,11 +5293,7 @@ async def potlas_loop_caf9():
         nearest_stop = get_nearest_stop(lat, lon)
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
-
-    if not active:
-        update_potlas_dest("CAF9", active)
-        return
-
+        
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("CAF9", reg, i["dest"]):
             continue
@@ -5334,8 +5313,6 @@ async def potlas_loop_caf9():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("CAF9", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_combino():
@@ -5374,10 +5351,6 @@ async def potlas_loop_combino():
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("COMBINO", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("COMBINO", reg, i["dest"]):
             continue
@@ -5397,8 +5370,6 @@ async def potlas_loop_combino():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("COMBINO", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_t5c5():
@@ -5437,10 +5408,6 @@ async def potlas_loop_t5c5():
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("T5C5", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("T5C5", reg, i["dest"]):
             continue
@@ -5460,8 +5427,6 @@ async def potlas_loop_t5c5():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("T5C5", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_t5c5k2():
@@ -5500,10 +5465,6 @@ async def potlas_loop_t5c5k2():
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("T5C5K2", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("T5C5K2", reg, i["dest"]):
             continue
@@ -5523,8 +5484,6 @@ async def potlas_loop_t5c5k2():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("T5C5K2", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_tw6000():
@@ -5564,10 +5523,6 @@ async def potlas_loop_tw6000():
         fixlepcsos = is_fixlepcsos(reg_num)
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen", "fixlepcsos": fixlepcsos}
 
-    if not active:
-        update_potlas_dest("TW6000", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("TW6000", reg, i["dest"]):
             continue
@@ -5592,8 +5547,6 @@ async def potlas_loop_tw6000():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("TW6000", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_gst12():
@@ -5633,10 +5586,6 @@ async def potlas_loop_gst12():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("GST12", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("GST12", reg, i["dest"]):
             continue
@@ -5656,8 +5605,6 @@ async def potlas_loop_gst12():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("GST12", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_280t():
@@ -5697,10 +5644,6 @@ async def potlas_loop_280t():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("280T", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("280T", reg, i["dest"]):
             continue
@@ -5720,8 +5663,6 @@ async def potlas_loop_280t():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("280T", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_411t():
@@ -5761,10 +5702,6 @@ async def potlas_loop_411t():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("411T", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("411T", reg, i["dest"]):
             continue
@@ -5784,8 +5721,6 @@ async def potlas_loop_411t():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("411T", active)
 
 @tasks.loop(minutes=5)
 async def potlas_loop_412t():
@@ -5825,10 +5760,6 @@ async def potlas_loop_412t():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("412T", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("412T", reg, i["dest"]):
             continue
@@ -5848,8 +5779,6 @@ async def potlas_loop_412t():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("412T", active)
     
 @tasks.loop(minutes=5)
 async def potlas_loop_412gt():
@@ -5889,10 +5818,6 @@ async def potlas_loop_412gt():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("412GT", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("412GT", reg, i["dest"]):
             continue
@@ -5912,8 +5837,6 @@ async def potlas_loop_412gt():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("412GT", active)
     
 @tasks.loop(minutes=5)
 async def potlas_loop_vhag318():
@@ -5953,10 +5876,6 @@ async def potlas_loop_vhag318():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("AG318", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("AG318", reg, i["dest"]):
             continue
@@ -5976,8 +5895,6 @@ async def potlas_loop_vhag318():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("AG318", active)
     
 @tasks.loop(minutes=5)
 async def potlas_loop_b12():
@@ -6017,10 +5934,6 @@ async def potlas_loop_b12():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("BYD B12", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("BYD B12", reg, i["dest"]):
             continue
@@ -6040,8 +5953,6 @@ async def potlas_loop_b12():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("BYDB12", active)
     
 @tasks.loop(minutes=5)
 async def potlas_loop_b19():
@@ -6081,10 +5992,6 @@ async def potlas_loop_b19():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("BYD B19", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("BYD B19", reg, i["dest"]):
             continue
@@ -6104,8 +6011,6 @@ async def potlas_loop_b19():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("BYDB19", active)
     
 @tasks.loop(minutes=5)
 async def potlas_loop_sst12():
@@ -6145,10 +6050,6 @@ async def potlas_loop_sst12():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("SST12", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("SST12", reg, i["dest"]):
             continue
@@ -6168,8 +6069,6 @@ async def potlas_loop_sst12():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("SST12", active)
     
 @tasks.loop(minutes=5)
 async def potlas_loop_sst18():
@@ -6209,10 +6108,6 @@ async def potlas_loop_sst18():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("SST18", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("SST18", reg, i["dest"]):
             continue
@@ -6232,8 +6127,6 @@ async def potlas_loop_sst18():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("SST18", active)
     
 @tasks.loop(minutes=5)
 async def potlas_loop_gst():
@@ -6273,10 +6166,6 @@ async def potlas_loop_gst():
         reg_num = str(int(digits)) if digits else reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
-    if not active:
-        update_potlas_dest("GST", active)
-        return
-
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("GST", reg, i["dest"]):
             continue
@@ -6296,8 +6185,6 @@ async def potlas_loop_gst():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-    update_potlas_dest("GST", active)
 
 # =======================
 # START
