@@ -2133,6 +2133,10 @@ KIEMELT_VONALAK_412GT_WEEKDAY = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412GT_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412T_WEEKDAY = {"70", "78","9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412T_WEEKEND = {"9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_BYDB12_WEEKDAY = {"53", "105", "153", "154", "210", "212", "212A", "212B", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_BYDB12_WEEKEND = {"53", "105", "153", "154", "210B", "212", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_BYDB19_WEEKDAY = {"8E", "110", "112", "133E", "139", "908", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_BYDB19_WEEKEND = {"8E", "110", "112", "139", "908", "9997", "9999", " ", "", "—"}
 
 def get_kiemelt_lines(tram_type):
     today = datetime.now().weekday()  # 0=Monday, 6=Sunday
@@ -5759,7 +5763,7 @@ async def potlas_loop_411t():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (411T)",
+            title="Érdekesség (411T)",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5839,6 +5843,70 @@ async def potlas_loop_412t():
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
     update_potlas_dest("412T", active)
+    
+@tasks.loop(minutes=5)
+async def potlas_loop_412gt():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("412GT"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_ik412t(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    if not active:
+        update_potlas_dest("412T", active)
+        return
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("412T", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="Érdekesség (412GT)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
+    update_potlas_dest("412GT", active)
 
 # =======================
 # START
