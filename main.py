@@ -6444,6 +6444,33 @@ async def on_ready():
     if not potlas_loop_412t.is_running():
         potlas_loop_412t.start()
 
+    if not potlas_loop_412gt.is_running():
+        potlas_loop_412gt.start()
+
+    if not potlas_loop_b12.is_running():
+        potlas_loop_b12.start()
+        
+    if not potlas_loop_b19.is_running():
+        potlas_loop_b19.start()          
+        
+    if not potlas_loop_sst12.is_running():
+        potlas_loop_sst12.start()
+        
+    if not potlas_loop_sst18.is_running():
+        potlas_loop_sst18.start()
+        
+    if not potlas_loop_gst.is_running():
+        potlas_loop_gst.start()
+    
+    if not potlas_loop_troli.is_running():
+        potlas_loop_troli.start()
+        
+    if not potlas_loop_villamos.is_running():
+        potlas_loop_villamos.start()
+        
+    if not potlas_loop_metro.is_running():
+        potlas_loop_metro.start()
+
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
     sys.exit(1)
