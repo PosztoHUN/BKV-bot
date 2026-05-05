@@ -6211,7 +6211,7 @@ async def potlas_loop_troli():
         line_name = decode_line(line_id)
 
         if line_id.startswith("4") and not reg_raw.startswith("T") and len(reg_raw) == 5:
-            continue
+            pass
         if not reg_raw or lat is None or lon is None:
             continue
         if not is_ganz_troli(reg_raw):
