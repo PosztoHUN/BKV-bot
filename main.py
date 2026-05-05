@@ -6262,6 +6262,7 @@ async def potlas_loop_troli():
 @tasks.loop(minutes=5)
 async def potlas_loop_villamos():
     channel_id = 1500570931389530233
+
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6275,6 +6276,7 @@ async def potlas_loop_villamos():
         return
 
     active = {}
+
     for v in vehicles_data:
         reg_raw = v.get("license_plate")
         lat = v.get("lat")
@@ -6283,26 +6285,39 @@ async def potlas_loop_villamos():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if (line_id.startswith("3") and not reg_raw.startswith("V") and len(reg_raw) == 5) or (line_id.startswith("OP") and not line_id.startswith("OPM")):
-            continue
+        # alap validáció
         if not reg_raw or lat is None or lon is None:
             continue
-        if not is_ganz_troli(reg_raw):
+
+        # 🔥 CSAK villamos vonalak (3xx)
+        if not line_id.startswith("3"):
             continue
+
+        # 🔥 CSAK NEM villamos járművek érdekelnek
+        # ha villamos → skip
+        if is_ics(reg_raw) or is_kcsv7(reg_raw) or is_caf5(reg_raw) or is_caf9(reg_raw) or is_combino(reg_raw) or is_t5c5(reg_raw) or is_t5c5k2(reg_raw) or is_tw6000(reg_raw):
+            continue
+
+        # földrajzi szűrés (Budapest)
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
 
         nearest_stop = get_nearest_stop(lat, lon)
-        digits = "".join(c for c in reg_raw if c.isdigit())
-        reg_num = str(int(digits)) if digits else reg_raw
-        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+        reg_num = reg_raw
+
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "stop": nearest_stop or "Ismeretlen"
+        }
 
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("GST", reg, i["dest"]):
             continue
 
         embed = discord.Embed(
-            title="VILLAMOSPÓTLÁS",
+            title="VILLAMOS PÓTLÁS",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6453,6 +6468,12 @@ async def on_ready():
         
     if not potlas_loop_troli.is_running():
         potlas_loop_troli.start()
+    
+    if not potlas_loop_villamos.is_running():
+        potlas_loop_villamos.start()
+        
+    if not potlas_loop_metro.is_running():
+        potlas_loop_metro.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
