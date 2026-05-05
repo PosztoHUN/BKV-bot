@@ -2104,7 +2104,7 @@ async def bkvvillamos(ctx):
     for e in embeds:
         await ctx.send(embed=e)
 
-
+#Villamosok
 KIEMELT_VONALAK_TW_WEEKDAY = {"24", "28", "28A", "37", "37A", "51", "51A", "52", "62", "62A", "69", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_TW_WEEKEND = {"24", "51A", "52", "69", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_ICS_WEEKDAY = {"2", "47", "49", "9997", "9999", " ", "", "—"}
@@ -2121,6 +2121,8 @@ KIEMELT_VONALAK_T5C5_WEEKDAY = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_T5C5_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_T5C5K2_WEEKDAY = {"1", "1A", "12", "12A", "14", "17", "19", "28", "28A", "37", "37A", "41", "56", "56A", "59", "59A", "59B", "61", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_T5C5K2_WEEKEND = {"12A", "14", "19", "28", "28A", "37A", "41", "59", "59A", "9997", "9999", " ", "", "—"}
+
+#Trolibuszok
 KIEMELT_VONALAK_280T_WEEKDAY = {"75", "80", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_280T_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_411T_WEEKDAY = {"9997", "9999", " ", "", "—"}
@@ -2129,12 +2131,6 @@ KIEMELT_VONALAK_412GT_WEEKDAY = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412GT_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412T_WEEKDAY = {"70", "74", "78","9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412T_WEEKEND = {"9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_BYDB12_WEEKDAY = {"53", "105", "153", "154", "210", "212", "212A", "212B", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_BYDB12_WEEKEND = {"53", "105", "153", "154", "210B", "212", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_BYDB19_WEEKDAY = {"8E", "110", "112", "133E", "139", "908", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_BYDB19_WEEKEND = {"8E", "110", "112", "139", "908", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_AG318_WEEKDAY = {"136", "142E", "224", "224E", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_AG318_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONAlAK_GST12_WEEKDAY = {"70","74", "78", "9997", "9999", " ", "", "—"}
 KIEMELT_VONAlAK_GST12_WEEKEND = {"70","74", "77", "78", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_SST12_WEEKDAY = {"70", "73", "74", "78", "79", "81", "83", "9997", "9999", " ", "", "—"}
@@ -2144,6 +2140,25 @@ KIEMELT_VONALAK_SST18_WEEKDAY = {"72", "75", "76", "77", "79", "80", "9997", "99
 KIEMELT_VONALAK_SST18_SATURDAY = {"70", "72", "76", "75", "72", "79", "80", "82", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_SST18_SUNDAY = {"70", "72", "75", "72", "79", "803", "9997", "9999", " ", "", "—"}
 
+#Buszok - Arriva
+KIEMELT_VONALAK_BYDB12_WEEKDAY = {"53", "105", "153", "154", "210", "212", "212A", "212B", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_BYDB12_WEEKEND = {"53", "105", "153", "154", "210B", "212", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_BYDB19_WEEKDAY = {"8E", "110", "112", "133E", "139", "908", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_BYDB19_WEEKEND = {"8E", "110", "112", "139", "908", "9997", "9999", " ", "", "—"}
+
+#Buszok - BKV
+KIEMELT_VONALAK_AG318_WEEKDAY = {"136", "142E", "224", "224E", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_AG318_WEEKEND = {"9997", "9999", " ", "", "—"}
+
+#Buszok - Volánbusz
+KIEMELT_VONALAK_LC12VOL_WEEKDAY = {"13", "13A", "22", "22A", "40", "40B", "40E", "63", "64", "64A", "64B", "88", "88A", "140", "140A", "140B", "164", "164B", "172", "173", "188", "188E", "218", "238", "240", "264", "272", "279B", "280B", "287", "222", "940", "972", "972B", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_LC12VOL_WEEKEND = {"13A", "22", "22A", "38", "38A", "40", "40B", "40E", "55", "63", "64", "64A", "64B", "88", "88A", "113", "140B", "164", "164B", "218", "238", "240",  "222", "940", "972", "972B", "9997", "9999", "922", "943", "940", "963", "964", "972", "972B", "992", "994B", " ", "", "—"}
+KIEMELT_VONALAK_7900AVOL_WEEKDAY = {"38", "38A", "55", "84E", "89E", "94E", "169E", "238", "278", "279", "280", "294E", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_7900AVOL_WEEKEND = {"84E", "89E", "94E", "956", "294E", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_MBCONGVOL_WEEKDAY = {"38", "38A", "55", "84E", "89E", "94E", "169E", "238", "278", "279", "280", "294E", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_MBCONGVOL_WEEKEND = {"38A", "84E", "89E", "94E", "169E", "238", "938", "956", "294E", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_ECITAROVOL_WEEKDAY = {"22", "22A", "40", "40B", "40E", "88", "88A", "140", "140A", "140B", "172", "173", "188", "188E", "222", "240", "272", "287", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_ECITAROVOL_WEEKEND = {"22", "22A", "40", "40B", "88", "140B", "172", "173", "188", "222", "240", "940", "9997", "9999", " ", "", "—"}
 
 def get_kiemelt_lines(tram_type):
     today = datetime.now().weekday()  # 0=Monday, 6=Sunday
@@ -6187,6 +6202,238 @@ async def potlas_loop_gst():
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
             
 @tasks.loop(minutes=10)
+async def potlas_loop_lc12vol():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("LC12VOL"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_vol12c(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("LC12VOL", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (Lion's City 12C)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            
+@tasks.loop(minutes=10)
+async def potlas_loop_7900avol():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("7900AVOL"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_vol7900a(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("7900AVOL", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (Volvo 7900A)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            
+@tasks.loop(minutes=10)
+async def potlas_loop_mbcongvol():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("MBCONGVOL"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_volcon(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("MBCONGVOL", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (Mercedes-Benz Conecto G)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            
+@tasks.loop(minutes=10)
+async def potlas_loop_ecitarovol():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("ECITAROVOL"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_volcitaro(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("ECITAROVOL", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="PÓTLÁS (Mercedes-Benz eCitaro)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            
+@tasks.loop(minutes=10)
 async def potlas_loop_troli():
     channel_id = 1500570931389530233
 
@@ -6473,6 +6720,18 @@ async def on_ready():
     
     if not potlas_loop_villamos.is_running():
         potlas_loop_villamos.start()
+        
+    if not potlas_loop_ecitarovol.is_running():
+        potlas_loop_ecitarovol.start()
+    
+    if not potlas_loop_lc12vol.is_running():
+        potlas_loop_lc12vol.start()
+        
+    if not potlas_loop_7900avol.is_running():
+        potlas_loop_7900avol.start()
+        
+    if not potlas_loop_mbcongvol.is_running():
+        potlas_loop_mbcongvol.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
