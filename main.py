@@ -6473,9 +6473,6 @@ async def on_ready():
     
     if not potlas_loop_villamos.is_running():
         potlas_loop_villamos.start()
-        
-    if not potlas_loop_metro.is_running():
-        potlas_loop_metro.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
