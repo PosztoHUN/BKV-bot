@@ -6040,7 +6040,7 @@ async def potlas_loop_sst12():
             continue
         if not reg_raw or lat is None or lon is None:
             continue
-        if is_sst12iii(reg_raw) or is_sst12iv(reg_raw):
+        if not is_sst12iii(reg_raw) or is_sst12iv(reg_raw):
             continue
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
@@ -6098,7 +6098,7 @@ async def potlas_loop_sst18():
             continue
         if not reg_raw or lat is None or lon is None:
             continue
-        if is_sst18iii(reg_raw) or is_sst18iv(reg_raw):
+        if not is_sst18iii(reg_raw) or is_sst18iv(reg_raw):
             continue
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
