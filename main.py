@@ -6189,6 +6189,7 @@ async def potlas_loop_gst():
 @tasks.loop(minutes=5)
 async def potlas_loop_troli():
     channel_id = 1490792694975430676
+
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6202,6 +6203,7 @@ async def potlas_loop_troli():
         return
 
     active = {}
+
     for v in vehicles_data:
         reg_raw = v.get("license_plate")
         lat = v.get("lat")
@@ -6209,27 +6211,41 @@ async def potlas_loop_troli():
         dest = v.get("label", "Ismeretlen")
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
-        
-        if not is_ganz_troli(reg_raw):
-            continue
-        if line_id.startswith("4") and not reg_raw.startswith("T") and len(reg_raw) == 5:
-            continue
+
+        # alap validáció
         if not reg_raw or lat is None or lon is None:
             continue
+
+        # 🔥 CSAK troli vonalak (4xx)
+        if not line_id.startswith("4"):
+            continue
+
+        # 🔥 CSAK NEM troli járművek (tehát helyettesítés)
+        if is_ganz_troli(reg_raw):
+            continue
+
+        # földrajzi szűrés
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
 
         nearest_stop = get_nearest_stop(lat, lon)
+
         digits = "".join(c for c in reg_raw if c.isdigit())
         reg_num = str(int(digits)) if digits else reg_raw
-        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "stop": nearest_stop or "Ismeretlen"
+        }
+
+    # embed küldés
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("GST", reg, i["dest"]):
             continue
 
         embed = discord.Embed(
-            title="TROLIPÓTLÁS",
+            title="TROLIPÓTLÁS (nem troli jármű a vonalon)",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
