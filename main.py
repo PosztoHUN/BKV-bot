@@ -6209,12 +6209,12 @@ async def potlas_loop_troli():
         dest = v.get("label", "Ismeretlen")
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
-
+        
+        if not is_ganz_troli(reg_raw):
+            continue
         if line_id.startswith("4") and not reg_raw.startswith("T") and len(reg_raw) == 5:
             continue
         if not reg_raw or lat is None or lon is None:
-            continue
-        if not is_ganz_troli(reg_raw):
             continue
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
