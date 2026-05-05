@@ -6222,7 +6222,7 @@ async def potlas_loop_troli():
 
         # 🔥 CSAK NEM troli járművek érdekelnek
         # ha troli → skip
-        if is_ganz_troli(reg_raw):
+        if is_ganz_troli(reg_raw) or is_sst12iii(reg_raw) or is_sst18iii(reg_raw) or is_sst12iv(reg_raw) or is_sst18iv(reg_raw) or is_ik280t(reg_raw) or is_ik411t(reg_raw) or is_ik412t(reg_raw) or is_ik412gt(reg_raw):
             continue
 
         # földrajzi szűrés (Budapest)
