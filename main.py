@@ -6212,28 +6212,29 @@ async def potlas_loop_troli():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        # alap ellenőrzések
+        # alap validáció
         if not reg_raw or lat is None or lon is None:
             continue
 
-        # csak troli vonalak (4xx)
+        # 🔥 CSAK troli vonalak (4xx)
         if not line_id.startswith("4"):
             continue
 
-        # CSAK nem troli járművek (tehát pótlás)
+        # 🔥 CSAK NEM troli járművek érdekelnek
+        # ha troli → skip
         if is_ganz_troli(reg_raw):
             continue
 
-        # budapesti tartomány
+        # földrajzi szűrés (Budapest)
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
 
         nearest_stop = get_nearest_stop(lat, lon)
 
-        # ✔ teljes rendszám marad
-        reg_full = reg_raw
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
 
-        active[reg_full] = {
+        active[reg_num] = {
             "line": line_name,
             "dest": dest,
             "stop": nearest_stop or "Ismeretlen"
@@ -6244,7 +6245,7 @@ async def potlas_loop_troli():
             continue
 
         embed = discord.Embed(
-            title="TROLIPÓTLÁS (nem troli jármű a troli vonalon)",
+            title="TROLIVONAL PÓTLÁS",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
