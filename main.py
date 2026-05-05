@@ -5079,7 +5079,7 @@ def normalize_route(route_raw: str) -> str:
 
 #                 await ch.send(embed=embed)
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5140,7 +5140,7 @@ async def potlas_loop():
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_kcsv7():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5200,7 +5200,7 @@ async def potlas_loop_kcsv7():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_caf5():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5257,7 +5257,7 @@ async def potlas_loop_caf5():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_caf9():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5314,7 +5314,7 @@ async def potlas_loop_caf9():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_combino():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5371,7 +5371,7 @@ async def potlas_loop_combino():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_t5c5():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5428,7 +5428,7 @@ async def potlas_loop_t5c5():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_t5c5k2():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5485,7 +5485,7 @@ async def potlas_loop_t5c5k2():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_tw6000():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5548,7 +5548,7 @@ async def potlas_loop_tw6000():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_gst12():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5606,7 +5606,7 @@ async def potlas_loop_gst12():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_280t():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5664,7 +5664,7 @@ async def potlas_loop_280t():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_411t():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5722,7 +5722,7 @@ async def potlas_loop_411t():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_412t():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5779,8 +5779,8 @@ async def potlas_loop_412t():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-    
-@tasks.loop(minutes=5)
+
+@tasks.loop(minutes=10)
 async def potlas_loop_412gt():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5838,7 +5838,7 @@ async def potlas_loop_412gt():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
     
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_vhag318():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5896,7 +5896,7 @@ async def potlas_loop_vhag318():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
     
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_b12():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -5954,7 +5954,7 @@ async def potlas_loop_b12():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
     
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_b19():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -6012,7 +6012,7 @@ async def potlas_loop_b19():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
     
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_sst12():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -6070,7 +6070,7 @@ async def potlas_loop_sst12():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
     
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_sst18():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -6128,7 +6128,7 @@ async def potlas_loop_sst18():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
     
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_gst():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
@@ -6186,7 +6186,7 @@ async def potlas_loop_gst():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
             
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_troli():
     channel_id = 1500570931389530233
 
@@ -6259,7 +6259,7 @@ async def potlas_loop_troli():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
             
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_villamos():
     channel_id = 1500570931389530233
 
@@ -6334,7 +6334,7 @@ async def potlas_loop_villamos():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
             
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def potlas_loop_metro():
     channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
