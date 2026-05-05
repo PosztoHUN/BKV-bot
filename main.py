@@ -6185,6 +6185,180 @@ async def potlas_loop_gst():
             await channel.send(embed=embed)
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            
+@tasks.loop(minutes=5)
+async def potlas_loop_troli():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_id.startswith("4") and not reg_raw.startswith("T") and len(reg_raw) == 5:
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_ganz_troli(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("GST", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="TROLIPÓTLÁS",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            
+@tasks.loop(minutes=5)
+async def potlas_loop_villamos():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if (line_id.startswith("3") and not reg_raw.startswith("V") and len(reg_raw) == 5) or (line_id.startswith("OP") and not line_id.startswith("OPM")):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_ganz_troli(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("GST", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="VILLAMOSPÓTLÁS",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            
+@tasks.loop(minutes=5)
+async def potlas_loop_metro():
+    channel_id = 1500570931389530233
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_id.startswith("5") or line_id.startswith("OPM"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_ganz_troli(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("GST", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="METRÓPÓTLÁS",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
 # =======================
 # START
