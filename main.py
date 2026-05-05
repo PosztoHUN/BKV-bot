@@ -6231,8 +6231,7 @@ async def potlas_loop_troli():
 
         nearest_stop = get_nearest_stop(lat, lon)
 
-        digits = "".join(c for c in reg_raw if c.isdigit())
-        reg_num = str(int(digits)) if digits else reg_raw
+        reg_num = reg_raw
 
         active[reg_num] = {
             "line": line_name,
