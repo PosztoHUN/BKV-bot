@@ -2151,14 +2151,14 @@ KIEMELT_VONALAK_AG318_WEEKDAY = {"136", "142E", "224", "224E", "9997", "9999", "
 KIEMELT_VONALAK_AG318_WEEKEND = {"9997", "9999", " ", "", "—"}
 
 #Buszok - Volánbusz
-KIEMELT_VONALAK_LC12VOL_WEEKDAY = {"13", "13A", "22", "22A", "40", "40B", "40E", "63", "64", "64A", "64B", "88", "88A", "140", "140A", "140B", "164", "164B", "172", "173", "188", "188E", "218", "238", "240", "264", "272", "279B", "280B", "287", "222", "940", "972", "972B", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_LC12VOL_WEEKEND = {"13A", "22", "22A", "38", "38A", "40", "40B", "40E", "55", "63", "64", "64A", "64B", "88", "88A", "113", "140B", "164", "164B", "218", "238", "240",  "222", "940", "972", "972B", "9997", "9999", "922", "943", "940", "963", "964", "972", "972B", "992", "994B", " ", "", "—"}
+KIEMELT_VONALAK_LC12VOL_WEEKDAY = {"13", "13A", "22", "22A", "40", "40B", "40E", "63", "64", "64A", "64B", "88", "88A", "140", "113", "113A", "140A", "140B", "164", "164B", "172", "173", "188", "188E", "218", "238", "240", "264", "272", "278", "279", "279B", "280B", "287", "222", "940", "972", "972B", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_LC12VOL_WEEKEND = {"13A", "22", "22A", "38", "38A", "40", "40B", "40E", "55", "63", "64", "64A", "64B", "88", "88A", "113", "113A", "140B", "164", "164B", "218", "238", "240", "222", "940", "972", "972B", "9997", "9999", "922", "943", "940", "963", "964", "972", "972B", "992", "994B", " ", "", "—"}
 KIEMELT_VONALAK_7900AVOL_WEEKDAY = {"38", "38A", "55", "84E", "89E", "94E", "169E", "238", "278", "279", "280", "294E", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_7900AVOL_WEEKEND = {"84E", "89E", "94E", "956", "294E", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_MBCONGVOL_WEEKDAY = {"38", "38A", "55", "84E", "89E", "94E", "169E", "238", "278", "279", "280", "294E", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_MBCONGVOL_WEEKEND = {"38A", "84E", "89E", "94E", "169E", "238", "938", "956", "294E", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_ECITAROVOL_WEEKDAY = {"22", "22A", "40", "40B", "40E", "88", "88A", "140", "140A", "140B", "172", "173", "188", "188E", "222", "240", "272", "287", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_ECITAROVOL_WEEKEND = {"22", "22A", "40", "40B", "88", "140B", "172", "173", "188", "222", "240", "940", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_ECITAROVOL_WEEKDAY = {"13", "13A", "22", "22A", "40", "40B", "40E", "88", "88A", "113", "113A", "140", "140A", "140B", "172", "173", "188", "188E", "222", "240", "272", "287", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_ECITAROVOL_WEEKEND = {"13", "13A", "22", "22A", "40", "40B", "88", "113", "113A", "140B", "172", "173", "188", "222", "240", "940", "9997", "9999", " ", "", "—"}
 
 def get_kiemelt_lines(tram_type):
     today = datetime.now().weekday()  # 0=Monday, 6=Sunday
@@ -6235,8 +6235,7 @@ async def potlas_loop_lc12vol():
             continue
 
         nearest_stop = get_nearest_stop(lat, lon)
-        digits = "".join(c for c in reg_raw if c.isdigit())
-        reg_num = str(int(digits)) if digits else reg_raw
+        reg_num = reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
     for reg, i in sorted(active.items()):
@@ -6293,8 +6292,7 @@ async def potlas_loop_7900avol():
             continue
 
         nearest_stop = get_nearest_stop(lat, lon)
-        digits = "".join(c for c in reg_raw if c.isdigit())
-        reg_num = str(int(digits)) if digits else reg_raw
+        reg_num = reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
     for reg, i in sorted(active.items()):
@@ -6351,8 +6349,7 @@ async def potlas_loop_mbcongvol():
             continue
 
         nearest_stop = get_nearest_stop(lat, lon)
-        digits = "".join(c for c in reg_raw if c.isdigit())
-        reg_num = str(int(digits)) if digits else reg_raw
+        reg_num = reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
     for reg, i in sorted(active.items()):
@@ -6409,8 +6406,7 @@ async def potlas_loop_ecitarovol():
             continue
 
         nearest_stop = get_nearest_stop(lat, lon)
-        digits = "".join(c for c in reg_raw if c.isdigit())
-        reg_num = str(int(digits)) if digits else reg_raw
+        reg_num = reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
     for reg, i in sorted(active.items()):
@@ -6615,8 +6611,7 @@ async def potlas_loop_metro():
             continue
 
         nearest_stop = get_nearest_stop(lat, lon)
-        digits = "".join(c for c in reg_raw if c.isdigit())
-        reg_num = str(int(digits)) if digits else reg_raw
+        reg_num = reg_raw
         active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
     for reg, i in sorted(active.items()):
