@@ -6435,6 +6435,9 @@ async def on_ready():
         
     if not potlas_loop_gst.is_running():
         potlas_loop_gst.start()
+        
+    if not potlas_loop_troli.is_running():
+        potlas_loop_troli.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
