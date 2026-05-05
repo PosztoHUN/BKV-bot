@@ -6188,7 +6188,7 @@ async def potlas_loop_gst():
             
 @tasks.loop(minutes=5)
 async def potlas_loop_troli():
-    channel_id = 1490792694975430676
+    channel_id = 1500570931389530233
 
     channel = bot.get_channel(channel_id)
     if channel is None:
