@@ -6244,7 +6244,7 @@ async def potlas_loop_troli():
             continue
 
         embed = discord.Embed(
-            title="TROLIVONAL PÓTLÁS",
+            title="TROLIPÓTLÁS",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
