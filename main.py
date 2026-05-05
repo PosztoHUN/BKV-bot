@@ -6297,7 +6297,7 @@ async def potlas_loop_villamos():
 
         # 🔥 CSAK NEM villamos járművek érdekelnek
         # ha villamos → skip
-        if is_ics(reg_raw) or is_kcsv7(reg_raw) or is_caf5(reg_raw) or is_caf9(reg_raw) or is_combino(reg_raw) or is_t5c5(reg_raw) or is_t5c5k2(reg_raw) or is_tw6000(reg_raw):
+        if is_ics(reg_raw) or is_kcsv7(reg_raw) or is_caf5(reg_raw) or is_caf9(reg_raw) or is_combino(reg_raw) or is_t5c5(reg_raw) or is_t5c5k2(reg_raw) or is_tw6000(reg_raw) or is_fogas:
             continue
 
         # földrajzi szűrés (Budapest)
@@ -6358,7 +6358,7 @@ async def potlas_loop_metro():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_id.startswith("5") or line_id.startswith("OPM"):
+        if line_id.startswith("5") or line_id.startswith("OPM") or line_id == "—":
             continue
         if not reg_raw or lat is None or lon is None:
             continue
