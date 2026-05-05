@@ -6290,8 +6290,10 @@ async def potlas_loop_villamos():
             continue
 
         # 🔥 CSAK villamos vonalak (3xx)
-        if not line_id.startswith("3"):
+        if not line_id.startswith("3") or (line_id.startswith("OP") and not line_id.startswith("OPM")):
             continue
+        
+        
 
         # 🔥 CSAK NEM villamos járművek érdekelnek
         # ha villamos → skip
