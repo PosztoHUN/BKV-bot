@@ -6189,7 +6189,6 @@ async def potlas_loop_gst():
 @tasks.loop(minutes=5)
 async def potlas_loop_troli():
     channel_id = 1500570931389530233
-
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6203,7 +6202,6 @@ async def potlas_loop_troli():
         return
 
     active = {}
-
     for v in vehicles_data:
         reg_raw = v.get("license_plate")
         lat = v.get("lat")
@@ -6212,50 +6210,26 @@ async def potlas_loop_troli():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        # alap validáció
+        if line_id.startswith("4") and not reg_raw.startswith("T") and len(reg_raw) == 5:
+            continue
         if not reg_raw or lat is None or lon is None:
             continue
-
-        # ha nem GANZ troli → skip
         if not is_ganz_troli(reg_raw):
             continue
-
-        # budapesti koordináta szűrés
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
 
-        # opcionális szűrés: 4-es vonal + 5 karakteres + nem T-s
-        is_special_line = (
-            line_id.startswith("4")
-            and len(reg_raw) == 5
-            and not reg_raw.startswith("T")
-        )
-
-        # ha ezeket KÜLÖN akarod kezelni, itt ne skip legyen
-        # (most nem dobjuk ki őket)
-
         nearest_stop = get_nearest_stop(lat, lon)
-
         digits = "".join(c for c in reg_raw if c.isdigit())
         reg_num = str(int(digits)) if digits else reg_raw
-
-        active[reg_num] = {
-            "line": line_name,
-            "dest": dest,
-            "stop": nearest_stop or "Ismeretlen",
-            "special": is_special_line
-        }
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
 
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("GST", reg, i["dest"]):
             continue
 
-        title = "TROLIPÓTLÁS"
-        if i["special"]:
-            title += " (4700 külön)"
-
         embed = discord.Embed(
-            title=title,
+            title="TROLIPÓTLÁS",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6461,15 +6435,6 @@ async def on_ready():
         
     if not potlas_loop_gst.is_running():
         potlas_loop_gst.start()
-    
-    if not potlas_loop_troli.is_running():
-        potlas_loop_troli.start()
-        
-    if not potlas_loop_villamos.is_running():
-        potlas_loop_villamos.start()
-        
-    if not potlas_loop_metro.is_running():
-        potlas_loop_metro.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
