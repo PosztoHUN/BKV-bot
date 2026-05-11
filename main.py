@@ -6536,14 +6536,17 @@ async def potlas_loop_villamos():
             continue
 
         # 🔥 CSAK villamos vonalak (3xx)
-        if not line_id.startswith("3") or (line_id.startswith("OP") and not line_id.startswith("OPM")):
+        if not (
+            line_id.startswith("3")
+            or (line_id.startswith("OP") and not line_id.startswith("OPM"))
+        ):
             continue
         
         
 
         # 🔥 CSAK NEM villamos járművek érdekelnek
         # ha villamos → skip
-        if is_ics(reg_raw) or is_kcsv7(reg_raw) or is_caf5(reg_raw) or is_caf9(reg_raw) or is_combino(reg_raw) or is_t5c5(reg_raw) or is_t5c5k2(reg_raw) or is_tw6000(reg_raw) or is_fogas:
+        if is_ics(reg_raw) or is_kcsv7(reg_raw) or is_caf5(reg_raw) or is_caf9(reg_raw) or is_combino(reg_raw) or is_t5c5(reg_raw) or is_t5c5k2(reg_raw) or is_tw6000(reg_raw) or is_fogas(reg_raw):
             continue
 
         # földrajzi szűrés (Budapest)
