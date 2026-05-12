@@ -6434,24 +6434,6 @@ async def potlas_loop_ecitarovol():
             
 import json
 
-troli_potlas_stats = {
-    "70": 0,
-    "72": 0,
-    "73": 0,
-    "74": 0,
-    "75": 0,
-    "76": 0,
-    "77": 0,
-    "78": 0,
-    "79": 0,
-    "80": 0,
-    "81": 0,
-    "82": 0,
-    "83": 0
-}            
-            
-import json
-
 @tasks.loop(minutes=10)
 async def potlas_loop_troli():
 
@@ -6561,7 +6543,7 @@ async def potlas_loop_troli():
     try:
 
         with open(
-            "potlas_web/script.js",
+            "potlas_web/potlasok.json",
             "w",
             encoding="utf-8"
         ) as f:
