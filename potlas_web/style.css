@@ -1,0 +1,38 @@
+#bal{
+    float:left;
+    width:48%;
+    height:340px;
+    background-color: white;
+    padding:10px;
+ 
+}
+ 
+#jobb{
+    float:right;
+    width:48%;
+    height:340px;
+    background-color: white;
+    padding:5px;
+   
+}
+
+#also{
+    width:90%;
+    height:30px;
+    background-color: rgb(255, 0, 21);
+    text-align:center;
+}
+table{
+    width:95%;
+}
+td{
+    text-align: center;
+}
+ 
+#felso div{
+    background-color: black;
+    width:90%;
+    height:120px;
+    margin:auto;
+   
+}

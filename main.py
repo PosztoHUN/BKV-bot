@@ -26,7 +26,7 @@ import math
 
 TOKEN = os.getenv("TOKEN")
 
-API_KEY = "bfe1478f-1155-40d8-a80e-d735290a7a00"  # <-- ide tedd vissza a sajátodat
+API_KEY = "bfe1478f-1155-40d8-a80e-d735290a7a00"
 PB_URL  = f"https://go.bkk.hu/api/query/v1/ws/gtfs-rt/full/VehiclePositions.pb?key={API_KEY}"
 TXT_URL = f"https://go.bkk.hu/api/query/v1/ws/gtfs-rt/full/VehiclePositions.txt?key={API_KEY}"
 
@@ -6432,11 +6432,33 @@ async def potlas_loop_ecitarovol():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
             
+import json
+
+troli_potlas_stats = {
+    "70": 0,
+    "72": 0,
+    "73": 0,
+    "74": 0,
+    "75": 0,
+    "76": 0,
+    "77": 0,
+    "78": 0,
+    "79": 0,
+    "80": 0,
+    "81": 0,
+    "82": 0,
+    "83": 0
+}            
+            
+import json
+
 @tasks.loop(minutes=10)
 async def potlas_loop_troli():
+
     channel_id = 1500570931389530233
 
     channel = bot.get_channel(channel_id)
+
     if channel is None:
         try:
             channel = await bot.fetch_channel(channel_id)
@@ -6445,33 +6467,65 @@ async def potlas_loop_troli():
             return
 
     vehicles_data = await fetch_vehicles()
+
     if not vehicles_data:
         return
 
     active = {}
 
+    # statisztika
+    potlas_stats = {
+        "70": 0,
+        "72": 0,
+        "73": 0,
+        "74": 0,
+        "75": 0,
+        "76": 0,
+        "77": 0,
+        "78": 0,
+        "79": 0,
+        "80": 0,
+        "81": 0,
+        "82": 0,
+        "83": 0
+    }
+
     for v in vehicles_data:
+
         reg_raw = v.get("license_plate")
+
         lat = v.get("lat")
         lon = v.get("lon")
+
         dest = v.get("label", "Ismeretlen")
+
         line_id = str(v.get("public_route_id", "—"))
+
         line_name = decode_line(line_id)
 
         # alap validáció
         if not reg_raw or lat is None or lon is None:
             continue
 
-        # 🔥 CSAK troli vonalak (4xx)
+        # CSAK troli vonalak
         if not line_id.startswith("4"):
             continue
 
-        # 🔥 CSAK NEM troli járművek érdekelnek
         # ha troli → skip
-        if is_ganz_troli(reg_raw) or is_sst12iii(reg_raw) or is_sst18iii(reg_raw) or is_sst12iv(reg_raw) or is_sst18iv(reg_raw) or is_ik280t(reg_raw) or is_ik411t(reg_raw) or is_ik412t(reg_raw) or is_ik412gt(reg_raw):
+        if (
+            is_ganz_troli(reg_raw)
+            or is_sst12iii(reg_raw)
+            or is_sst18iii(reg_raw)
+            or is_sst12iv(reg_raw)
+            or is_sst18iv(reg_raw)
+            or is_ik280t(reg_raw)
+            or is_ik411t(reg_raw)
+            or is_ik412t(reg_raw)
+            or is_ik412gt(reg_raw)
+        ):
             continue
 
-        # földrajzi szűrés (Budapest)
+        # Budapest szűrés
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
 
@@ -6485,8 +6539,54 @@ async def potlas_loop_troli():
             "stop": nearest_stop or "Ismeretlen"
         }
 
+        # =========================
+        # STATISZTIKA
+        # =========================
+
+        line_clean = (
+            line_name
+            .replace("M", "")
+            .replace("A", "")
+            .replace("B", "")
+            .strip()
+        )
+
+        if line_clean in potlas_stats:
+            potlas_stats[line_clean] += 1
+
+    # =========================
+    # JSON MENTÉS
+    # =========================
+
+    try:
+
+        with open(
+            "potlas_web/potlasok.json",
+            "w",
+            encoding="utf-8"
+        ) as f:
+
+            json.dump(
+                potlas_stats,
+                f,
+                ensure_ascii=False,
+                indent=4
+            )
+
+    except Exception as e:
+        print(f"JSON save error: {e}")
+
+    # =========================
+    # DISCORD EMBEDEK
+    # =========================
+
     for reg, i in sorted(active.items()):
-        if not should_send_potlas_embed("GST", reg, i["dest"]):
+
+        if not should_send_potlas_embed(
+            "GST",
+            reg,
+            i["dest"]
+        ):
             continue
 
         embed = discord.Embed(
@@ -6502,8 +6602,12 @@ async def potlas_loop_troli():
 
         try:
             await channel.send(embed=embed)
+
         except Exception as e:
-            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            print(
+                f"Failed to send replacement embed "
+                f"to channel {channel_id}: {e}"
+            )
             
 @tasks.loop(minutes=10)
 async def potlas_loop_villamos():
