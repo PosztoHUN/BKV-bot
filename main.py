@@ -6561,7 +6561,7 @@ async def potlas_loop_troli():
     try:
 
         with open(
-            "potlas_web/potlasok.json",
+            "potlas_web/script.js",
             "w",
             encoding="utf-8"
         ) as f:
