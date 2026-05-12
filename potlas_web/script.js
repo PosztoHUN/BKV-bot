@@ -41,9 +41,9 @@ function grafikon(){
     }
 }
 
-alapoz.onclick=function(){
-    vonalak=[0,0,0,0,0,0,0,0,0,0,0,0,0];
-    for (i=0;i<vonalak.length;i++){
-        oszlopok[i].style.height = 0 + "px"
-    }
-}
+// alapoz.onclick=function(){
+//     vonalak=[0,0,0,0,0,0,0,0,0,0,0,0,0];
+//     for (i=0;i<vonalak.length;i++){
+//         oszlopok[i].style.height = 0 + "px"
+//     }
+// }
