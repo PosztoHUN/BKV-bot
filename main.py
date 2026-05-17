@@ -2108,7 +2108,7 @@ async def bkvvillamos(ctx):
 KIEMELT_VONALAK_TW_WEEKDAY = {"24", "28", "28A", "37", "37A", "51", "51A", "52", "62", "62A", "69", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_TW_WEEKEND = {"24", "51A", "52", "69", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_ICS_WEEKDAY = {"2", "47", "49", "9997", "9999", " ", "", "—"}
-KIEMELT_VONALAK_ICS_WEEKEND = {"47", "48", "49", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_ICS_WEEKEND = {"2", "47", "48", "49", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_KCSV7_WEEKDAY = {"2", "2B", "23", "24", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_KCSV7_WEEKEND = {"2", "2B", "23", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_COMBINO_WEEKDAY = {"4", "6", "9997", "9999", " ", "", "—"}
