@@ -5160,7 +5160,7 @@ async def potlas_loop():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_kcsv7():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5203,7 +5203,7 @@ async def potlas_loop_kcsv7():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (KCSV7)",
+            title="Ganz KCSV7 nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5220,7 +5220,7 @@ async def potlas_loop_kcsv7():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_caf5():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5260,7 +5260,7 @@ async def potlas_loop_caf5():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (CAF5)",
+            title="CAF Urbos 3 (5 modulos) nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5277,7 +5277,7 @@ async def potlas_loop_caf5():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_caf9():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5317,7 +5317,7 @@ async def potlas_loop_caf9():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (CAF9)",
+            title="CAF Urbos 3 (9 modulos) nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5334,7 +5334,7 @@ async def potlas_loop_caf9():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_combino():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5374,7 +5374,7 @@ async def potlas_loop_combino():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (COMBINO)",
+            title="Siemens Combino nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5391,7 +5391,7 @@ async def potlas_loop_combino():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_t5c5():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5431,7 +5431,7 @@ async def potlas_loop_t5c5():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (T5C5)",
+            title="Tatra T5C5 nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5448,7 +5448,7 @@ async def potlas_loop_t5c5():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_t5c5k2():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5488,7 +5488,7 @@ async def potlas_loop_t5c5k2():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (T5C5K2)",
+            title="Tatra T5C5K2 nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5505,7 +5505,7 @@ async def potlas_loop_t5c5k2():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_tw6000():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5556,7 +5556,7 @@ async def potlas_loop_tw6000():
         description += f"Környező megálló: {i['stop']}"
 
         embed = discord.Embed(
-            title="PÓTLÁS (TW6000)",
+            title="TW6000 nem megszokott vonalon",
             color=discord.Color.red(),
             description=description
         )
@@ -5568,7 +5568,7 @@ async def potlas_loop_tw6000():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_gst12():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5609,7 +5609,7 @@ async def potlas_loop_gst12():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (GST12)",
+            title="GST nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5626,7 +5626,7 @@ async def potlas_loop_gst12():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_280t():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5667,7 +5667,7 @@ async def potlas_loop_280t():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (280T)",
+            title="Ikarus 280T nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5684,7 +5684,7 @@ async def potlas_loop_280t():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_411t():
-    channel_id = 1500570931389530233
+    channel_id = 1505936134209802300
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5742,7 +5742,7 @@ async def potlas_loop_411t():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_412t():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5783,7 +5783,7 @@ async def potlas_loop_412t():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (412T)",
+            title="Ikarus 412T nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5800,7 +5800,7 @@ async def potlas_loop_412t():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_412gt():
-    channel_id = 1500570931389530233
+    channel_id = 1505936134209802300
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5858,7 +5858,7 @@ async def potlas_loop_412gt():
     
 @tasks.loop(minutes=10)
 async def potlas_loop_vhag318():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5899,7 +5899,7 @@ async def potlas_loop_vhag318():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (AG318)",
+            title="VanHool AG318 nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5916,7 +5916,7 @@ async def potlas_loop_vhag318():
     
 @tasks.loop(minutes=10)
 async def potlas_loop_b12():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5957,7 +5957,7 @@ async def potlas_loop_b12():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (BYD B12)",
+            title="BYD B12 nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -5974,7 +5974,7 @@ async def potlas_loop_b12():
     
 @tasks.loop(minutes=10)
 async def potlas_loop_b19():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6015,7 +6015,7 @@ async def potlas_loop_b19():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (BYD B19)",
+            title="BYD B19 nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6032,7 +6032,7 @@ async def potlas_loop_b19():
     
 @tasks.loop(minutes=10)
 async def potlas_loop_sst12():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6073,7 +6073,7 @@ async def potlas_loop_sst12():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (SST 12)",
+            title="SST12 nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6090,7 +6090,7 @@ async def potlas_loop_sst12():
     
 @tasks.loop(minutes=10)
 async def potlas_loop_sst18():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6131,7 +6131,7 @@ async def potlas_loop_sst18():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (SST 18)",
+            title="SST18 nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6148,7 +6148,7 @@ async def potlas_loop_sst18():
     
 @tasks.loop(minutes=10)
 async def potlas_loop_gst():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6189,7 +6189,7 @@ async def potlas_loop_gst():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (GST)",
+            title="GST nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6206,7 +6206,7 @@ async def potlas_loop_gst():
             
 @tasks.loop(minutes=10)
 async def potlas_loop_lc12vol():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6246,7 +6246,7 @@ async def potlas_loop_lc12vol():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (Lion's City 12C)",
+            title="Lion's City 12C (volán) nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6263,7 +6263,7 @@ async def potlas_loop_lc12vol():
             
 @tasks.loop(minutes=10)
 async def potlas_loop_7900avol():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6303,7 +6303,7 @@ async def potlas_loop_7900avol():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (Volvo 7900A)",
+            title="Volvo 7900A nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6320,7 +6320,7 @@ async def potlas_loop_7900avol():
             
 @tasks.loop(minutes=10)
 async def potlas_loop_mbcongvol():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6360,7 +6360,7 @@ async def potlas_loop_mbcongvol():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (Mercedes-Benz Conecto G)",
+            title="Mercedes-Benz Conecto G (volán) nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6377,7 +6377,7 @@ async def potlas_loop_mbcongvol():
             
 @tasks.loop(minutes=10)
 async def potlas_loop_ecitarovol():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6417,7 +6417,7 @@ async def potlas_loop_ecitarovol():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (Mercedes-Benz eCitaro)",
+            title="Mercedes-Benz eCitaro nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6654,7 +6654,7 @@ async def potlas_loop_villamos():
             continue
 
         embed = discord.Embed(
-            title="VILLAMOS PÓTLÁS",
+            title="VILLAMOSPÓTLÁS",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6672,6 +6672,7 @@ async def potlas_loop_villamos():
 @tasks.loop(minutes=10)
 async def potlas_loop_metro():
     channel_id = 1500570931389530233
+
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -6685,6 +6686,7 @@ async def potlas_loop_metro():
         return
 
     active = {}
+
     for v in vehicles_data:
         reg_raw = v.get("license_plate")
         lat = v.get("lat")
@@ -6693,18 +6695,37 @@ async def potlas_loop_metro():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_id.startswith("5") or line_id.startswith("OPM") or line_id == "—":
-            continue
+        # alap validáció
         if not reg_raw or lat is None or lon is None:
             continue
-        if not is_ganz_troli(reg_raw):
+
+        # 🔥 CSAK metró vonalak (5xx)
+        if not (
+            line_id.startswith("5")
+            or line_id.startswith("OPM") or line_id.startswith("MP")
+        ):
             continue
+        
+        
+
+        # 🔥 CSAK NEM villamos járművek érdekelnek
+        # ha villamos → skip
+        if is_ics(reg_raw) or is_kcsv7(reg_raw) or is_caf5(reg_raw) or is_caf9(reg_raw) or is_combino(reg_raw) or is_t5c5(reg_raw) or is_t5c5k2(reg_raw) or is_tw6000(reg_raw) or is_fogas(reg_raw):
+            continue
+
+        # földrajzi szűrés (Budapest)
         if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
             continue
 
         nearest_stop = get_nearest_stop(lat, lon)
+
         reg_num = reg_raw
-        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "stop": nearest_stop or "Ismeretlen"
+        }
 
     for reg, i in sorted(active.items()):
         if not should_send_potlas_embed("GST", reg, i["dest"]):
