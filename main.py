@@ -2221,7 +2221,8 @@ async def bkvkcsv7(ctx):
             "dest": dest,
             "lat": lat,
             "lon": lon,
-            "stop": nearest_stop or "Ismeretlen"
+            "stop": nearest_stop or "Ismeretlen",
+            "forgalmi": v.get("forgalmi", "?")
         }
 
     if not active:
@@ -2243,7 +2244,7 @@ async def bkvkcsv7(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2280,7 +2281,12 @@ async def bkvics(ctx):
 
         nearest_stop = get_nearest_stop(lat, lon)
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "stop": nearest_stop or "Ismeretlen",
+            "forgalmi": v.get("forgalmi", "?")
+        }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Ganz ICS villamos.")
@@ -2300,7 +2306,7 @@ async def bkvics(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2356,7 +2362,8 @@ async def bkvtw6000(ctx):
             "lat": lat,
             "lon": lon,
             "stop": nearest_stop or "Ismeretlen",
-            "fixlepcsos": is_fixlepcsos(reg_num) 
+            "fixlepcsos": is_fixlepcsos(reg_num),
+            "forgalmi": v.get("forgalmi", "?")
         }
     
     if not active:
@@ -2382,7 +2389,8 @@ async def bkvtw6000(ctx):
                 f"{line_text}\n"
                 f"Cél: {i['dest']}\n"
                 f"{fix_text}" + ("" if not fix_text else "\n") +
-                f"Környező megálló: {i['stop']}"
+                f"Környező megálló: {i['stop']}\n"
+                f"📌 Forgalmi: {i.get('forgalmi', '?')}"
             ),
             inline=False
         )
@@ -2417,7 +2425,14 @@ async def bkvcombino(ctx):
 
         nearest_stop = get_nearest_stop(lat, lon)
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-        active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "lat": lat,
+            "lon": lon,
+            "stop": nearest_stop or "Ismeretlen",
+            "forgalmi": v.get("forgalmi", "?")
+        }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Combino villamos.")
@@ -2437,7 +2452,7 @@ async def bkvcombino(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2533,7 +2548,14 @@ async def bkvcaf5(ctx):
 
         nearest_stop = get_nearest_stop(lat, lon)
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-        active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "lat": lat,
+            "lon": lon,
+            "stop": nearest_stop or "Ismeretlen",
+            "forgalmi": v.get("forgalmi", "?")
+        }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF 5 villamos.")
@@ -2554,7 +2576,7 @@ async def bkvcaf5(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2588,7 +2610,14 @@ async def bkvcaf9(ctx):
 
         nearest_stop = get_nearest_stop(lat, lon)
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-        active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "lat": lat,
+            "lon": lon,
+            "stop": nearest_stop or "Ismeretlen",
+            "forgalmi": v.get("forgalmi", "?")
+        }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív CAF 9 villamos.")
@@ -2609,7 +2638,7 @@ async def bkvcaf9(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2643,7 +2672,14 @@ async def bkvt5c5(ctx):
 
         nearest_stop = get_nearest_stop(lat, lon)
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-        active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "lat": lat,
+            "lon": lon,
+            "stop": nearest_stop or "Ismeretlen",
+            "forgalmi": v.get("forgalmi", "?")
+        }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív T5C5 villamos.")
@@ -2664,7 +2700,7 @@ async def bkvt5c5(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2698,7 +2734,14 @@ async def bkvt5c5k2(ctx):
 
         nearest_stop = get_nearest_stop(lat, lon)
         reg_num = reg[1:] if reg.startswith("V") and len(reg) == 5 else reg
-        active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "lat": lat,
+            "lon": lon,
+            "stop": nearest_stop or "Ismeretlen",
+            "forgalmi": v.get("forgalmi", "?")
+        }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív T5C5K2 villamos.")
@@ -2719,7 +2762,7 @@ async def bkvt5c5k2(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2753,7 +2796,14 @@ async def bkvfogas(ctx):
 
         nearest_stop = get_nearest_stop(lat, lon)
         reg_num = reg[-2:] if reg.startswith("F") and len(reg) == 5 else reg
-        active[reg_num] = {"line": line_name, "dest": dest, "lat": lat, "lon": lon, "stop": nearest_stop or "Ismeretlen"}
+        active[reg_num] = {
+            "line": line_name,
+            "dest": dest,
+            "lat": lat,
+            "lon": lon,
+            "stop": nearest_stop or "Ismeretlen",
+            "forgalmi": v.get("forgalmi", "?")
+        }
 
     if not active:
         return await ctx.send("🚫 Nincs aktív Fogaskerekű.")
@@ -2776,7 +2826,8 @@ async def bkvfogas(ctx):
             value=(
                 f"{line_text}\n"
                 f"Cél: {i['dest']}\n"
-                f"Környező megálló: {i['stop']}"
+                f"Környező megálló: {i['stop']}\n"
+                f"📌 Forgalmi: {i.get('forgalmi', '?')}"
             ),
             inline=False
         )
@@ -6423,6 +6474,7 @@ async def potlas_loop_mbcongvol():
             description=(
                 f"**{reg}**\n"
                 f"Vonal: {i['line']}\n"
+                f"Forgalmi: {i['forgalmi']}\n"
                 f"Cél: {i['dest']}\n"
                 f"Környező megálló: {i['stop']}"
             )
