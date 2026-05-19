@@ -241,7 +241,6 @@ today_data = {}
 TRIPS_META = {}
 STOPS = {}
 TRIP_START = {}
-TRIP_STOPS = defaultdict(list)
 SERVICE_DATES = defaultdict(dict)
 ROUTES = defaultdict(lambda: defaultdict(list))
 
@@ -430,7 +429,11 @@ def load_gtfs():
         # trips.txt
         with open_gtfs("trips.txt") as f:
             for r in csv.DictReader(f):
-                TRIPS_META[r["trip_id"]] = r
+                TRIPS_META[r["trip_id"]] = {
+                    "block_id": r.get("block_id", ""),
+                    "route_id": r.get("route_id", ""),
+                    "service_id": r.get("service_id", "")
+                }
 
         # stops.txt
         with open_gtfs("stops.txt") as f:
@@ -439,6 +442,7 @@ def load_gtfs():
 
         # stop_times.txt
         first = {}
+        stop_summary = {}
         with open_gtfs("stop_times.txt") as f:
             for r in csv.DictReader(f):
                 tid = r["trip_id"]
@@ -447,12 +451,25 @@ def load_gtfs():
                     first[tid] = seq
                     TRIP_START[tid] = r["departure_time"]
 
-                TRIP_STOPS[tid].append({
-                    "seq": seq,
-                    "stop_id": r["stop_id"],
-                    "arrival": r["arrival_time"],
-                    "departure": r["departure_time"]
-                })
+                info = stop_summary.get(tid)
+                if info is None:
+                    stop_summary[tid] = {
+                        "min_seq": seq,
+                        "min_stop_id": r["stop_id"],
+                        "min_departure": r["departure_time"],
+                        "max_seq": seq,
+                        "max_stop_id": r["stop_id"],
+                        "max_arrival": r["arrival_time"]
+                    }
+                else:
+                    if seq < info["min_seq"]:
+                        info["min_seq"] = seq
+                        info["min_stop_id"] = r["stop_id"]
+                        info["min_departure"] = r["departure_time"]
+                    if seq > info["max_seq"]:
+                        info["max_seq"] = seq
+                        info["max_stop_id"] = r["stop_id"]
+                        info["max_arrival"] = r["arrival_time"]
 
         # calendar_dates.txt
         with open_gtfs("calendar_dates.txt") as f:
@@ -475,32 +492,29 @@ def load_gtfs():
             rid = t.get("route_id", t.get("public_route_id"))
             dfid = daily_forda_id(bid)
 
-            stops = sorted(TRIP_STOPS[tid], key=lambda x: x["seq"])
-            if stops:
-                first_stop = stops[0]
-                last_stop = stops[-1]
-                first_stop_name = STOPS.get(first_stop["stop_id"], "Ismeretlen")
-                last_stop_name = STOPS.get(last_stop["stop_id"], "Ismeretlen")
-                first_time = first_stop["departure"]
-                last_time = last_stop["arrival"]
+            info = stop_summary.get(tid)
+            if info:
+                first_stop_name = STOPS.get(info["min_stop_id"], "Ismeretlen")
+                last_stop_name = STOPS.get(info["max_stop_id"], "Ismeretlen")
+                first_time = info["min_departure"]
+                last_time = info["max_arrival"]
             else:
                 first_stop_name = last_stop_name = first_time = last_time = ""
 
-            ROUTES[rid][dfid].append({
-                "trip_id": tid,
-                "start_time": TRIP_START.get(tid, ""),
-                "headsign": t.get("trip_headsign", ""),
-                "service_id": t.get("service_id", ""),
-                "orig_block_id": bid,
-                "first_stop": first_stop_name,
-                "last_stop": last_stop_name,
-                "first_time": first_time,
-                "last_time": last_time
-            })
+            ROUTES[rid][dfid].append((
+                t["service_id"],
+                TRIP_START.get(tid, ""),
+                first_stop_name,
+                last_stop_name,
+                first_time,
+                last_time
+            ))
+
+        stop_summary = None
 
         for rid in ROUTES:
             for dfid in ROUTES[rid]:
-                ROUTES[rid][dfid].sort(key=lambda x: tsec(x["start_time"]))
+                ROUTES[rid][dfid].sort(key=lambda x: tsec(x[1]))
     except Exception as e:
         print(f"Hiba a GTFS adatok betöltésekor: {e}")
 
@@ -4928,7 +4942,7 @@ async def forgalmi(ctx, route_input: str, date_input: str = None):
                 if forgalmi_from_dfid(dfid) != target_forgalmi:
                     continue
 
-            active = [t for t in trips if service_active(t["service_id"], date)]
+            active = [t for t in trips if service_active(t[0], date)]
             if active:
                 result.append({
                     "dfid": dfid,
@@ -4939,7 +4953,7 @@ async def forgalmi(ctx, route_input: str, date_input: str = None):
     if not result:
         return await ctx.send("❗ Nincs aktív forda ezen a vonalon/napon.")
 
-    result.sort(key=lambda r: tsec(r["trips"][0]["first_time"]))
+    result.sort(key=lambda r: tsec(r["trips"][0][4]))
 
     decoded_name = decode_line(raw_input)
     display_title = decoded_name if decoded_name != "—" and decoded_name != raw_input else raw_input
@@ -4958,7 +4972,7 @@ async def forgalmi(ctx, route_input: str, date_input: str = None):
         first = True
 
         for t in r["trips"]:
-            line = f"• **{t['first_time']}** {t['first_stop']} → **{t['last_time']}** {t['last_stop']}\n"
+            line = f"• **{t[4]}** {t[2]} → **{t[5]}** {t[3]}\n"
             if len(buffer) + len(line) > MAX:
                 embed.add_field(name=header if first else ZERO_WIDTH, value=buffer.rstrip(), inline=False)
                 buffer = line
