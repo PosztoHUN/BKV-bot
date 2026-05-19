@@ -2007,6 +2007,8 @@ async def hev(ctx):
             embed = discord.Embed(title="🚆 Aktív HÉVek (folytatás)", color=0x003200)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=str(reg), value=value, inline=False)
         field_count += 1
 
@@ -2109,6 +2111,8 @@ async def bkvvillamos(ctx):
             embeds.append(embed)
             embed = discord.Embed(title="🚋 Aktív villamosok (folytatás)", color=0xFFD800)
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -2893,6 +2897,8 @@ async def bkvtroli(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -2984,6 +2990,8 @@ async def bkviktroli(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -3067,6 +3075,8 @@ async def bkvgst(ctx):
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3158,6 +3168,8 @@ async def bkvsst(ctx):
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3256,6 +3268,8 @@ async def bkvvolvo(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -3345,6 +3359,8 @@ async def bkvconecto(ctx):
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3439,6 +3455,8 @@ async def bkvc1(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -3526,6 +3544,8 @@ async def bkvc2(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -3612,6 +3632,8 @@ async def bkvmodulo(ctx):
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3703,6 +3725,8 @@ async def bkvvanhool(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -3786,6 +3810,8 @@ async def bkvik(ctx):
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3892,6 +3918,8 @@ async def bkvmidi(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -3976,6 +4004,8 @@ async def arrivabyd(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -4054,6 +4084,8 @@ async def arrivaconecto(ctx):
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4142,6 +4174,8 @@ async def arrivaman(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -4222,6 +4256,8 @@ async def arrivac2(ctx):
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4325,6 +4361,8 @@ async def aggvolan(ctx):
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
 
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
+
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
 
@@ -4409,6 +4447,8 @@ async def send_op_vehicles():
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4591,6 +4631,8 @@ async def nosztalgia(ctx):
                 color=0xFF9913
             )
             field_count = 0
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4894,6 +4936,8 @@ async def all(ctx, route_id: str):
         if i["replacement"]: value += "\n🚧 Pótlóbusz"
         if i["is_from_replacement_line"]: value += f"\n🔄 Pótlóvonal: {i['public_route_id']}"
         if len(value) > 1024: value = value[:1020] + "..."
+
+        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=i["display_reg"], value=value, inline=False)
         field_count += 1
