@@ -1984,7 +1984,8 @@ async def hev(ctx):
             "lat": lat,
             "lon": lon,
             "stop": nearest_stop or "Ismeretlen",
-            "type": model
+            "type": model,
+            "forgalmi": v.get("forgalmi", "?")
         }
 
     if not active:
@@ -2000,7 +2001,7 @@ async def hev(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -2104,7 +2105,7 @@ async def bkvvillamos(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -2939,7 +2940,7 @@ async def bkvtroli(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3031,7 +3032,7 @@ async def bkviktroli(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3116,7 +3117,7 @@ async def bkvgst(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3208,7 +3209,7 @@ async def bkvsst(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3306,7 +3307,7 @@ async def bkvvolvo(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3397,7 +3398,7 @@ async def bkvconecto(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3491,7 +3492,7 @@ async def bkvc1(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3579,7 +3580,7 @@ async def bkvc2(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3667,7 +3668,7 @@ async def bkvmodulo(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3758,7 +3759,7 @@ async def bkvvanhool(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3843,7 +3844,7 @@ async def bkvik(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -3949,7 +3950,7 @@ async def bkvmidi(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -4034,7 +4035,7 @@ async def arrivabyd(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -4114,7 +4115,7 @@ async def arrivaconecto(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -4202,7 +4203,7 @@ async def arrivaman(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -4284,7 +4285,7 @@ async def arrivac2(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -4387,7 +4388,7 @@ async def aggvolan(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
@@ -4653,7 +4654,7 @@ async def nosztalgia(ctx):
             f"Vonal: {i['line']}\n"
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
-            f"Környező megálló: {i['stop']}"
+            f"Környező megálló: {i['stop']}\n"
             f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
