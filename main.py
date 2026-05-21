@@ -2000,14 +2000,13 @@ async def hev(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title="🚆 Aktív HÉVek (folytatás)", color=0x003200)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=str(reg), value=value, inline=False)
         field_count += 1
@@ -2105,14 +2104,13 @@ async def bkvvillamos(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title="🚋 Aktív villamosok (folytatás)", color=0xFFD800)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -2244,7 +2242,7 @@ async def bkvkcsv7(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\nForgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2306,7 +2304,7 @@ async def bkvics(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\nForgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2390,7 +2388,7 @@ async def bkvtw6000(ctx):
                 f"Cél: {i['dest']}\n"
                 f"{fix_text}" + ("" if not fix_text else "\n") +
                 f"Környező megálló: {i['stop']}\n"
-                f"📌 Forgalmi: {i.get('forgalmi', '?')}"
+                f"Forgalmi: {i.get('forgalmi', '?')}"
             ),
             inline=False
         )
@@ -2452,7 +2450,7 @@ async def bkvcombino(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\nForgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2576,7 +2574,7 @@ async def bkvcaf5(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\nForgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2638,7 +2636,7 @@ async def bkvcaf9(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\nForgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2700,7 +2698,7 @@ async def bkvt5c5(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\nForgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2762,7 +2760,7 @@ async def bkvt5c5k2(ctx):
 
         embed.add_field(
             name=reg,
-            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\n📌 Forgalmi: {i.get('forgalmi', '?')}",
+            value=f"{line_text}\nCél: {i['dest']}\nKörnyező megálló: {i['stop']}\nForgalmi: {i.get('forgalmi', '?')}",
             inline=False
         )
         field_count += 1
@@ -2827,7 +2825,7 @@ async def bkvfogas(ctx):
                 f"{line_text}\n"
                 f"Cél: {i['dest']}\n"
                 f"Környező megálló: {i['stop']}\n"
-                f"📌 Forgalmi: {i.get('forgalmi', '?')}"
+                f"Forgalmi: {i.get('forgalmi', '?')}"
             ),
             inline=False
         )
@@ -2941,14 +2939,13 @@ async def bkvtroli(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3034,14 +3031,13 @@ async def bkviktroli(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3120,14 +3116,13 @@ async def bkvgst(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3213,14 +3208,13 @@ async def bkvsst(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0xE41F18)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3312,14 +3306,13 @@ async def bkvvolvo(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3404,14 +3397,13 @@ async def bkvconecto(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3499,14 +3491,13 @@ async def bkvc1(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3588,14 +3579,13 @@ async def bkvc2(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3677,14 +3667,13 @@ async def bkvmodulo(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3769,14 +3758,13 @@ async def bkvvanhool(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3855,14 +3843,13 @@ async def bkvik(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -3962,14 +3949,13 @@ async def bkvmidi(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4048,14 +4034,13 @@ async def arrivabyd(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4129,14 +4114,13 @@ async def arrivaconecto(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4218,14 +4202,13 @@ async def arrivaman(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4301,14 +4284,13 @@ async def arrivac2(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4405,14 +4387,13 @@ async def aggvolan(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x009EE3)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4493,13 +4474,12 @@ async def send_op_vehicles():
             f"Cél: {info['dest']}\n"
             f"Típus: {info['type']}\n"
             f"Pozíció: {info['lat']:.5f}, {info['lon']:.5f}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
         if field_count >= MAX_FIELDS:
             embeds.append(embed)
             embed = discord.Embed(title=f"{embed_title_base} (folytatás)", color=0x00ff00)
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4673,6 +4653,7 @@ async def nosztalgia(ctx):
             f"Cél: {i['dest']}\n"
             f"Típus: {i['type']}\n"
             f"Környező megálló: {i['stop']}"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
 
         if field_count >= MAX_FIELDS:
@@ -4682,8 +4663,6 @@ async def nosztalgia(ctx):
                 color=0xFF9913
             )
             field_count = 0
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=reg, value=value, inline=False)
         field_count += 1
@@ -4961,7 +4940,7 @@ async def all(ctx, route_id: str):
             "bus_on_special": is_normal_bus_on_special_line,
             "public_route_id": public_id,
             "is_from_replacement_line": is_from_replacement_line,
-            "forgalmi": f_num
+            "forgalmi": i.get('forgalmi', '?')
         }
         
     if not active:
@@ -4983,12 +4962,11 @@ async def all(ctx, route_id: str):
             f"Cél: {i['dest']}\n"
             # f"Forgalmi: {i['forgalmi']}\n"
             f"Környező megálló: {i['stop']}\n"
+            f"Forgalmi: {i.get('forgalmi', '?')}"
         )
         if i["replacement"]: value += "\n🚧 Pótlóbusz"
         if i["is_from_replacement_line"]: value += f"\n🔄 Pótlóvonal: {i['public_route_id']}"
         if len(value) > 1024: value = value[:1020] + "..."
-
-        value = f"{value}\n📌 Forgalmi: {i.get('forgalmi', '?')}"
 
         embed.add_field(name=i["display_reg"], value=value, inline=False)
         field_count += 1
@@ -5202,7 +5180,7 @@ def normalize_route(route_raw: str) -> str:
 #                 embed.add_field(name="🚌 Jármű", value=f"**{plate}**", inline=False)
 #                 embed.add_field(name="➡ Vonal", value=route, inline=True)
 #                 embed.add_field(name="🎯 Cél", value=dest, inline=True)
-#                 embed.add_field(name="📌 Menetrendi forgalmi", value=f or "?", inline=False)
+#                 embed.add_field(name=" Menetrendi forgalmi", value=f or "?", inline=False)
 
 #                 await ch.send(embed=embed)
 
