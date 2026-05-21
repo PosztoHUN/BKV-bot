@@ -501,14 +501,15 @@ def load_gtfs():
             else:
                 first_stop_name = last_stop_name = first_time = last_time = ""
 
-            ROUTES[rid][dfid].append((
-                t["service_id"],
-                TRIP_START.get(tid, ""),
-                first_stop_name,
-                last_stop_name,
-                first_time,
-                last_time
-            ))
+            ROUTES[rid][dfid].append({
+                "trip_id": tid,
+                "start_time": TRIP_START.get(tid, ""),
+                "service_id": t["service_id"],
+                "first_stop": first_stop_name,
+                "last_stop": last_stop_name,
+                "first_time": first_time,
+                "last_time": last_time
+            })
 
         stop_summary = None
 
@@ -5015,7 +5016,7 @@ async def forgalmi(ctx, route_input: str, date_input: str = None):
                 if forgalmi_from_dfid(dfid) != target_forgalmi:
                     continue
 
-            active = [t for t in trips if service_active(t[0], date)]
+            active = [t for t in trips if service_active(t["service_id"], date)]
             if active:
                 result.append({
                     "dfid": dfid,
@@ -5026,7 +5027,7 @@ async def forgalmi(ctx, route_input: str, date_input: str = None):
     if not result:
         return await ctx.send("❗ Nincs aktív forda ezen a vonalon/napon.")
 
-    result.sort(key=lambda r: tsec(r["trips"][0][4]))
+    result.sort(key=lambda r: tsec(r["trips"][0]["first_time"]))
 
     decoded_name = decode_line(raw_input)
     display_title = decoded_name if decoded_name != "—" and decoded_name != raw_input else raw_input
@@ -5045,7 +5046,7 @@ async def forgalmi(ctx, route_input: str, date_input: str = None):
         first = True
 
         for t in r["trips"]:
-            line = f"• **{t[4]}** {t[2]} → **{t[5]}** {t[3]}\n"
+            line = f"• **{t['first_time']}** {t['first_stop']} → **{t['last_time']}** {t['last_stop']}\n"
             if len(buffer) + len(line) > MAX:
                 embed.add_field(name=header if first else ZERO_WIDTH, value=buffer.rstrip(), inline=False)
                 buffer = line
