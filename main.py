@@ -7016,7 +7016,7 @@ async def potlas_loop_villamos():
         # 🔥 CSAK villamos vonalak (3xx)
         if not (
             line_id.startswith("3")
-            or (line_id.startswith("OP") and not line_id.startswith("OPM"))
+            or (line_id.startswith("OP") and not line_id.startswith("OPM") and not line_id.startswith("OPH"))
         ):
             continue
         
@@ -7139,6 +7139,68 @@ async def potlas_loop_metro():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
+@tasks.loop(minutes=10)
+async def potlas_loop_hev():
+    channel_id = 1505936457746092032
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if not reg_raw or lat is None or lon is None:
+            continue
+
+        if not (line_id.startswith("HP") or line_id.startswith("OPH")):
+            continue
+
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+
+        active[reg_raw] = {
+            "line": line_name,
+            "dest": dest,
+            "stop": nearest_stop or "Ismeretlen"
+        }
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("HEV", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="HÉV PÓTLÁS",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+
 # =======================
 # START
 # =======================
@@ -7232,6 +7294,9 @@ async def on_ready():
         
     if not potlas_loop_mbcongvol.is_running():
         potlas_loop_mbcongvol.start()
+
+    if not potlas_loop_hev.is_running():
+        potlas_loop_hev.start()
 
 if not TOKEN:
     print("Hiányzik a DISCORD_TOKEN környezeti változó.")
