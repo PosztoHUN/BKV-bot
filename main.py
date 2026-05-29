@@ -5490,7 +5490,7 @@ def normalize_route(route_raw: str) -> str:
 
 @tasks.loop(minutes=10)
 async def potlas_loop():
-    channel_id = 1500570931389530233
+    channel_id = 1505936457746092032
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
@@ -5533,7 +5533,7 @@ async def potlas_loop():
             continue
 
         embed = discord.Embed(
-            title="PÓTLÁS (ICS)",
+            title="Ganz ICS nem megszokott vonalon",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -7141,7 +7141,7 @@ async def potlas_loop_metro():
 
 @tasks.loop(minutes=10)
 async def potlas_loop_hev():
-    channel_id = 1505936457746092032
+    channel_id = 1500570931389530233
     channel = bot.get_channel(channel_id)
     if channel is None:
         try:
