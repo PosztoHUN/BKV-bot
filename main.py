@@ -2451,8 +2451,8 @@ KIEMELT_VONALAK_412GT_WEEKDAY = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412GT_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412T_WEEKDAY = {"70", "74", "78","9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_412T_WEEKEND = {"9997", "9999", " ", "", "—"}
-KIEMELT_VONAlAK_GST12_WEEKDAY = {"70","74", "78", "9997", "9999", " ", "", "—"}
-KIEMELT_VONAlAK_GST12_WEEKEND = {"70","74", "77", "78", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_GST12_WEEKDAY = {"70", "74", "78", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_GST12_WEEKEND = {"70", "74", "77", "78", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_SST12_WEEKDAY = {"70", "73", "74", "77", "78", "79", "81", "83", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_SST12_SATURDAY = {"73", "74", "77", "78", "81", "83", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_SST12_SUNDAY = {"73", "74", "76", "77", "78", "81", "82", "83", "9997", "9999", " ", "", "—"}
@@ -5244,7 +5244,7 @@ async def all(ctx, route_id: str):
             "bus_on_special": is_normal_bus_on_special_line,
             "public_route_id": public_id,
             "is_from_replacement_line": is_from_replacement_line,
-            "forgalmi": i.get('forgalmi', '?')
+            "forgalmi": v.get('forgalmi', '?')
         }
         
     if not active:
