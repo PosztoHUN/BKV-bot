@@ -5652,7 +5652,7 @@ async def potlas_loop():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if is_ganz_troli(reg) or is_kcsv7(reg):
             continue
@@ -5713,7 +5713,7 @@ async def potlas_loop_kcsv7():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if is_ganz_troli(reg) or is_ics(reg):
             continue
@@ -5772,7 +5772,7 @@ async def potlas_loop_caf5():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5829,7 +5829,7 @@ async def potlas_loop_caf9():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5886,7 +5886,7 @@ async def potlas_loop_combino():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5943,7 +5943,7 @@ async def potlas_loop_t5c5():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -6000,7 +6000,7 @@ async def potlas_loop_t5c5k2():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -6057,7 +6057,7 @@ async def potlas_loop_tw6000():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6120,7 +6120,7 @@ async def potlas_loop_gst12():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6178,7 +6178,7 @@ async def potlas_loop_280t():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6238,7 +6238,7 @@ async def potlas_loop_412t():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6296,7 +6296,7 @@ async def potlas_loop_vhag318():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6354,7 +6354,7 @@ async def potlas_loop_b12():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6412,7 +6412,7 @@ async def potlas_loop_b19():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6470,7 +6470,7 @@ async def potlas_loop_sst12():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6528,7 +6528,7 @@ async def potlas_loop_sst18():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6586,7 +6586,7 @@ async def potlas_loop_gst():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6644,7 +6644,7 @@ async def potlas_loop_lc12vol():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6701,7 +6701,7 @@ async def potlas_loop_7900avol():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6758,7 +6758,7 @@ async def potlas_loop_mbcongvol():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -7308,7 +7308,7 @@ async def potlas_loop_411t():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+        if is_vehicle_type_allowed_on_linecode(line_id, (locals().get("reg") or locals().get("reg_raw"))):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
