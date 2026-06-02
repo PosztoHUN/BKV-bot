@@ -2496,6 +2496,7 @@ ALLOWED_TYPES_BY_LINECODE = {
     "3010": [is_caf9, is_t5c5, is_t5c5k2],
     "3011": [is_t5c5, is_t5c5k2],
     "3020": [is_kcsv7, is_ics],
+    "3050": [is_combino],
     # Add more linecodes here as needed.
 }
 
