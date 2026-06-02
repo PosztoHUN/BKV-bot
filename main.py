@@ -2489,6 +2489,144 @@ def get_kiemelt_lines(tram_type):
     suffix = "_WEEKEND" if is_weekend else "_WEEKDAY"
     return globals()[f"KIEMELT_VONALAK_{tram_type}{suffix}"]
 
+ALLOWED_TYPES_BY_LINECODE = {
+    # linecode: [allowed predicate names]
+    "0050": [is_mbconiig],
+    "0070": [is_mbO530G, is_mbO530G, is_mbconiiig, is_modulo168D, is_volvo7700a],
+    "3010": [is_caf9, is_t5c5, is_t5c5k2],
+    "3011": [is_t5c5, is_t5c5k2],
+    "3020": [is_kcsv7, is_ics],
+    # Add more linecodes here as needed.
+}
+
+POTLAS_TYPE_PREDICATES = {
+    "is_tw6000": is_tw6000,
+    "is_fogas": is_fogas,
+    "is_t5c5": is_t5c5,
+    "is_t5c5k2": is_t5c5k2,
+    "is_ganz_troli": is_ganz_troli,
+    "is_ganz": is_ganz,
+    "is_kcsv7": is_kcsv7,
+    "is_ics": is_ics,
+    "is_caf5": is_caf5,
+    "is_caf9": is_caf9,
+    "is_combino": is_combino,
+    "is_oktato": is_oktato,
+    "is_ik280t": is_ik280t,
+    "is_ik412t": is_ik412t,
+    "is_ik412gt": is_ik412gt,
+    "is_ik411t": is_ik411t,
+    "is_sst12iii": is_sst12iii,
+    "is_sst18iii": is_sst18iii,
+    "is_sst12iv": is_sst12iv,
+    "is_sst18iv": is_sst18iv,
+    "is_mbconiii": is_mbconiii,
+    "is_mbconiiig": is_mbconiiig,
+    "is_volvo7700a": is_volvo7700a,
+    "is_mbconii": is_mbconii,
+    "is_mbc2k": is_mbc2k,
+    "is_mbconiig": is_mbconiig,
+    "is_modulo108D": is_modulo108D,
+    "is_vhnew330cng": is_vhnew330cng,
+    "is_vhnewag300": is_vhnewag300,
+    "is_mbO530": is_mbO530,
+    "is_volvo7700H": is_volvo7700H,
+    "is_volvo7700": is_volvo7700,
+    "is_modulo168D": is_modulo168D,
+    "is_mbO530fG": is_mbO530fG,
+    "is_ik127": is_ik127,
+    "is_karsan": is_karsan,
+    "is_mbc2": is_mbc2,
+    "is_volvo7000": is_volvo7000,
+    "is_mbc2g": is_mbc2g,
+    "is_vhag318": is_vhag318,
+    "is_volvo7900H": is_volvo7900H,
+    "is_mbO530f": is_mbO530f,
+    "is_moduloC68E": is_moduloC68E,
+    "is_urbIII10": is_urbIII10,
+    "is_vehixel": is_vehixel,
+    "is_mbO530K": is_mbO530K,
+    "is_eurosprinter": is_eurosprinter,
+    "is_mbO530G": is_mbO530G,
+    "is_urbIII8": is_urbIII8,
+    "is_vhnewa330": is_vhnewa330,
+    "is_ik187": is_ik187,
+    "is_itkreform": is_itkreform,
+    "is_sprinter65": is_sprinter65,
+    "is_citymax": is_citymax,
+    "is_bydb12": is_bydb12,
+    "is_bydb19": is_bydb19,
+    "is_arrivacon": is_arrivacon,
+    "is_arrivac2": is_arrivac2,
+    "is_arriva12c": is_arriva12c,
+    "is_arriva18c": is_arriva18c,
+    "is_arrivaa21": is_arrivaa21,
+    "is_vol12c": is_vol12c,
+    "is_vol7900a": is_vol7900a,
+    "is_volcitaro": is_volcitaro,
+    "is_volcon": is_volcon,
+}
+
+def normalize_line_code(line_code):
+    if not line_code:
+        return ""
+    return str(line_code).strip().upper()
+
+def get_allowed_potlas_types_for_linecode(line_code):
+    return set(ALLOWED_TYPES_BY_LINECODE.get(normalize_line_code(line_code), []))
+
+def get_vehicle_potlas_type_name(reg):
+    for type_name in [
+        "is_tw6000", "is_fogas", "is_t5c5", "is_t5c5k2", "is_ganz_troli", "is_ganz",
+        "is_kcsv7", "is_ics", "is_caf5", "is_caf9", "is_combino", "is_oktato",
+        "is_ik280t", "is_ik412t", "is_ik412gt", "is_ik411t", "is_sst12iii", "is_sst18iii",
+        "is_sst12iv", "is_sst18iv", "is_mbconiii", "is_mbconiiig", "is_volvo7700a", "is_mbconii",
+        "is_mbc2k", "is_mbconiig", "is_modulo108D", "is_vhnew330cng", "is_vhnewag300", "is_mbO530",
+        "is_volvo7700H", "is_volvo7700", "is_modulo168D", "is_mbO530fG", "is_ik127", "is_karsan",
+        "is_mbc2", "is_volvo7000", "is_mbc2g", "is_vhag318", "is_volvo7900H", "is_mbO530f",
+        "is_moduloC68E", "is_urbIII10", "is_vehixel", "is_mbO530K", "is_eurosprinter", "is_mbO530G",
+        "is_urbIII8", "is_vhnewa330", "is_ik187", "is_itkreform", "is_sprinter65", "is_citymax",
+        "is_bydb12", "is_bydb19", "is_arrivacon", "is_arrivac2", "is_arriva12c", "is_arriva18c",
+        "is_arrivaa21", "is_vol12c", "is_vol7900a", "is_volcitaro", "is_volcon",
+    ]:
+        predicate = POTLAS_TYPE_PREDICATES.get(type_name)
+        if predicate and predicate(reg):
+            return type_name
+    return None
+
+def is_vehicle_type_allowed_on_linecode(line_code, reg):
+    vehicle_type = get_vehicle_potlas_type_name(reg)
+    if vehicle_type is None:
+        return True  # unknown vehicle type is treated as allowed by default
+    allowed = get_allowed_potlas_types_for_linecode(line_code)
+    if not allowed:
+        return True  # no explicit linecode rules means the line is not restricted here
+    return vehicle_type in allowed
+
+
+POTLAS_TYPES = [
+    "ICS", "KCSV7", "CAF5", "CAF9", "COMBINO", "T5C5", "T5C5K2", "TW", "GST12",
+    "280T", "412T", "AG318", "BYDB12", "BYDB19", "SST12", "SST18",
+    "GST", "LC12VOL", "7900AVOL", "MBCONGVOL", "ECITAROVOL", "412GT", "411T"
+]
+
+def get_allowed_potlas_types_for_line(line_name):
+    if not line_name:
+        return set()
+
+    allowed_types = set()
+    for potlas_type in POTLAS_TYPES:
+        try:
+            if line_name in get_kiemelt_lines(potlas_type):
+                allowed_types.add(potlas_type)
+        except KeyError:
+            continue
+    return allowed_types
+
+def is_potlas_type_allowed_on_line(line_name, potlas_type):
+    return potlas_type in get_allowed_potlas_types_for_line(line_name)
+
+
 @bot.command()
 async def bkvkcsv7(ctx):
     "Kiírja az összes bejelentkezett Ganz-Hunslet KCSV7 villamost."
@@ -5513,7 +5651,7 @@ async def potlas_loop():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("ICS"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if is_ganz_troli(reg) or is_kcsv7(reg):
             continue
@@ -5574,7 +5712,7 @@ async def potlas_loop_kcsv7():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("KCSV7"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if is_ganz_troli(reg) or is_ics(reg):
             continue
@@ -5633,7 +5771,7 @@ async def potlas_loop_caf5():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("CAF5"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5690,7 +5828,7 @@ async def potlas_loop_caf9():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("CAF9"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5747,7 +5885,7 @@ async def potlas_loop_combino():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("COMBINO"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5804,7 +5942,7 @@ async def potlas_loop_t5c5():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("T5C5"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5861,7 +5999,7 @@ async def potlas_loop_t5c5k2():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("T5C5K2"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg or lat is None or lon is None:
             continue
@@ -5918,7 +6056,7 @@ async def potlas_loop_tw6000():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("TW"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -5981,7 +6119,7 @@ async def potlas_loop_gst12():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("GST12"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6039,7 +6177,7 @@ async def potlas_loop_280t():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("280T"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6073,63 +6211,7 @@ async def potlas_loop_280t():
         except Exception as e:
             print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
-@tasks.loop(minutes=10)
-async def potlas_loop_411t():
-    channel_id = 1505936134209802300
-    channel = bot.get_channel(channel_id)
-    if channel is None:
-        try:
-            channel = await bot.fetch_channel(channel_id)
-        except Exception as e:
-            print(f"Unable to fetch channel {channel_id}: {e}")
-            return
 
-    vehicles_data = await fetch_vehicles()
-    if not vehicles_data:
-        return
-
-    active = {}
-    for v in vehicles_data:
-        reg_raw = v.get("license_plate")
-        lat = v.get("lat")
-        lon = v.get("lon")
-        dest = v.get("label", "Ismeretlen")
-        line_id = str(v.get("public_route_id", "—"))
-        line_name = decode_line(line_id)
-
-        if line_name in get_kiemelt_lines("411T"):
-            continue
-        if not reg_raw or lat is None or lon is None:
-            continue
-        if not is_ik411t(reg_raw):
-            continue
-        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
-            continue
-
-        nearest_stop = get_nearest_stop(lat, lon)
-        digits = "".join(c for c in reg_raw if c.isdigit())
-        reg_num = str(int(digits)) if digits else reg_raw
-        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
-
-    for reg, i in sorted(active.items()):
-        if not should_send_potlas_embed("411T", reg, i["dest"]):
-            continue
-
-        embed = discord.Embed(
-            title="Érdekesség (411T)",
-            color=discord.Color.red(),
-            description=(
-                f"**{reg}**\n"
-                f"Vonal: {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Környező megálló: {i['stop']}"
-            )
-        )
-
-        try:
-            await channel.send(embed=embed)
-        except Exception as e:
-            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
 
 @tasks.loop(minutes=10)
 async def potlas_loop_412t():
@@ -6155,7 +6237,7 @@ async def potlas_loop_412t():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("412T"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6175,64 +6257,6 @@ async def potlas_loop_412t():
 
         embed = discord.Embed(
             title="Ikarus 412T nem megszokott vonalon",
-            color=discord.Color.red(),
-            description=(
-                f"**{reg}**\n"
-                f"Vonal: {i['line']}\n"
-                f"Cél: {i['dest']}\n"
-                f"Környező megálló: {i['stop']}"
-            )
-        )
-
-        try:
-            await channel.send(embed=embed)
-        except Exception as e:
-            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
-
-@tasks.loop(minutes=10)
-async def potlas_loop_412gt():
-    channel_id = 1505936134209802300
-    channel = bot.get_channel(channel_id)
-    if channel is None:
-        try:
-            channel = await bot.fetch_channel(channel_id)
-        except Exception as e:
-            print(f"Unable to fetch channel {channel_id}: {e}")
-            return
-
-    vehicles_data = await fetch_vehicles()
-    if not vehicles_data:
-        return
-
-    active = {}
-    for v in vehicles_data:
-        reg_raw = v.get("license_plate")
-        lat = v.get("lat")
-        lon = v.get("lon")
-        dest = v.get("label", "Ismeretlen")
-        line_id = str(v.get("public_route_id", "—"))
-        line_name = decode_line(line_id)
-
-        if line_name in get_kiemelt_lines("412GT"):
-            continue
-        if not reg_raw or lat is None or lon is None:
-            continue
-        if not is_ik412gt(reg_raw):
-            continue
-        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
-            continue
-
-        nearest_stop = get_nearest_stop(lat, lon)
-        digits = "".join(c for c in reg_raw if c.isdigit())
-        reg_num = str(int(digits)) if digits else reg_raw
-        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
-
-    for reg, i in sorted(active.items()):
-        if not should_send_potlas_embed("412GT", reg, i["dest"]):
-            continue
-
-        embed = discord.Embed(
-            title="Érdekesség (412GT)",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
@@ -6271,7 +6295,7 @@ async def potlas_loop_vhag318():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("AG318"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6329,7 +6353,7 @@ async def potlas_loop_b12():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("BYDB12"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6387,7 +6411,7 @@ async def potlas_loop_b19():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("BYDB19"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6445,7 +6469,7 @@ async def potlas_loop_sst12():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("SST12"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6503,7 +6527,7 @@ async def potlas_loop_sst18():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("SST18"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6561,7 +6585,7 @@ async def potlas_loop_gst():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("GST12"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6619,7 +6643,7 @@ async def potlas_loop_lc12vol():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("LC12VOL"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6676,7 +6700,7 @@ async def potlas_loop_7900avol():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("7900AVOL"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6733,7 +6757,7 @@ async def potlas_loop_mbcongvol():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("MBCONGVOL"):
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -6791,7 +6815,7 @@ async def potlas_loop_ecitarovol():
         line_id = str(v.get("public_route_id", "—"))
         line_name = decode_line(line_id)
 
-        if line_name in get_kiemelt_lines("ECITAROVOL"):
+        if is_potlas_type_allowed_on_line(line_name, "ECITAROVOL"):
             continue
         if not reg_raw or lat is None or lon is None:
             continue
@@ -7187,6 +7211,122 @@ async def potlas_loop_hev():
 
         embed = discord.Embed(
             title="HÉV PÓTLÁS",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            
+@tasks.loop(minutes=10)
+async def potlas_loop_412gt():
+    channel_id = 1505936134209802300
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if line_name in get_kiemelt_lines("412GT"):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_ik412gt(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("412GT", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="Érdekesség (412GT)",
+            color=discord.Color.red(),
+            description=(
+                f"**{reg}**\n"
+                f"Vonal: {i['line']}\n"
+                f"Cél: {i['dest']}\n"
+                f"Környező megálló: {i['stop']}"
+            )
+        )
+
+        try:
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(f"Failed to send replacement embed to channel {channel_id}: {e}")
+            
+@tasks.loop(minutes=10)
+async def potlas_loop_411t():
+    channel_id = 1505936134209802300
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+        except Exception as e:
+            print(f"Unable to fetch channel {channel_id}: {e}")
+            return
+
+    vehicles_data = await fetch_vehicles()
+    if not vehicles_data:
+        return
+
+    active = {}
+    for v in vehicles_data:
+        reg_raw = v.get("license_plate")
+        lat = v.get("lat")
+        lon = v.get("lon")
+        dest = v.get("label", "Ismeretlen")
+        line_id = str(v.get("public_route_id", "—"))
+        line_name = decode_line(line_id)
+
+        if is_vehicle_type_allowed_on_linecode(line_id, reg):
+            continue
+        if not reg_raw or lat is None or lon is None:
+            continue
+        if not is_ik411t(reg_raw):
+            continue
+        if not (47.20 <= lat <= 47.75 and 18.80 <= lon <= 19.60):
+            continue
+
+        nearest_stop = get_nearest_stop(lat, lon)
+        digits = "".join(c for c in reg_raw if c.isdigit())
+        reg_num = str(int(digits)) if digits else reg_raw
+        active[reg_num] = {"line": line_name, "dest": dest, "stop": nearest_stop or "Ismeretlen"}
+
+    for reg, i in sorted(active.items()):
+        if not should_send_potlas_embed("411T", reg, i["dest"]):
+            continue
+
+        embed = discord.Embed(
+            title="Érdekesség (411T)",
             color=discord.Color.red(),
             description=(
                 f"**{reg}**\n"
