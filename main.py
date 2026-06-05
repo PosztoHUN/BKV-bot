@@ -2443,7 +2443,7 @@ KIEMELT_VONALAK_T5C5K2_WEEKDAY = {"1", "1A", "12", "12A", "14", "17", "19", "28"
 KIEMELT_VONALAK_T5C5K2_WEEKEND = {"12A", "14", "19", "28", "28A", "37A", "41", "59", "59A", "61", "9997", "9999", " ", "", "—"}
 
 #Trolibuszok
-KIEMELT_VONALAK_280T_WEEKDAY = {"75", "80", "9997", "9999", " ", "", "—"}
+KIEMELT_VONALAK_280T_WEEKDAY = {"76", "80", "9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_280T_WEEKEND = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_411T_WEEKDAY = {"9997", "9999", " ", "", "—"}
 KIEMELT_VONALAK_411T_WEEKEND = {"9997", "9999", " ", "", "—"}
