@@ -7364,71 +7364,71 @@ async def on_ready():
     if not ganz_monitor.is_running():
         ganz_monitor.start()
 
-    if not potlas_loop.is_running():
-        potlas_loop.start()
+    # if not potlas_loop.is_running():
+    #     potlas_loop.start()
 
-    if not potlas_loop_kcsv7.is_running():
-        potlas_loop_kcsv7.start()
+    # if not potlas_loop_kcsv7.is_running():
+    #     potlas_loop_kcsv7.start()
 
-    if not potlas_loop_caf5.is_running():
-        potlas_loop_caf5.start()
+    # if not potlas_loop_caf5.is_running():
+    #     potlas_loop_caf5.start()
 
-    if not potlas_loop_caf9.is_running():
-        potlas_loop_caf9.start()
+    # if not potlas_loop_caf9.is_running():
+    #     potlas_loop_caf9.start()
 
-    if not potlas_loop_combino.is_running():
-        potlas_loop_combino.start()
+    # if not potlas_loop_combino.is_running():
+    #     potlas_loop_combino.start()
 
-    if not potlas_loop_t5c5.is_running():
-        potlas_loop_t5c5.start()
+    # if not potlas_loop_t5c5.is_running():
+    #     potlas_loop_t5c5.start()
 
-    if not potlas_loop_t5c5k2.is_running():
-        potlas_loop_t5c5k2.start()
+    # if not potlas_loop_t5c5k2.is_running():
+    #     potlas_loop_t5c5k2.start()
 
-    if not potlas_loop_tw6000.is_running():
-        potlas_loop_tw6000.start()
+    # if not potlas_loop_tw6000.is_running():
+    #     potlas_loop_tw6000.start()
 
-    if not potlas_loop_gst12.is_running():
-        potlas_loop_gst12.start()
+    # if not potlas_loop_gst12.is_running():
+    #     potlas_loop_gst12.start()
 
-    if not potlas_loop_280t.is_running():
-        potlas_loop_280t.start()
+    # if not potlas_loop_280t.is_running():
+    #     potlas_loop_280t.start()
 
-    if not potlas_loop_411t.is_running():
-        potlas_loop_411t.start()
+    # if not potlas_loop_411t.is_running():
+    #     potlas_loop_411t.start()
 
-    if not potlas_loop_412t.is_running():
-        potlas_loop_412t.start()
+    # if not potlas_loop_412t.is_running():
+    #     potlas_loop_412t.start()
 
-    if not potlas_loop_412gt.is_running():
-        potlas_loop_412gt.start()
+    # if not potlas_loop_412gt.is_running():
+    #     potlas_loop_412gt.start()
 
-    if not potlas_loop_b12.is_running():
-        potlas_loop_b12.start()
+    # if not potlas_loop_b12.is_running():
+    #     potlas_loop_b12.start()
         
-    if not potlas_loop_b19.is_running():
-        potlas_loop_b19.start()          
+    # if not potlas_loop_b19.is_running():
+    #     potlas_loop_b19.start()          
         
-    if not potlas_loop_sst12.is_running():
-        potlas_loop_sst12.start()
+    # if not potlas_loop_sst12.is_running():
+    #     potlas_loop_sst12.start()
         
-    if not potlas_loop_sst18.is_running():
-        potlas_loop_sst18.start()
+    # if not potlas_loop_sst18.is_running():
+    #     potlas_loop_sst18.start()
         
-    if not potlas_loop_gst.is_running():
-        potlas_loop_gst.start()
+    # if not potlas_loop_gst.is_running():
+    #     potlas_loop_gst.start()
         
-    if not potlas_loop_ecitarovol.is_running():
-        potlas_loop_ecitarovol.start()
+    # if not potlas_loop_ecitarovol.is_running():
+    #     potlas_loop_ecitarovol.start()
     
-    if not potlas_loop_lc12vol.is_running():
-        potlas_loop_lc12vol.start()
+    # if not potlas_loop_lc12vol.is_running():
+    #     potlas_loop_lc12vol.start()
         
-    if not potlas_loop_7900avol.is_running():
-        potlas_loop_7900avol.start()
+    # if not potlas_loop_7900avol.is_running():
+    #     potlas_loop_7900avol.start()
         
-    if not potlas_loop_mbcongvol.is_running():
-        potlas_loop_mbcongvol.start()
+    # if not potlas_loop_mbcongvol.is_running():
+    #     potlas_loop_mbcongvol.start()
 
     if not potlas_loop_hev.is_running():
         potlas_loop_hev.start()
